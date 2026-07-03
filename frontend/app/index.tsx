@@ -1,9 +1,11 @@
 
 import { router } from "expo-router";
 import { useState } from "react";
-import { Button, TextInput, View,StyleSheet } from "react-native";
+import { Button, TextInput, View,StyleSheet,Text } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-
+import { ThemedView } from "./components/themed-view";
+import { ThemedText } from "./components/themed-text";
+import { Link } from 'expo-router';
 export default function LoginScreen() {
   const [login,setLogin] =  useState("")
   const [haslo,setHaslo] = useState("")
@@ -19,17 +21,15 @@ export default function LoginScreen() {
     if(login === testLogin && haslo === testHaslo){
       router.replace("/(tabs)/home")
     }
-    if(login !== testLogin){
-      alert('Login jest niepoprawny')
+    if(login !== testLogin || haslo !== testHaslo){
+      alert('Login lub haslo jest nieprawidlowe')
     }
-    if(haslo !== testHaslo){
-      alert('Haslo jest nieprawidlowe')
-    }
+    
   }
 
-  
+
   return (
-    <View >
+    <ThemedView >
    <SafeAreaProvider style={styles.container}>
     <SafeAreaView>
       <label>Login</label>
@@ -42,6 +42,9 @@ export default function LoginScreen() {
         title="Zaloguj"
         onPress={()=> sprawdzHaslo()}
       />
+         <Link href="/rejestracja" dismissTo style={styles.link}>
+        <ThemedText type="link">Nie masz konta?</ThemedText>
+      </Link>
     </SafeAreaView>
    </SafeAreaProvider>
  
@@ -50,7 +53,7 @@ export default function LoginScreen() {
         onPress={() => router.replace("/home")}
       />
       */}
-    </View>
+    </ThemedView>
 
 
   );
@@ -71,6 +74,11 @@ export default function LoginScreen() {
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    },
+
+    link : {
+       marginTop: 15,
+    paddingVertical: 15,
     }
   })
 
