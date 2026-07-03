@@ -33,7 +33,7 @@ export default function LoginScreen() {
     
    <SafeAreaProvider style={styles.container}>
     <SafeAreaView>
-      <ThemedView >
+      <ThemedView  >
         <Header title="Log in" headerStyle={styles.naglowek}></Header>
       <label>Login</label>
       <TextInput value={login} onChangeText={val => setLogin(val)}  style={styles.inputy}></TextInput>

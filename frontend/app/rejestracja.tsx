@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Button, TextInput, View,StyleSheet,Text, TouchableOpacity } from "react-native";
+import { Button, TextInput, View,StyleSheet,Text, TouchableOpacity, Image } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from "./components/themed-view";
 import { ThemedText } from "./components/themed-text";
@@ -70,7 +70,29 @@ export default function Rejestracja() {
         <SafeAreaView style={styles.safeArea}>
             <ThemedView style={styles.innerContainer}> 
                 <ThemedText type="title" style={styles.title} >Rejestracja konta</ThemedText>
+        
+            <View style={styles.socialContainer}>
+                    <TouchableOpacity> 
+                    <Image source={require('../assets/icons/facebook-icon.png')} style={styles.socialButton}>
 
+                    </Image>
+                        </TouchableOpacity>
+
+
+                         <TouchableOpacity> 
+                    <Image source={require('../assets/icons/apple-icon.png')} style={styles.socialButton}>
+
+                    </Image>
+                        </TouchableOpacity>
+
+
+                         <TouchableOpacity> 
+                    <Image source={require('../assets/icons/google-icon.png')} style={styles.socialButton}>
+
+                    </Image>
+                        </TouchableOpacity>
+            </View>
+        
                 <View style={styles.form}>
           <label style={styles.labels}>Imie</label>
           <TextInput value={imie} onChangeText={val => setImie(val)}  style={styles.inputs}></TextInput>
@@ -158,4 +180,26 @@ const styles = StyleSheet.create({
         fontSize: 17,
         fontWeight: '600',
     },
+    socialButton: {
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+},
+socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+    marginBottom: 24,
+},
+
 });
