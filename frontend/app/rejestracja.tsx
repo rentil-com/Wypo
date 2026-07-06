@@ -15,7 +15,7 @@ export default function Rejestracja() {
 
 
     const walidacja_adresu_email =()=>{
-         const adres_dowalidacji = adres.trim().toLowerCase()
+        const adres_dowalidacji = adres.trim().toLowerCase()
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
    
         if(adres !=""){
@@ -69,7 +69,7 @@ export default function Rejestracja() {
      <SafeAreaProvider style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
             <ThemedView style={styles.innerContainer}> 
-                <ThemedText type="title" style={styles.title} >Rejestracja konta</ThemedText>
+                <ThemedText type="title" style={styles.title} > Utwórz konto</ThemedText>
         
             <View style={styles.socialContainer}>
                     <TouchableOpacity> 
