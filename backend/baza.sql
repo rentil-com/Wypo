@@ -29,7 +29,8 @@ CREATE TABLE uzytkownicy (
 
 CREATE TABLE kategorie (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nazwa VARCHAR(100) NOT NULL
+    nazwa VARCHAR(100) NOT NULL,
+    zdjecie_url TEXT
 );
 
 CREATE TABLE sprzety (
@@ -38,23 +39,42 @@ CREATE TABLE sprzety (
     opis TEXT,
     kategoria_id INTEGER NOT NULL,
     zdjecie_url TEXT,
-    status status_sprzetu NOT NULL,
+
+    cena NUMERIC(10, 2) NOT NULL,
+    cena_po_promocji NUMERIC(10, 2),
+
+    status status_sprzetu NOT NULL DEFAULT 'dostepny',
     data_dodania TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_sprzet_uzytkownicy 
+    CONSTRAINT fk_sprzet_kategorie 
         FOREIGN KEY (kategoria_id)
         REFERENCES kategorie(id)
-        ON DELETE RESTRICT
+        ON DELETE RESTRICT,
+
+    CONSTRAINT chk_sprzety_cena
+        CHECK (cena >= 0),
+
+    CONSTRAINT chk_sprzety_cena_po_promocji
+        CHECK (
+            cena_po_promocji IS NULL 
+            OR cena_po_promocji >= 0
+        ),
+
+    CONSTRAINT chk_sprzety_promocja_mniejsza_od_ceny
+        CHECK (
+            cena_po_promocji IS NULL 
+            OR cena_po_promocji <= cena
+        )
 );
 
 CREATE TABLE wypozyczenia (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     sprzet_id INTEGER NOT NULL,
     uzytkownik_id INTEGER NOT NULL,
-    data_zlozenia TIMESTAMP NOT NULL,
+    data_zlozenia TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     data_od TIMESTAMP NOT NULL,
     data_do TIMESTAMP NOT NULL,
-    status status_wypozyczenia NOT NULL,
+    status status_wypozyczenia NOT NULL DEFAULT 'oczekujacy',
     data_zwrotu_rzeczywista TIMESTAMP,
 
     CONSTRAINT fk_wypozyczenia_sprzet 
@@ -71,12 +91,37 @@ CREATE TABLE wypozyczenia (
         CHECK (data_do >= data_od)
 );
 
+CREATE TABLE ulubione (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    uzytkownik_id INTEGER NOT NULL,
+    sprzet_id INTEGER NOT NULL,
+    data_dodania TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_ulubione_uzytkownicy
+        FOREIGN KEY (uzytkownik_id)
+        REFERENCES uzytkownicy(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ulubione_sprzety
+        FOREIGN KEY (sprzet_id)
+        REFERENCES sprzety(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_ulubione_uzytkownik_sprzet
+        UNIQUE (uzytkownik_id, sprzet_id)
+);
+
 CREATE TABLE powiadomienia (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     uzytkownik_id INTEGER NOT NULL,
     tresc TEXT NOT NULL,
-    przeczytane BOOL NOT NULL,
-    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    przeczytane BOOL NOT NULL DEFAULT FALSE,
+    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_powiadomienia_uzytkownicy
+        FOREIGN KEY (uzytkownik_id)
+        REFERENCES uzytkownicy(id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE sesje (
