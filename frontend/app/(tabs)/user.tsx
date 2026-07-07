@@ -46,6 +46,34 @@ export default function User() {
             placeholderTextColor="#9AA4B2"
           />
         </View>
+
+        {/*KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM , JAK TO DZIALA */}
+         <View style={styles.headerSideActions}>
+                <Pressable style={styles.headerInfo} >
+                  <Text style={styles.headerInfoText}>Kategorie</Text>
+                </Pressable>
+             </View>
+      
+      
+              
+              <View style={styles.headerSideActions}>
+                <Pressable style={styles.headerInfo} >
+                  <Text style={styles.headerInfoText}>Jak to działa?</Text>
+                </Pressable>
+             </View>
+      
+              <View style={styles.headerSideActions}>
+                <Pressable style={styles.headerInfo} >
+                  <Text style={styles.headerInfoText}>Dla firm</Text>
+                </Pressable>
+             </View>
+      
+              <View style={styles.headerSideActions}>
+                <Pressable style={styles.headerInfo} >
+                  <Text style={styles.headerInfoText}>Kontakt</Text>
+                </Pressable>
+             </View>
+      
         {/*CONTROLS */}
         {/*Przenoszenie do odpowiednich widokow */}
         <View style={styles.headerActions}>

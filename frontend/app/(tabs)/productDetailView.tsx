@@ -5,6 +5,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import { TextInput } from "react-native";
 import { Pressable } from "react-native";
+import { router } from "expo-router";
 export default function TabsLayout() {
     const [searchText,setsearchText] = useState("")
   return (
@@ -90,6 +91,30 @@ export default function TabsLayout() {
        </View>
    
        </View>
+
+    <View style={styles.category}>
+        <View style={styles.category_path}> 
+         <Pressable style={styles.seeAllButton}>
+          <MaterialIcons name="home" size={22} color="#176BDE" />
+        </Pressable>
+
+       <Pressable style={styles.seeAllButton}>
+          <Text style={styles.seeAllText}>Elektornika</Text>
+          <MaterialIcons name="chevron-right" size={22} color="#176BDE" />
+        </Pressable>
+
+        <Pressable style={styles.seeAllButton}>
+          <Text style={styles.seeAllText}>Laptopy</Text>
+          <MaterialIcons name="chevron-right" size={22} color="#176BDE" />
+        </Pressable>
+
+           <Pressable style={styles.seeAllButton}>
+          <Text style={styles.seeAllText}>Laptop dell</Text>
+        </Pressable>
+
+        </View>
+    </View>
+
     </View>
        </ScrollView>
        </View>
@@ -143,5 +168,12 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
+    },
+    searchText : {
+        flex: 1,
+        height: "100%",
+        fontSize: 15,
+        color: "#111827",
+        outlineStyle: "none" as any,
     }
 })
