@@ -37,29 +37,29 @@ export default function TabsLayout() {
        </View>
         {/*KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM , JAK TO DZIALA */}
 
-        <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} >
-            <Text style={styles.headerActionText}>Kategorie</Text>
+        <View style={styles.headerSideActions}>
+          <Pressable style={styles.headerInfo} >
+            <Text style={styles.headerInfoText}>Kategorie</Text>
           </Pressable>
        </View>
 
 
         
-        <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} >
-            <Text style={styles.headerActionText}>Jak to działa?</Text>
+        <View style={styles.headerSideActions}>
+          <Pressable style={styles.headerInfo} >
+            <Text style={styles.headerInfoText}>Jak to działa?</Text>
           </Pressable>
        </View>
 
-        <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} >
-            <Text style={styles.headerActionText}>Dla firm</Text>
+        <View style={styles.headerSideActions}>
+          <Pressable style={styles.headerInfo} >
+            <Text style={styles.headerInfoText}>Dla firm</Text>
           </Pressable>
        </View>
 
-        <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} >
-            <Text style={styles.headerActionText}>Kontakt</Text>
+        <View style={styles.headerSideActions}>
+          <Pressable style={styles.headerInfo} >
+            <Text style={styles.headerInfoText}>Kontakt</Text>
           </Pressable>
        </View>
 
@@ -99,6 +99,49 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({ 
     screen : {
+        flex: 1,
+        backgroundColor: "#F4F8FF",
+        paddingTop: 24,     
+    },
+    page : {
+        width: "100%",
+        maxWidth: 1440,
+        alignSelf: "center",
+        paddingHorizontal: 32,
+        paddingBottom: 40
+    },
+    header : { 
+        width: "100%",
+        minHeight: 72,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 24,
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 24,
 
+        shadowColor: "#0F172A",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.06,
+        shadowRadius: 18,
+        elevation: 4,
+    },
+    headerText : {
+        fontSize: 24,
+        fontWeight: "900",
+        color: "#111827",
+    },
+    searchBar : {
+        flex: 1,
+        height: 48,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#E2E8F0",
+        borderRadius: 999,
+        paddingHorizontal: 18,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
     }
 })
