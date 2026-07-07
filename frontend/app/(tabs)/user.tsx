@@ -550,5 +550,135 @@ const styles = StyleSheet.create({
   categoryNameActive: {
     color: "#F43F5E",
   },
+  seeAllButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+    },
 
+  seeAllText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#176BDE",
+  },
+
+  productsList: {
+    paddingBottom: 20,
+  },
+
+  productRow: {
+    gap: 16,
+    marginBottom: 16,
+  },
+
+  productCard: {
+    flex: 1,
+    minHeight: 310,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    padding: 18,
+    position: "relative",
+
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+
+  favoriteButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 5,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  productImageBox: {
+    height: 150,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+
+  productImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  productInfo: {
+    flex: 1,
+  },
+
+  productName: {
+    fontSize: 17,
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 4,
+  },
+
+  productStatus: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748B",
+    marginBottom: 8,
+  },
+
+  productDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#64748B",
+    minHeight: 36,
+  },
+
+  productBottom: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+  },
+
+  productPrice: {
+    fontSize: 19,
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 8,
+  },
+
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+
+  ratingText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+
+  addButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1.5,
+    borderColor: "#176BDE",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  scroll: {
+  flex: 1,
+},
+
+  scrollContent: {
+    paddingBottom: 60,
+  },
 });
