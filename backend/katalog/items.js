@@ -137,6 +137,22 @@ function parsujCene(wartosc, wymagana = false) {
   return { poprawna: true, wartosc: cena };
 }
 
+function parsujFiltrCeny(wartosc) {
+  const cena = parsujCene(wartosc);
+
+  return cena.poprawna && cena.wartosc !== null
+    ? cena.wartosc
+    : null;
+}
+
+function parsujBoolean(wartosc) {
+  if (typeof wartosc !== "string") {
+    return false;
+  }
+
+  return ["1", "true", "tak", "yes"].includes(wartosc.trim().toLowerCase());
+}
+
 function parsujUrlZdjecia(wartosc) {
   const url = normalizujTekstOpcjonalny(wartosc);
 
@@ -683,6 +699,10 @@ router.get("/", async (req, res) => {
       ? req.query.status
       : null;
     let zastosowanyStatus = null;
+    const nazwa = normalizujTekst(req.query.nazwa);
+    const cenaOd = parsujFiltrCeny(req.query.cena_od ?? req.query.cena_min);
+    const cenaDo = parsujFiltrCeny(req.query.cena_do ?? req.query.cena_max);
+    const tylkoPromocje = parsujBoolean(req.query.promocja ?? req.query.tylko_promocje);
 
     const where = [];
     const whereParams = [];
@@ -709,6 +729,25 @@ router.get("/", async (req, res) => {
 
       // Jeśli user poda np. status=w_naprawie,
       // to nic nie robimy, czyli filtr jest ignorowany
+    }
+
+    if (nazwa) {
+      whereParams.push(`%${nazwa}%`);
+      where.push(`nazwa ILIKE $${whereParams.length}`);
+    }
+
+    if (cenaOd !== null) {
+      whereParams.push(cenaOd);
+      where.push(`COALESCE(cena_po_promocji, cena) >= $${whereParams.length}`);
+    }
+
+    if (cenaDo !== null) {
+      whereParams.push(cenaDo);
+      where.push(`COALESCE(cena_po_promocji, cena) <= $${whereParams.length}`);
+    }
+
+    if (tylkoPromocje) {
+      where.push("cena_po_promocji IS NOT NULL AND cena > cena_po_promocji");
     }
 
     const whereSql = where.length > 0
@@ -762,6 +801,10 @@ router.get("/", async (req, res) => {
       limitPrzedmiotowNaStrone,
       kategoria,
       status: zastosowanyStatus,
+      nazwa: nazwa || null,
+      cena_od: cenaOd,
+      cena_do: cenaDo,
+      promocja: tylkoPromocje,
       czyAdmin,
       total,
       liczbaStron,

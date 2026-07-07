@@ -449,6 +449,19 @@ router.get("/usun", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
+    const nazwa = normalizujTekst(req.query.nazwa);
+    const params = [];
+    const where = [];
+
+    if (nazwa) {
+        params.push(`%${nazwa}%`);
+        where.push(`k.nazwa ILIKE $${params.length}`);
+    }
+
+    const whereSql = where.length > 0
+        ? `WHERE ${where.join(" AND ")}`
+        : "";
+
     const result = await pool.query(
         `
         SELECT 
@@ -460,9 +473,11 @@ router.get("/", async (req, res) => {
         FROM kategorie k
         LEFT JOIN sprzety s 
             ON s.kategoria_id = k.id
+        ${whereSql}
         GROUP BY k.id, k.nazwa, k.zdjecie_url
         ORDER BY k.id;
-        `
+        `,
+        params
     );
 
     const dane = result.rows.map(mapujKategorie);
