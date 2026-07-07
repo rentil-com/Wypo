@@ -177,34 +177,84 @@ async function usunZdjecieZS3(zdjecie_url) {
     }));
 }
 
-router.post("/dodaj", async (req, res) => {
-    const uzytkownik = await pobierzUzytkownikaZSesji(req);
+router.post("/dodaj", upload.single("zdjecie"), async (req, res) => {
+    let client = null;
+    let zdjecieDodaneDoS3 = null;
+    let transakcjaAktywna = false;
+    let transakcjaZatwierdzona = false;
 
-    if (uzytkownik?.rola !== "admin") {
-        return res.status(403).json({
-            error: "Brak uprawnien."
+    try {
+        const uzytkownik = await pobierzUzytkownikaZSesji(req);
+
+        if (uzytkownik?.rola !== "admin") {
+            return res.status(403).json({
+                error: "Brak uprawnien."
+            });
+        }
+
+        const nazwa = normalizujTekst(req.body.nazwa);
+        const zdjecie = parsujUrlZdjecia(req.body.zdjecie_url);
+
+        if (!nazwa || nazwa.length > 100 || !zdjecie.poprawna || !czyPoprawnyPlikZdjecia(req.file)) {
+            return res.status(400).json({
+                error: "Nieprawidlowe dane kategorii."
+            });
+        }
+
+        let zdjecie_url = zdjecie.wartosc;
+
+        if (req.file) {
+            zdjecieDodaneDoS3 = await dodajZdjecieDoS3(req.file);
+            zdjecie_url = zdjecieDodaneDoS3;
+        }
+
+        client = await pool.connect();
+        await client.query("BEGIN");
+        transakcjaAktywna = true;
+
+        const result = await client.query(
+            `
+            INSERT INTO kategorie (nazwa, zdjecie_url)
+            VALUES ($1, $2)
+            RETURNING id, nazwa, zdjecie_url;
+            `,
+            [nazwa, zdjecie_url]
+        );
+
+        await client.query("COMMIT");
+        transakcjaAktywna = false;
+        transakcjaZatwierdzona = true;
+        zdjecieDodaneDoS3 = null;
+
+        return res.status(201).json({
+            ...result.rows[0],
+            zdjecie_url: formatujUrlZdjecia(result.rows[0].zdjecie_url)
         });
-    }
+    } catch (err) {
+        if (transakcjaAktywna && client) {
+            await client.query("ROLLBACK").catch(console.error);
+        }
 
-    const nazwa = normalizujTekst(req.body.nazwa);
-    const zdjecie = parsujUrlZdjecia(req.body.zdjecie_url);
+        if (!transakcjaZatwierdzona && zdjecieDodaneDoS3) {
+            await usunZdjecieZS3(zdjecieDodaneDoS3).catch(console.error);
+        }
 
-    if (!nazwa || nazwa.length > 100 || !zdjecie.poprawna) {
-        return res.status(400).json({
-            error: "Nieprawidlowe dane kategorii."
+        if (err.message === "Brak konfiguracji S3.") {
+            return res.status(500).json({
+                error: "Brak konfiguracji S3."
+            });
+        }
+
+        console.error(err);
+
+        return res.status(500).json({
+            error: "Blad serwera"
         });
+    } finally {
+        if (client) {
+            client.release();
+        }
     }
-
-    const result = await pool.query(
-        `
-        INSERT INTO kategorie (nazwa, zdjecie_url)
-        VALUES ($1, $2)
-        RETURNING id, nazwa, zdjecie_url;
-        `,
-        [nazwa, zdjecie.wartosc]
-    );
-
-    return res.status(201).json(result.rows[0]);
 });
 
 async function edytujKategorie(req, res) {
