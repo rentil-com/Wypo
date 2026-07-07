@@ -6,6 +6,7 @@ import dane from  "../dane.json"
 import { ThemedText } from "@/components/themed-text";
 import { SymbolView } from "expo-symbols";
 import { MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 export default function User() {
   const [katalog,setKatalog] = useState(dane)
@@ -48,17 +49,17 @@ export default function User() {
         {/*CONTROLS */}
         {/*Przenoszenie do odpowiednich widokow */}
         <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction}>
-            <MaterialIcons name="favorite-border" size={24} color="#111827" />
+          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/wishlist")}>
+            <MaterialIcons name="favorite-border" size={24} color="#111827"/>
             <Text style={styles.headerActionText}>Ulubione</Text>
           </Pressable>
 
-          <Pressable style={styles.headerAction}>
+          <Pressable style={styles.headerAction}  onPress={()=> router.replace("/(tabs)/basket")}>
             <MaterialIcons name="shopping-cart" size={24} color="#111827" />
             <Text style={styles.headerActionText}>Koszyk</Text>
           </Pressable>
 
-          <Pressable style={styles.headerAction}>
+          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/account")}>
             <MaterialIcons name="person-outline" size={25} color="#111827" />
             <Text style={styles.headerActionText}>Konto</Text>
           </Pressable>
@@ -228,7 +229,7 @@ export default function User() {
                   </View>
                 </View>
 
-               
+               {/* DODAJ DO KOSZYKA */}
                 <Pressable style={styles.addButton}>
                   <MaterialIcons name="add" size={24} color="#176BDE" />
                 </Pressable>
@@ -681,4 +682,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 60,
   },
+  headerName : {
+    fontFamily: 'Arial'
+  }
 });
