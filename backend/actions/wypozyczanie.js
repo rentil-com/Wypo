@@ -271,10 +271,12 @@ router.post("/wypozycz", async (req, res) => {
       INSERT INTO wypozyczenia (
         sprzet_id,
         uzytkownik_id,
+        data_zlozenia,
         data_od,
-        data_do
+        data_do,
+        status
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, CURRENT_TIMESTAMP, $3, $4, 'oczekujacy')
       RETURNING id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista;
       `,
       [sprzetId, uzytkownik.id, dataOd, dataDo]
