@@ -23,6 +23,11 @@ function czyPoprawnyEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function czyPoprawneHaslo(haslo) {
+  return typeof haslo === "string"
+    && /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/.test(haslo);
+}
+
 function mapujKonto(konto) {
   return {
     id: konto.id,
@@ -90,6 +95,18 @@ router.post("/create", async (req, res) => {
     if (!email || !hasloKonta || !imie || !nazwisko) {
       return res.status(400).json({
         error: "Nieprawidlowe zapytanie."
+      });
+    }
+
+    if (!czyPoprawnyEmail(email)) {
+      return res.status(400).json({
+        error: "Nieprawidlowy email."
+      });
+    }
+
+    if (!czyPoprawneHaslo(hasloKonta)) {
+      return res.status(400).json({
+        error: "Haslo musi miec minimum 8 znakow, jedna duza litere, jedna mala litere i jeden znak specjalny."
       });
     }
 
