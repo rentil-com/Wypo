@@ -178,7 +178,7 @@ export default function ProductDetailedView () {
         </View>
 
         {/* COFNIECIE ZDJECIA*/}
-        <Pressable onPress={()=> przejdzDoPoprzedniegoZdjecia()}>
+        <Pressable onPress={()=> przejdzDoPoprzedniegoZdjecia()}  style={[styles.galleryArrow, styles.galleryArrowLeft]}>
       <MaterialIcons name="chevron-left" size={28} color="#0F172A" />
 </Pressable>
 
@@ -192,7 +192,7 @@ export default function ProductDetailedView () {
 
    
            {/* KOLEJNE ZDJECIE*/}
-       <Pressable onPress={()=> przejdzDoNastepnegoZdjecia()}>
+       <Pressable onPress={()=> przejdzDoNastepnegoZdjecia()}  style={[styles.galleryArrow, styles.galleryArrowRight]}>
       <MaterialIcons name="chevron-right" size={28} color="#0F172A" />
     </Pressable>
 
@@ -216,7 +216,21 @@ export default function ProductDetailedView () {
               </View>
        </View>
     {/* PRAWA STRONA - SZCZEGOLY */}
-    
+    <View style={styles.detailsCard}>
+        <Text style={styles.productTitle}>{product.nazwa}</Text>
+          <View style={styles.statusRow}>
+                <View style={styles.statusDot} />
+            <Text style={styles.statusText}>
+                  {product.status}
+            </Text>
+
+        {/* opinie */}
+        <MaterialIcons name="star" size={18} color="#F59E0B" />
+                <Text style={styles.ratingText}>4.8 (124 opinie)</Text>
+              
+        </View>
+          </View>
+
     </View>
 
     </View>
@@ -230,113 +244,168 @@ export default function ProductDetailedView () {
 
 
 const styles = StyleSheet.create({ 
-    screen : {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-        paddingTop: 24,     
-    },
-    page : {
-        width: "100%",
-        maxWidth: 1440,
-        alignSelf: "center",
-        paddingHorizontal: 32,
-        paddingBottom: 40
-    },
-    header : { 
-        width: "100%",
-        minHeight: 72,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 24,
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 24,
-
-        shadowColor: "#0F172A",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.06,
-        shadowRadius: 18,
-        elevation: 4,
-    },
-    headerText : {
-        fontSize: 24,
-        fontWeight: "900",
-        color: "#111827",
-    },
-    searchBar : {
-        flex: 1,
-        height: 48,
-        backgroundColor: "#FFFFFF",
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-        borderRadius: 999,
-        paddingHorizontal: 18,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-    },
-    searchText : {
-        flex: 1,
-        height: "100%",
-        fontSize: 15,
-        color: "#111827",
-        outlineStyle: "none" as any,
-    },
-    category_path: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flexWrap: 'nowrap',           
-        overflow: 'hidden',           
-    },
-    breadcrumbItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 2,
-    },
-    breadcrumbText: {
-        fontSize: 14,
-        color: '#176BDE',
-        fontWeight: '500',
-        marginRight: 4,
-    },
-    breadcrumbLast: {
-        fontSize: 14,
-        color: '#1F2937',
-        fontWeight: '600',
-    },
-    headerActions: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 22,
+    screen: {
+    flex: 1,
+    backgroundColor: "#F4F8FF",
   },
 
-    headerAction: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 7,
+  scroll: {
+    flex: 1,
   },
-
-    headerActionText: {
-            fontSize: 14,
-            fontWeight: "700",
-            color: "#111827",
-    },
-    scroll: {
-        flex: 1,
-    },
 
   scrollContent: {
+    paddingTop: 24,
     paddingBottom: 60,
   },
-    galleryCard: {
+
+  page: {
     width: "100%",
-    marginTop: 24,
+    maxWidth: 1440,
+    alignSelf: "center",
+    paddingHorizontal: 32,
+    paddingBottom: 40,
+  },
+
+  errorText: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#EF4444",
+    padding: 32,
+  },
+
+  /* HEADER */
+
+  header: {
+    width: "100%",
+    minHeight: 76,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 24,
+
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+
+  headerName: {
+    minWidth: 170,
+  },
+
+  headerText: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#07163D",
+  },
+
+  searchBar: {
+    flex: 1,
+    maxWidth: 440,
+    height: 48,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  searchText: {
+    flex: 1,
+    height: "100%",
+    fontSize: 15,
+    color: "#111827",
+    outlineStyle: "none" as any,
+  },
+
+  navLinks: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 28,
+  },
+
+  sideheaderAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+
+  sideheaderText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111827",
+  },
+
+  headerDivider: {
+    width: 1,
+    height: 42,
+    backgroundColor: "#E2E8F0",
+  },
+
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 22,
+  },
+
+  headerAction: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+
+  headerActionText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#334155",
+  },
+  category_path: {
+    marginTop: 28,
+    marginBottom: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "nowrap",
+    overflow: "hidden",
+    gap: 8,
+  },
+
+  breadcrumbItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 2,
+  },
+
+  breadcrumbText: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+
+  breadcrumbLast: {
+    fontSize: 14,
+    color: "#176BDE",
+    fontWeight: "700",
+  },
+
+  /* MAIN PRODUCT SECTION */
+
+  productSection: {
+    width: "100%",
     flexDirection: "row",
     gap: 24,
-    },
+    alignItems: "stretch",
+  },
 
-    productLayout: {
+  /* LEFT GALLERY */
+
+  galleryCard: {
     flex: 1.65,
     minHeight: 720,
     backgroundColor: "#FFFFFF",
@@ -349,25 +418,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 24,
     elevation: 5,
-    },
+  },
 
-    mainImageBox: {
-    flex: 1,
-    minHeight: 520,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 56,
-    paddingTop: 30,
-    paddingBottom: 30,
-    },
-
-    mainProductImage: {
-    width: "100%",
-    height: "100%",
-    maxHeight: 520,
-    },
-
-    imageCounter: {
+  imageCounter: {
     position: "absolute",
     top: 26,
     right: 28,
@@ -376,12 +429,82 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    },
+  },
 
-    imageCounterText: {
+  imageCounterText: {
     fontSize: 14,
     fontWeight: "800",
     color: "#64748B",
-    },
+  },
+    mainImageBox: {
+    flex: 1,
+    minHeight: 540,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 60,
+    paddingTop: 35,
+    paddingBottom: 20,
+  },
+
+  mainProductImage: {
+    width: "100%",
+    height: "100%",
+    maxHeight: 540,
+  },
+  thumbnailRow: {
+    marginTop: 20,
+    flexDirection: "row",
+    gap: 12,
+  },
+
+  thumbnailBox: {
+    flex: 1,
+    height: 96,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 8,
+  },
+
+  thumbnailBoxActive: {
+    borderWidth: 2,
+    borderColor: "#176BDE",
+    backgroundColor: "#F8FBFF",
+  },
+
+  thumbnailImage: {
+    width: "100%",
+    height: "100%",
+  },
+    galleryArrow: {
+    position: "absolute",
+    top: "48%",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+
+  galleryArrowLeft: {
+    left: 28,
+  },
+
+  galleryArrowRight: {
+    right: 28,
+  },
 
 })
