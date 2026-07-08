@@ -250,14 +250,17 @@ Body JSON albo `multipart/form-data`:
   "nazwa": "Wiertarka",
   "opis": "Wiertarka udarowa",
   "kategoria_id": 1,
-  "zdjecie_url": "https://example.com/wiertarka.jpg",
+  "zdjecia_url": {
+    "1": "https://example.com/wiertarka.jpg",
+    "2": "https://example.com/wiertarka-2.jpg"
+  },
   "cena": "49.99",
   "cena_po_promocji": "39.99",
   "status": "dostepny"
 }
 ```
 
-W `multipart/form-data` można wysłać plik `zdjecie`.
+W `multipart/form-data` można wysłać pliki `zdjecia`. Pojedynczy plik `zdjecie` też jest obsługiwany.
 
 Wymagane pola:
 
@@ -268,7 +271,7 @@ Wymagane pola:
 Opcjonalne pola:
 
 - `opis`
-- `zdjecie_url`
+- `zdjecia_url`
 - `cena_po_promocji`
 - `status`
 
@@ -285,8 +288,48 @@ Edytuje sprzęt. Można zmieniać:
 - `status`
 - `cena`
 - `cena_po_promocji`
-- `zdjecie_url`
-- plik `zdjecie` w `multipart/form-data`
+
+Zdjęć nie można zmieniać przez `edit/:id`. Do tego służą osobne endpointy poniżej.
+
+### `POST /items/add_photos/:id`
+
+Admin only.
+
+Dodaje zdjęcia do sprzętu.
+
+Format URL, body JSON:
+
+```json
+{
+  "zdjecia_url": [
+    "https://url1",
+    "https://url2"
+  ]
+}
+```
+
+Format plików, `multipart/form-data`:
+
+- `zdjecie`: `plik1.png`
+- `zdjecie`: `plik2.png`
+
+Można też połączyć oba formaty w jednym `multipart/form-data`: wysłać kilka plików `zdjecie` oraz pole `zdjecia_url` jako JSON string z tablicą URL-i. Zdjęcia są dopisywane do kolejnych wolnych numerów.
+
+### `DELETE /items/delete_photos/:id`
+
+Admin only.
+
+Usuwa zdjęcia ze sprzętu.
+
+Body JSON:
+
+```json
+{
+  "zdjecia": [1, 2]
+}
+```
+
+Można też przekazać `zdjecia_url` jako obiekt; wtedy usuwane są zdjęcia o podanych kluczach.
 
 ### `DELETE /items/usun/:id`
 
@@ -352,8 +395,47 @@ Warunki:
 - sprzęt musi mieć status `dostepny`
 - `data_do` nie może być wcześniejsza niż `data_od`
 
-### `PATCH /wypozyczenia/wniosek/:id`
-### `POST /wypozyczenia/wniosek/:id`
+### `GET /wypozyczenia/wnioski`
+
+Admin only.
+
+Zwraca paginowaną listę wszystkich wypożyczeń, niezależnie od statusu. Dostępne statusy:
+
+- `oczekujacy`
+- `zaakceptowany`
+- `odrzucony`
+- `aktywny`
+- `zwrocony`
+
+Query parametry:
+
+- `strona` - numer strony, domyślnie `1`
+- `uzytkownik_id` - filtr po ID użytkownika
+- `sprzet_id` - filtr po ID sprzętu
+- `status` - filtr po statusie: `oczekujacy`, `zaakceptowany`, `odrzucony`, `aktywny` albo `zwrocony`
+- `data` - filtr po dniu, który wpada w zakres `data_od` - `data_do`
+
+Bez filtrów endpoint zwraca wszystkie wypożyczenia, także aktywne i zwrócone.
+
+Endpoint zwraca maksymalnie 10 rekordów na stronę.
+
+Odpowiedź zawiera:
+
+- `strona`
+- `limitWnioskowNaStrone`
+- `filtry`
+- `total`
+- `liczbaStron`
+- `dane`
+
+### `GET /wypozyczenia/wnioski/:id`
+
+Admin only.
+
+Zwraca jedno wypożyczenie po ID, niezależnie od statusu.
+
+### `PATCH /wypozyczenia/wnioski/:id`
+### `POST /wypozyczenia/wnioski/:id`
 
 Admin only.
 
@@ -381,7 +463,6 @@ Dozwolone decyzje:
 - `odrzucony`
 
 Akceptacja wniosku nie zmienia statusu sprzętu na `wypozyczony`. Sprzęt zostaje wypożyczony dopiero po aktywacji.
-
 ### `PATCH /wypozyczenia/aktywuj/:id`
 ### `POST /wypozyczenia/aktywuj/:id`
 

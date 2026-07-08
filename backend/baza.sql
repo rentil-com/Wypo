@@ -38,7 +38,7 @@ CREATE TABLE sprzety (
     nazwa VARCHAR(100) NOT NULL,
     opis TEXT,
     kategoria_id INTEGER NOT NULL,
-    zdjecie_url TEXT,
+    zdjecia_url JSONB NOT NULL DEFAULT '{}'::jsonb,
 
     cena NUMERIC(10, 2) NOT NULL,
     cena_po_promocji NUMERIC(10, 2),
@@ -59,6 +59,9 @@ CREATE TABLE sprzety (
             cena_po_promocji IS NULL 
             OR cena_po_promocji >= 0
         ),
+
+    CONSTRAINT chk_sprzety_zdjecia_url
+        CHECK (jsonb_typeof(zdjecia_url) = 'object'),
 
     CONSTRAINT chk_sprzety_promocja_mniejsza_od_ceny
         CHECK (

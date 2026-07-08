@@ -42,6 +42,6 @@ app.use("/account", accounts)
 app.use("/ulubione", ulubione)
 app.use("/wypozyczenia", wypozyczenia)
 
-app.listen(port, async () => {
+app.listen(port, "0.0.0.0", async () => {
     console.log(`Przykładowa apka na porcie ${port}`)
 })

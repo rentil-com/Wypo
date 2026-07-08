@@ -1,4 +1,4 @@
-﻿import { pool } from '../db/pool.js';
+import { pool } from '../db/pool.js';
 import { Router } from 'express';
 import { pobierzUzytkownikaZSesji } from "../auth/sessions.js";
 
@@ -12,6 +12,8 @@ const dozwoloneStatusyWypozyczen = [
   "zwrocony"
 ];
 const statusyBlokujaceSprzet = ["aktywny"];
+const statusyListyWypozyczen = dozwoloneStatusyWypozyczen;
+const limitWnioskowNaStrone = 10;
 
 function normalizujTekst(wartosc) {
   return typeof wartosc === "string"
@@ -304,6 +306,181 @@ router.post("/wypozycz", async (req, res) => {
   }
 });
 
+async function pobierzWnioski(req, res) {
+  try {
+    const uzytkownik = await pobierzZalogowanego(req, res);
+
+    if (!uzytkownik) {
+      return;
+    }
+
+    if (!sprawdzAdmina(uzytkownik, res)) {
+      return;
+    }
+
+    const strona = parsujId(req.query.strona) || 1;
+    const offset = (strona - 1) * limitWnioskowNaStrone;
+    const where = ["status = ANY($1::status_wypozyczenia[])"];
+    const params = [statusyListyWypozyczen];
+    const filtry = {
+      uzytkownik_id: null,
+      sprzet_id: null,
+      data: null,
+      status: null
+    };
+
+    if (Object.prototype.hasOwnProperty.call(req.query, "uzytkownik_id")) {
+      const uzytkownikId = parsujId(req.query.uzytkownik_id);
+
+      if (!uzytkownikId) {
+        return res.status(400).json({
+          error: "Nieprawidlowe ID uzytkownika."
+        });
+      }
+
+      params.push(uzytkownikId);
+      where.push(`uzytkownik_id = $${params.length}`);
+      filtry.uzytkownik_id = uzytkownikId;
+    }
+
+    const sprzetParam = req.query.sprzet_id ?? req.query.sprzecie_id;
+
+    if (sprzetParam !== undefined) {
+      const sprzetId = parsujId(sprzetParam);
+
+      if (!sprzetId) {
+        return res.status(400).json({
+          error: "Nieprawidlowe ID sprzetu."
+        });
+      }
+
+      params.push(sprzetId);
+      where.push(`sprzet_id = $${params.length}`);
+      filtry.sprzet_id = sprzetId;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.query, "status")) {
+      const status = normalizujTekst(req.query.status);
+
+      if (!statusyListyWypozyczen.includes(status)) {
+        return res.status(400).json({
+          error: "Nieprawidlowy status wniosku."
+        });
+      }
+
+      params.push(status);
+      where.push(`status = $${params.length}::status_wypozyczenia`);
+      filtry.status = status;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.query, "data")) {
+      const data = parsujDate(req.query.data);
+
+      if (!data) {
+        return res.status(400).json({
+          error: "Nieprawidlowa data."
+        });
+      }
+
+      params.push(data);
+      where.push(`data_od::date <= $${params.length}::date AND data_do::date >= $${params.length}::date`);
+      filtry.data = req.query.data;
+    }
+
+    const whereSql = where.join(" AND ");
+    const limitIndex = params.length + 1;
+    const offsetIndex = params.length + 2;
+
+    const result = await pool.query(
+      `
+      SELECT id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista
+      FROM wypozyczenia
+      WHERE ${whereSql}
+      ORDER BY data_zlozenia DESC, id DESC
+      LIMIT $${limitIndex} OFFSET $${offsetIndex};
+      `,
+      [...params, limitWnioskowNaStrone, offset]
+    );
+
+    const countResult = await pool.query(
+      `
+      SELECT COUNT(*) AS total
+      FROM wypozyczenia
+      WHERE ${whereSql};
+      `,
+      params
+    );
+
+    const total = Number(countResult.rows[0].total);
+    const liczbaStron = Math.ceil(total / limitWnioskowNaStrone);
+
+    return res.status(200).json({
+      strona,
+      limitWnioskowNaStrone,
+      filtry,
+      total,
+      liczbaStron,
+      dane: result.rows.map(mapujWypozyczenie)
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Blad serwera"
+    });
+  }
+}
+
+async function pobierzWniosek(req, res) {
+  try {
+    const uzytkownik = await pobierzZalogowanego(req, res);
+
+    if (!uzytkownik) {
+      return;
+    }
+
+    if (!sprawdzAdmina(uzytkownik, res)) {
+      return;
+    }
+
+    const id = parsujId(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({
+        error: "Nieprawidlowe ID wniosku."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista
+      FROM wypozyczenia
+      WHERE id = $1
+        AND status = ANY($2::status_wypozyczenia[])
+      LIMIT 1;
+      `,
+      [id, statusyListyWypozyczen]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Nie znaleziono wniosku."
+      });
+    }
+
+    return res.status(200).json(mapujWypozyczenie(result.rows[0]));
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Blad serwera"
+    });
+  }
+}
+
+router.get("/wnioski", pobierzWnioski);
+router.get("/wnioski/:id", pobierzWniosek);
+
 async function zarzadzajWnioskiem(req, res) {
   const client = await pool.connect();
 
@@ -402,8 +579,8 @@ async function zarzadzajWnioskiem(req, res) {
   }
 }
 
-router.patch("/wniosek/:id", zarzadzajWnioskiem);
-router.post("/wniosek/:id", zarzadzajWnioskiem);
+router.patch("/wnioski/:id", zarzadzajWnioskiem);
+router.post("/wnioski/:id", zarzadzajWnioskiem);
 
 async function aktywujWypozyczenie(req, res) {
   const client = await pool.connect();

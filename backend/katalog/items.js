@@ -95,6 +95,39 @@ function formatujUrlZdjecia(zdjecie_url) {
   return `${process.env.S3_WEB_ENDPOINT.replace(/\/+$/, "")}/${zdjecie_url.replace(/^\/+/, "")}`;
 }
 
+function czyObiektZdjec(wartosc) {
+  return wartosc && typeof wartosc === "object" && !Array.isArray(wartosc);
+}
+
+function uporzadkujZdjeciaUrl(zdjecia_url) {
+  if (!czyObiektZdjec(zdjecia_url)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(zdjecia_url)
+      .sort(([pierwszy], [drugi]) => Number(pierwszy) - Number(drugi))
+  );
+}
+
+function formatujZdjeciaUrl(zdjecia_url) {
+  const zdjecia = uporzadkujZdjeciaUrl(zdjecia_url);
+
+  return Object.fromEntries(
+    Object.entries(zdjecia).map(([numer, url]) => [numer, formatujUrlZdjecia(url)])
+  );
+}
+
+function nastepnyNumerZdjecia(zdjecia_url) {
+  const numery = Object.keys(uporzadkujZdjeciaUrl(zdjecia_url))
+    .map((numer) => Number(numer))
+    .filter((numer) => Number.isInteger(numer) && numer > 0);
+
+  return numery.length > 0
+    ? Math.max(...numery) + 1
+    : 1;
+}
+
 function normalizujTekst(wartosc) {
   return typeof wartosc === "string"
     ? wartosc.trim()
@@ -172,8 +205,159 @@ function parsujUrlZdjecia(wartosc) {
   }
 }
 
+function parsujZdjeciaUrl(wartosc, wymagane = false) {
+  if (
+    wartosc === undefined ||
+    wartosc === null ||
+    (typeof wartosc === "string" && wartosc.trim() === "")
+  ) {
+    return wymagane
+      ? { poprawna: false }
+      : { poprawna: true, wartosc: {} };
+  }
+
+  let zdjecia = wartosc;
+
+  if (typeof wartosc === "string") {
+    try {
+      zdjecia = JSON.parse(wartosc);
+    } catch {
+      return { poprawna: false };
+    }
+  }
+
+  if (!czyObiektZdjec(zdjecia)) {
+    return { poprawna: false };
+  }
+
+  const wynik = {};
+
+  for (const [numer, url] of Object.entries(zdjecia)) {
+    const numerZdjecia = Number(numer);
+
+    if (!Number.isInteger(numerZdjecia) || numerZdjecia <= 0 || String(numerZdjecia) !== String(numer).trim()) {
+      return { poprawna: false };
+    }
+
+    const urlZdjecia = parsujUrlZdjecia(url);
+
+    if (!urlZdjecia.poprawna || !urlZdjecia.wartosc) {
+      return { poprawna: false };
+    }
+
+    wynik[String(numerZdjecia)] = urlZdjecia.wartosc;
+  }
+
+  if (wymagane && Object.keys(wynik).length === 0) {
+    return { poprawna: false };
+  }
+
+  return { poprawna: true, wartosc: uporzadkujZdjeciaUrl(wynik) };
+}
+
+function parsujListeUrlZdjec(wartosc) {
+  if (
+    wartosc === undefined ||
+    wartosc === null ||
+    (typeof wartosc === "string" && wartosc.trim() === "")
+  ) {
+    return { poprawna: true, wartosc: [] };
+  }
+
+  let zdjecia = wartosc;
+
+  if (typeof wartosc === "string") {
+    try {
+      zdjecia = JSON.parse(wartosc);
+    } catch {
+      zdjecia = [wartosc];
+    }
+  }
+
+  if (!Array.isArray(zdjecia)) {
+    return { poprawna: false };
+  }
+
+  const wynik = [];
+
+  for (const url of zdjecia) {
+    const urlZdjecia = parsujUrlZdjecia(url);
+
+    if (!urlZdjecia.poprawna || !urlZdjecia.wartosc) {
+      return { poprawna: false };
+    }
+
+    wynik.push(urlZdjecia.wartosc);
+  }
+
+  return { poprawna: true, wartosc: wynik };
+}
+
+function parsujNumeryZdjec(wartosc) {
+  if (wartosc === undefined || wartosc === null || (typeof wartosc === "string" && wartosc.trim() === "")) {
+    return { poprawna: false };
+  }
+
+  let dane = wartosc;
+
+  if (typeof wartosc === "string") {
+    const tekst = wartosc.trim();
+
+    try {
+      dane = JSON.parse(tekst);
+    } catch {
+      dane = tekst.split(",").map((numer) => numer.trim());
+    }
+  }
+
+  const numery = czyObiektZdjec(dane)
+    ? Object.keys(dane)
+    : Array.isArray(dane)
+      ? dane
+      : [dane];
+  const wynik = [];
+
+  for (const numer of numery) {
+    const numerZdjecia = Number(numer);
+
+    if (!Number.isInteger(numerZdjecia) || numerZdjecia <= 0) {
+      return { poprawna: false };
+    }
+
+    const klucz = String(numerZdjecia);
+
+    if (!wynik.includes(klucz)) {
+      wynik.push(klucz);
+    }
+  }
+
+  return wynik.length > 0
+    ? { poprawna: true, wartosc: wynik }
+    : { poprawna: false };
+}
+
+function plikiZdjec(req) {
+  if (req.file) {
+    return [req.file];
+  }
+
+  if (Array.isArray(req.files)) {
+    return req.files;
+  }
+
+  if (req.files && typeof req.files === "object") {
+    return Object.values(req.files).flat();
+  }
+
+  return [];
+}
+
 function czyPoprawnyPlikZdjecia(plik) {
   return !plik || dozwoloneTypyZdjec.includes(plik.mimetype);
+}
+
+function czyPoprawnePlikiZdjec(pliki) {
+  return pliki.every((plik) => czyPoprawnyPlikZdjecia(plik));
 }
 
 function mapujSprzet(sprzet, czyAdmin) {
@@ -188,7 +372,7 @@ function mapujSprzet(sprzet, czyAdmin) {
       : sprzet.status === "dostepny"
         ? "dostepny"
         : "niedostepny",
-    zdjecie_url: formatujUrlZdjecia(sprzet.zdjecie_url)
+    zdjecia_url: formatujZdjeciaUrl(sprzet.zdjecia_url)
   };
 }
 
@@ -226,8 +410,19 @@ async function usunZdjecieZS3(zdjecie_url) {
   }));
 }
 
-router.post("/dodaj", upload.single("zdjecie"), async (req, res) => {
-  let zdjecie_url = null;
+async function usunZdjeciaZS3(zdjecia_url) {
+  const zdjecia = uporzadkujZdjeciaUrl(zdjecia_url);
+
+  for (const url of Object.values(zdjecia)) {
+    await usunZdjecieZS3(url);
+  }
+}
+
+router.post("/dodaj", upload.fields([
+  { name: "zdjecia", maxCount: 10 },
+  { name: "zdjecie", maxCount: 1 }
+]), async (req, res) => {
+  const zdjeciaDodaneDoS3 = [];
 
   try {
     const uzytkownik = await pobierzUzytkownikaZSesji(req);
@@ -244,8 +439,9 @@ router.post("/dodaj", upload.single("zdjecie"), async (req, res) => {
     const status = req.body.status || "dostepny";
     const cena = parsujCene(req.body.cena, true);
     const cenaPoPromocji = parsujCene(req.body.cena_po_promocji);
-    const urlZdjecia = parsujUrlZdjecia(req.body.zdjecie_url);
-    zdjecie_url = urlZdjecia.wartosc || null;
+    const pliki = plikiZdjec(req);
+    const zdjeciaZBody = parsujZdjeciaUrl(req.body.zdjecia_url);
+    const zdjecia_url = zdjeciaZBody.wartosc || {};
 
     if (
       !nazwa ||
@@ -255,16 +451,26 @@ router.post("/dodaj", upload.single("zdjecie"), async (req, res) => {
       !cena.poprawna ||
       !cenaPoPromocji.poprawna ||
       (cenaPoPromocji.wartosc !== null && cenaPoPromocji.wartosc > cena.wartosc) ||
-      !urlZdjecia.poprawna ||
-      !czyPoprawnyPlikZdjecia(req.file)
+      !zdjeciaZBody.poprawna ||
+      !czyPoprawnePlikiZdjec(pliki)
     ) {
       return res.status(400).json({
         error: "Nieprawidlowe dane sprzetu."
       });
     }
 
-    if (req.file) {
-      zdjecie_url = await dodajZdjecieDoS3(req.file);
+    let numerZdjecia = nastepnyNumerZdjecia(zdjecia_url);
+
+    for (const plik of pliki) {
+      const klucz = await dodajZdjecieDoS3(plik);
+      zdjeciaDodaneDoS3.push(klucz);
+
+      while (zdjecia_url[String(numerZdjecia)]) {
+        numerZdjecia += 1;
+      }
+
+      zdjecia_url[String(numerZdjecia)] = klucz;
+      numerZdjecia += 1;
     }
 
     const result = await pool.query(
@@ -273,21 +479,21 @@ router.post("/dodaj", upload.single("zdjecie"), async (req, res) => {
         nazwa,
         opis,
         kategoria_id,
-        zdjecie_url,
+        zdjecia_url,
         cena,
         cena_po_promocji,
         status
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, nazwa, opis, kategoria_id, zdjecie_url, cena, cena_po_promocji, status;
+      RETURNING id, nazwa, opis, kategoria_id, zdjecia_url, cena, cena_po_promocji, status;
       `,
-      [nazwa, opis, kategoria_id, zdjecie_url, cena.wartosc, cenaPoPromocji.wartosc, status]
+      [nazwa, opis, kategoria_id, zdjecia_url, cena.wartosc, cenaPoPromocji.wartosc, status]
     );
 
     return res.status(201).json(mapujSprzet(result.rows[0], true));
   } catch (err) {
-    if (req.file && zdjecie_url) {
-      await usunZdjecieZS3(zdjecie_url).catch(console.error);
+    for (const zdjecie of zdjeciaDodaneDoS3) {
+      await usunZdjecieZS3(zdjecie).catch(console.error);
     }
 
     if (err.code === "23503") {
@@ -312,10 +518,7 @@ router.post("/dodaj", upload.single("zdjecie"), async (req, res) => {
 
 async function edytujSprzet(req, res) {
   let client = null;
-  let zdjecieDodaneDoS3 = null;
-  let poprzednieZdjecieDoUsuniecia = null;
   let transakcjaAktywna = false;
-  let transakcjaZatwierdzona = false;
 
   try {
     const uzytkownik = await pobierzUzytkownikaZSesji(req);
@@ -335,11 +538,17 @@ async function edytujSprzet(req, res) {
     }
 
     const body = req.body || {};
+
+    if (czyPolePrzekazane(body, "zdjecie_url") || czyPolePrzekazane(body, "zdjecia_url")) {
+      return res.status(400).json({
+        error: "Zdjecia sprzetu mozna zmieniac tylko przez add_photos albo delete_photos."
+      });
+    }
+
     const pola = [];
     const params = [];
     let cena = null;
     let cenaPoPromocji = null;
-    let nowyKluczZdjecia = null;
 
     if (czyPolePrzekazane(body, "nazwa")) {
       const nazwa = normalizujTekst(body.nazwa);
@@ -411,31 +620,6 @@ async function edytujSprzet(req, res) {
       }
     }
 
-    if (req.file) {
-      if (!czyPoprawnyPlikZdjecia(req.file)) {
-        return res.status(400).json({
-          error: "Nieprawidlowy plik zdjecia."
-        });
-      }
-
-      zdjecieDodaneDoS3 = await dodajZdjecieDoS3(req.file);
-      nowyKluczZdjecia = zdjecieDodaneDoS3;
-      params.push(zdjecieDodaneDoS3);
-      pola.push(`zdjecie_url = $${params.length}`);
-    } else if (czyPolePrzekazane(body, "zdjecie_url")) {
-      const urlZdjecia = parsujUrlZdjecia(body.zdjecie_url);
-
-      if (!urlZdjecia.poprawna) {
-        return res.status(400).json({
-          error: "Nieprawidlowy URL zdjecia."
-        });
-      }
-
-      params.push(urlZdjecia.wartosc);
-      pola.push(`zdjecie_url = $${params.length}`);
-      nowyKluczZdjecia = pobierzKluczS3(urlZdjecia.wartosc);
-    }
-
     if (pola.length === 0 && !czyZmianaCeny) {
       return res.status(400).json({
         error: "Brak danych do aktualizacji."
@@ -448,7 +632,7 @@ async function edytujSprzet(req, res) {
 
     const obecnyResult = await client.query(
       `
-      SELECT cena, cena_po_promocji, zdjecie_url
+      SELECT cena, cena_po_promocji
       FROM sprzety
       WHERE id = $1
       FOR UPDATE;
@@ -459,11 +643,6 @@ async function edytujSprzet(req, res) {
     if (obecnyResult.rows.length === 0) {
       await client.query("ROLLBACK");
       transakcjaAktywna = false;
-
-      if (zdjecieDodaneDoS3) {
-        await usunZdjecieZS3(zdjecieDodaneDoS3).catch(console.error);
-        zdjecieDodaneDoS3 = null;
-      }
 
       return res.status(404).json({
         error: "Nie znaleziono sprzetu."
@@ -486,11 +665,6 @@ async function edytujSprzet(req, res) {
         await client.query("ROLLBACK");
         transakcjaAktywna = false;
 
-        if (zdjecieDodaneDoS3) {
-          await usunZdjecieZS3(zdjecieDodaneDoS3).catch(console.error);
-          zdjecieDodaneDoS3 = null;
-        }
-
         return res.status(400).json({
           error: "Cena promocyjna nie moze byc wieksza od ceny."
         });
@@ -507,14 +681,6 @@ async function edytujSprzet(req, res) {
       }
     }
 
-    if (req.file || czyPolePrzekazane(body, "zdjecie_url")) {
-      const poprzedniKluczZdjecia = pobierzKluczS3(obecnySprzet.zdjecie_url);
-
-      if (poprzedniKluczZdjecia && poprzedniKluczZdjecia !== nowyKluczZdjecia) {
-        poprzednieZdjecieDoUsuniecia = obecnySprzet.zdjecie_url;
-      }
-    }
-
     params.push(id);
 
     const result = await client.query(
@@ -522,29 +688,18 @@ async function edytujSprzet(req, res) {
       UPDATE sprzety
       SET ${pola.join(", ")}
       WHERE id = $${params.length}
-      RETURNING id, nazwa, opis, kategoria_id, status, zdjecie_url, cena, cena_po_promocji;
+      RETURNING id, nazwa, opis, kategoria_id, status, zdjecia_url, cena, cena_po_promocji;
       `,
       params
     );
 
     await client.query("COMMIT");
     transakcjaAktywna = false;
-    transakcjaZatwierdzona = true;
-
-    if (poprzednieZdjecieDoUsuniecia) {
-      await usunZdjecieZS3(poprzednieZdjecieDoUsuniecia);
-    }
-
-    zdjecieDodaneDoS3 = null;
 
     return res.status(200).json(mapujSprzet(result.rows[0], true));
   } catch (err) {
     if (transakcjaAktywna && client) {
       await client.query("ROLLBACK").catch(console.error);
-    }
-
-    if (!transakcjaZatwierdzona && zdjecieDodaneDoS3) {
-      await usunZdjecieZS3(zdjecieDodaneDoS3).catch(console.error);
     }
 
     if (err.code === "23503") {
@@ -557,6 +712,143 @@ async function edytujSprzet(req, res) {
       return res.status(400).json({
         error: "Nieprawidlowe dane sprzetu."
       });
+    }
+
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Blad serwera"
+    });
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+}
+
+function parsujEdycjeBezZdjec(req, res, next) {
+  upload.none()(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        error: "Zdjecia sprzetu mozna zmieniac tylko przez add_photos albo delete_photos."
+      });
+    }
+
+    return next();
+  });
+}
+
+router.patch("/edit/:id", parsujEdycjeBezZdjec, edytujSprzet);
+router.put("/edit/:id", parsujEdycjeBezZdjec, edytujSprzet);
+
+router.post("/add_photos/:id", upload.fields([
+  { name: "zdjecie", maxCount: 10 },
+  { name: "zdjecia", maxCount: 10 }
+]), async (req, res) => {
+  let client = null;
+  let transakcjaAktywna = false;
+  const zdjeciaDodaneDoS3 = [];
+
+  try {
+    const uzytkownik = await pobierzUzytkownikaZSesji(req);
+
+    if (uzytkownik?.rola !== "admin") {
+      return res.status(403).json({
+        error: "Brak uprawnien."
+      });
+    }
+
+    const id = parsujId(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({
+        error: "Nieprawidlowe ID sprzetu."
+      });
+    }
+
+    const pliki = plikiZdjec(req);
+    const zdjeciaZBody = parsujListeUrlZdjec(req.body?.zdjecia_url);
+
+    if (!zdjeciaZBody.poprawna || !czyPoprawnePlikiZdjec(pliki)) {
+      return res.status(400).json({
+        error: "Nieprawidlowe dane zdjec."
+      });
+    }
+
+    if (zdjeciaZBody.wartosc.length === 0 && pliki.length === 0) {
+      return res.status(400).json({
+        error: "Brak zdjec do dodania."
+      });
+    }
+
+    client = await pool.connect();
+    await client.query("BEGIN");
+    transakcjaAktywna = true;
+
+    const obecnyResult = await client.query(
+      `
+      SELECT zdjecia_url
+      FROM sprzety
+      WHERE id = $1
+      FOR UPDATE;
+      `,
+      [id]
+    );
+
+    if (obecnyResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      transakcjaAktywna = false;
+
+      return res.status(404).json({
+        error: "Nie znaleziono sprzetu."
+      });
+    }
+
+    const zdjecia_url = uporzadkujZdjeciaUrl(obecnyResult.rows[0].zdjecia_url);
+    let numerZdjecia = nastepnyNumerZdjecia(zdjecia_url);
+
+    for (const url of zdjeciaZBody.wartosc) {
+      while (zdjecia_url[String(numerZdjecia)]) {
+        numerZdjecia += 1;
+      }
+
+      zdjecia_url[String(numerZdjecia)] = url;
+      numerZdjecia += 1;
+    }
+
+    for (const plik of pliki) {
+      const klucz = await dodajZdjecieDoS3(plik);
+      zdjeciaDodaneDoS3.push(klucz);
+
+      while (zdjecia_url[String(numerZdjecia)]) {
+        numerZdjecia += 1;
+      }
+
+      zdjecia_url[String(numerZdjecia)] = klucz;
+      numerZdjecia += 1;
+    }
+
+    const result = await client.query(
+      `
+      UPDATE sprzety
+      SET zdjecia_url = $1
+      WHERE id = $2
+      RETURNING id, nazwa, opis, kategoria_id, status, zdjecia_url, cena, cena_po_promocji;
+      `,
+      [uporzadkujZdjeciaUrl(zdjecia_url), id]
+    );
+
+    await client.query("COMMIT");
+    transakcjaAktywna = false;
+
+    return res.status(200).json(mapujSprzet(result.rows[0], true));
+  } catch (err) {
+    if (transakcjaAktywna && client) {
+      await client.query("ROLLBACK").catch(console.error);
+    }
+
+    for (const zdjecie of zdjeciaDodaneDoS3) {
+      await usunZdjecieZS3(zdjecie).catch(console.error);
     }
 
     if (err.message === "Brak konfiguracji S3.") {
@@ -575,10 +867,117 @@ async function edytujSprzet(req, res) {
       client.release();
     }
   }
-}
+});
 
-router.patch("/edit/:id", upload.single("zdjecie"), edytujSprzet);
-router.put("/edit/:id", upload.single("zdjecie"), edytujSprzet);
+router.delete("/delete_photos/:id", async (req, res) => {
+  let client = null;
+  let transakcjaAktywna = false;
+  let zdjeciaDoUsuniecia = {};
+
+  try {
+    const uzytkownik = await pobierzUzytkownikaZSesji(req);
+
+    if (uzytkownik?.rola !== "admin") {
+      return res.status(403).json({
+        error: "Brak uprawnien."
+      });
+    }
+
+    const id = parsujId(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({
+        error: "Nieprawidlowe ID sprzetu."
+      });
+    }
+
+    const numeryZdjec = parsujNumeryZdjec(req.body?.zdjecia ?? req.body?.zdjecia_url);
+
+    if (!numeryZdjec.poprawna) {
+      return res.status(400).json({
+        error: "Nieprawidlowe numery zdjec."
+      });
+    }
+
+    client = await pool.connect();
+    await client.query("BEGIN");
+    transakcjaAktywna = true;
+
+    const obecnyResult = await client.query(
+      `
+      SELECT zdjecia_url
+      FROM sprzety
+      WHERE id = $1
+      FOR UPDATE;
+      `,
+      [id]
+    );
+
+    if (obecnyResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      transakcjaAktywna = false;
+
+      return res.status(404).json({
+        error: "Nie znaleziono sprzetu."
+      });
+    }
+
+    const zdjecia_url = uporzadkujZdjeciaUrl(obecnyResult.rows[0].zdjecia_url);
+
+    for (const numer of numeryZdjec.wartosc) {
+      if (Object.prototype.hasOwnProperty.call(zdjecia_url, numer)) {
+        zdjeciaDoUsuniecia[numer] = zdjecia_url[numer];
+        delete zdjecia_url[numer];
+      }
+    }
+
+    if (Object.keys(zdjeciaDoUsuniecia).length === 0) {
+      await client.query("ROLLBACK");
+      transakcjaAktywna = false;
+
+      return res.status(404).json({
+        error: "Nie znaleziono zdjec do usuniecia."
+      });
+    }
+
+    const result = await client.query(
+      `
+      UPDATE sprzety
+      SET zdjecia_url = $1
+      WHERE id = $2
+      RETURNING id, nazwa, opis, kategoria_id, status, zdjecia_url, cena, cena_po_promocji;
+      `,
+      [uporzadkujZdjeciaUrl(zdjecia_url), id]
+    );
+
+    await client.query("COMMIT");
+    transakcjaAktywna = false;
+
+    await usunZdjeciaZS3(zdjeciaDoUsuniecia);
+
+    return res.status(200).json(mapujSprzet(result.rows[0], true));
+  } catch (err) {
+    if (transakcjaAktywna && client) {
+      await client.query("ROLLBACK").catch(console.error);
+    }
+
+    if (err.message === "Brak konfiguracji S3.") {
+      return res.status(500).json({
+        error: "Brak konfiguracji S3."
+      });
+    }
+
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Blad serwera"
+    });
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
 
 router.delete("/usun/:id", async (req, res) => {
   const client = await pool.connect();
@@ -606,7 +1005,7 @@ router.delete("/usun/:id", async (req, res) => {
       `
       DELETE FROM sprzety
       WHERE id = $1
-      RETURNING id, nazwa, opis, kategoria_id, status, zdjecie_url, cena, cena_po_promocji;
+      RETURNING id, nazwa, opis, kategoria_id, status, zdjecia_url, cena, cena_po_promocji;
       `,
       [id]
     );
@@ -619,7 +1018,7 @@ router.delete("/usun/:id", async (req, res) => {
       });
     }
 
-    await usunZdjecieZS3(result.rows[0].zdjecie_url);
+    await usunZdjeciaZS3(result.rows[0].zdjecia_url);
     await client.query("COMMIT");
 
     return res.status(200).json(mapujSprzet(result.rows[0], true));
@@ -771,7 +1170,7 @@ router.get("/", async (req, res) => {
         opis,
         kategoria_id,
         status,
-        zdjecie_url,
+        zdjecia_url,
         cena,
         cena_po_promocji
       FROM sprzety
@@ -834,7 +1233,7 @@ router.get("/:id", async (req, res) => {
 
         const result = await pool.query(
             `
-            SELECT id, nazwa, opis, kategoria_id, status, zdjecie_url, cena, cena_po_promocji
+            SELECT id, nazwa, opis, kategoria_id, status, zdjecia_url, cena, cena_po_promocji
             FROM sprzety
             WHERE id = $1;
             `,
