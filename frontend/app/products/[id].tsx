@@ -1,17 +1,18 @@
+import React from 'react';
+import { View, Text, FlatList,ScrollView,StyleSheet, Pressable,TextInput,Image } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useLocalSearchParams, router } from "expo-router";
+import dane from  "../dane.json"
+import { ThemedText } from '@/components/themed-text';
+import { useState } from 'react';
 
-import { View ,Text,ScrollView,StyleSheet} from "react-native";
-import { ThemedText } from "@/components/themed-text";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useState } from "react";
-import { TextInput } from "react-native";
-import { Pressable,Image } from "react-native";
-import { router } from "expo-router";
-export default function TabsLayout() {
-    const [searchText,setsearchText] = useState("")
-    const temp_photoso = [{id : 0 , zdjecie_url : "https://wypozyczalnia.calantris.com/projektor.jpg"}]
+export default function ProductDetailedView () {
+     const [searchText,setsearchText] = useState("")
+    const { id } = useLocalSearchParams();
+    {/* Produkt o danym id */}
+    const product = dane.find((item)=> item.id.toString() === id)
   return (
    
-
     <View style={screen}>
        <ScrollView
             style={styles.scroll}
@@ -143,7 +144,7 @@ export default function TabsLayout() {
 
     <View style={styles.mainImageBox}>
       <Image
-        source={{ uri: temp_photoso[0].zdjecie_url }}
+        source={{ uri: product?.zdjecie_url }}
         style={styles.mainProductImage}
         resizeMode="contain"
       />
@@ -162,8 +163,11 @@ export default function TabsLayout() {
     </View>
        </ScrollView>
        </View>
+   
   );
-}
+};
+
+
 
 
 const styles = StyleSheet.create({ 

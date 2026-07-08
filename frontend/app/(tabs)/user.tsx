@@ -8,6 +8,7 @@ import { SymbolView } from "expo-symbols";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+
 export default function User() {
   const [katalog,setKatalog] = useState(dane)
   const [searchText,setsearchText] = useState("")
@@ -122,7 +123,7 @@ export default function User() {
               <Text style={styles.offerOldPrice}>179,99 zł</Text>
             </View>
 
-            <Pressable style={styles.offerButton}>
+            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${dane[temp_losowy_indeks]?.id}`)}>
               <Text style={styles.offerButtonText}>Zobacz ofertę</Text>
             </Pressable>
           </View>
