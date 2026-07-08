@@ -1,7 +1,7 @@
 
 import { router } from "expo-router";
 import { useState } from "react";
-import { Button, TextInput, View,StyleSheet,Text,TouchableOpacity, Image } from "react-native";
+import { Button, TextInput, View,StyleSheet,Text,TouchableOpacity, Image, Platform, useWindowDimensions, ScrollView } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from "@react-navigation/elements";
 import { ThemedView } from "./components/themed-view";
@@ -9,6 +9,7 @@ import { ThemedText } from "./components/themed-text";
 import { Link } from 'expo-router';
 
 export default function LoginScreen() {
+
   const [login,setLogin] =  useState("")
   const [haslo,setHaslo] = useState("")
   const testLogin = "admin"

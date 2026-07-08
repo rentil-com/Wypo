@@ -13,6 +13,11 @@ export default function ProductDetailedView () {
    
     {/* Produkt o danym id */}
     const product = dane.find((item)=> item.id.toString() === id)
+      const kategorieMap = new Map();
+    kategorieMap.set(1,"Buty")
+    kategorieMap.set(2,"Elektronika")
+    kategorieMap.set(3,"Narzedzia")
+    kategorieMap.set(4,"Sport i rekreacja")
 
 
     {/* tymczasowa galeria zdjec, narazie mam jedno zdjecie (potem bedzie wiele) */}
@@ -137,7 +142,7 @@ export default function ProductDetailedView () {
     <View>
         <View style={styles.category_path}>
             {/*przenoszenie do odpowiedniej kategorii */}
-    <Pressable style={styles.breadcrumbItem} onPress={() => {}}>
+    <Pressable style={styles.breadcrumbItem} onPress={() => {router.push("/(tabs)/user")}}>
       <MaterialIcons name="home" size={20} color="#176BDE" />
     </Pressable>
 
@@ -145,8 +150,8 @@ export default function ProductDetailedView () {
     <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
 
        {/*przenoszenie do odpowiedniej kategorii-> Elektronika np. */}
-    <Pressable style={styles.breadcrumbItem} onPress={() => {}}>
-      <Text style={styles.breadcrumbText}>Elektronika</Text>
+    <Pressable style={styles.breadcrumbItem} onPress={() => {router.push(`../category/${product.kategoria_id}`)}}>
+      <Text style={styles.breadcrumbText}>{kategorieMap.get(product.kategoria_id)}</Text>
     </Pressable>
 
     {/* Separator */}
@@ -161,8 +166,8 @@ export default function ProductDetailedView () {
     <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
 
     {/* Ostatnie aktywny element */}
-    <Pressable style={styles.breadcrumbItem} onPress={() => {}}>
-      <Text style={styles.breadcrumbLast}>Laptop Dell Latitude 5420</Text>
+    <Pressable style={styles.breadcrumbItem} onPress={() => {router.push(`../products/${product.id}`)}}>
+      <Text style={styles.breadcrumbLast}>{product.nazwa}</Text>
     </Pressable>
 </View>
      
