@@ -7,8 +7,9 @@ import { ThemedText } from '@/components/themed-text';
 import { useState } from 'react';
 
 export default function ProductDetailedView () {
-     const [searchText,setsearchText] = useState("")
+    const [searchText,setsearchText] = useState("")
     const { id } = useLocalSearchParams();
+    const [aktualneZdjecie,setaktualneZdjecie] = useState(1)
     {/* Produkt o danym id */}
     const product = dane.find((item)=> item.id.toString() === id)
   return (
@@ -23,7 +24,7 @@ export default function ProductDetailedView () {
        <View style={styles.page}>
        <View style={styles.header}>
        <View style={styles.headerName}>
-           <ThemedText style={styles.headerText}>Wypożyczalnia</ThemedText>
+           <ThemedText style={styles.headerText} onPress={()=> router.push("/(tabs)/user")}>Wypożyczalnia</ThemedText>
        </View>
    
 

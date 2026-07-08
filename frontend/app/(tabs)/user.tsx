@@ -158,7 +158,7 @@ export default function User() {
       {/* KATEGORIE */}
       <View style={styles.categoriesRow}>
         {Array.from(kategorieMap).map(([key, val], index) => (
-          <Pressable
+          <Pressable  onPress={()=> router.push(`../category/${key}`)}
             key={key}
             style={[
               styles.categoryCard,
@@ -220,6 +220,7 @@ export default function User() {
         contentContainerStyle={styles.productsList}
         renderItem={({ item }) => (
           <View style={styles.productCard}>
+            <Pressable onPress={()=> router.push(`../products/${item.id}`)}>  
             {/* DODAJ DO ULUBIONYCH */}
             <Pressable style={styles.favoriteButton}>
               <MaterialIcons name="favorite-border" size={23} color="#111827" />
@@ -264,6 +265,7 @@ export default function User() {
                 </Pressable>
               </View>
             </View>
+            </Pressable>
           </View>
         )}
       />
