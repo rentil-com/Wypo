@@ -1,10 +1,8 @@
-import React from 'react';
-import { View, Text, FlatList,ScrollView,StyleSheet, Pressable,TextInput,Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, router } from "expo-router";
-import dane from  "../dane.json"
-import { ThemedText } from '@/components/themed-text';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useState } from 'react';
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import dane from "../dane.json";
 export default function ProductDetailedView () {
   {/*STATUSY */}
     type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
@@ -255,6 +253,7 @@ export default function ProductDetailedView () {
        </View>
     {/* PRAWA STRONA - SZCZEGOLY */}
     <View style={styles.detailsCard}>
+
         <Text style={styles.productTitle}>{product.nazwa}</Text>
           <View style={styles.statusRow}>
                 <View style={styles.statusDot} />
@@ -287,16 +286,143 @@ export default function ProductDetailedView () {
                       </View>
             
 
-        {/* opinie */}
+        {/* opinie do zobaczenia po klikneciue */}
+         <View style={styles.ratingRow}>
         <MaterialIcons name="star" size={18} color="#F59E0B" />
                 <Text style={styles.ratingText}>4.8 (124 opinie)</Text>
-            
-        {/*Cena */}
-        <ThemedText> Cena 129.99 zł / za okres</ThemedText>
+         </View>
+        {/*Cena produktu */}
 
+        <View style={styles.priceRow}>
+      <Text style={styles.price}>129,99 zł</Text>
+      <Text style={styles.pricePeriod}>/ za okres</Text>
+    </View>
+
+    <View style={styles.oldPriceRow}>
+      <Text style={styles.oldPrice}>179,99 zł</Text>
+      <View style={styles.discountBadge}>
+        <Text style={styles.discountText}>-28%</Text>
+      </View>
+      </View>
+
+
+      <Text style={styles.description}>
+      {product.opis}
+    </Text>
+                          
+
+      {/*SPECYFIKACJE */}    
+
+         <View style={styles.specList}>
+      <View style={styles.specRow}>
+        <View style={styles.specLeft}>
+          <Text style={styles.specLabel}>Procesor</Text>
         </View>
+        <Text style={styles.specValue}>Intel Core i5-1145G7</Text>
+      </View>
+
+      <View style={styles.specRow}>
+        <View style={styles.specLeft}>
+          <Text style={styles.specLabel}>Pamięć RAM</Text>
+        </View>
+        <Text style={styles.specValue}>16 GB DDR4</Text>
+      </View>
+
+      <View style={styles.specRow}>
+        <View style={styles.specLeft}>
+          <Text style={styles.specLabel}>Dysk</Text>
+        </View>
+        <Text style={styles.specValue}>512 GB SSD</Text>
+      </View>
+
+      <View style={styles.specRow}>
+        <View style={styles.specLeft}>
+          <Text style={styles.specLabel}>Ekran</Text>
+        </View>
+        <Text style={styles.specValue}>14" Full HD</Text>
+      </View>
+
+      <View style={styles.specRow}>
+        <View style={styles.specLeft}>
+          <Text style={styles.specLabel}>System</Text>
+        </View>
+        <Text style={styles.specValue}>Windows 11 Pro</Text>
+      </View>
+    </View>
+
+    <View style={styles.divider} />
+
+
+        <View style={styles.periodHeader}>
+      <Text style={styles.periodTitle}>Wybierz okres wynajmu</Text>
+
+
+    {/* przekierowanie*/}
+      <Pressable style={styles.howItWorksButton}>
+        <MaterialIcons name="info-outline" size={16} color="#2563EB" />
+        <Text style={styles.howItWorksText}>Jak to działa?</Text>
+      </Pressable>
+    </View>
+
+     <View style={styles.periodOptions}>
+      <Pressable style={[styles.periodOption, styles.periodOptionActive]}>
+        <Text style={styles.periodOptionTitleActive}>1 dzień</Text>
+        <Text style={styles.periodOptionPriceActive}>129,99 zł</Text>
+      </Pressable>
+        </View>
+
+
+
+      {/* przyciski interaktywne */}
+        <Pressable style={styles.primaryButton}>
+      <MaterialIcons name="flash-on" size={22} color="#FFFFFF" />
+      <Text style={styles.primaryButtonText}>Wypożycz teraz</Text>
+    </Pressable>
+
+    <Pressable style={styles.secondaryButton}>
+      <MaterialIcons name="shopping-cart" size={22} color="#2563EB" />
+      <Text style={styles.secondaryButtonText}>Dodaj do koszyka</Text>
+    </Pressable>
+
+  <View style={styles.benefitDivider} />
+
+  <View style={styles.benefitItem}>
+    <View style={styles.benefitIcon}>
+      <MaterialIcons name="sync" size={24} color="#2563EB" />
+    </View>
+    <View>
+      <Text style={styles.benefitTitle}>Elastyczny wynajem</Text>
+      <Text style={styles.benefitText}>Krótko- i długoterminowy</Text>
+    </View>
+  </View>
+
+  <View style={styles.benefitDivider} />
+
+  <View style={styles.benefitItem}>
+    <View style={styles.benefitIcon}>
+      <MaterialIcons name="shield" size={24} color="#2563EB" />
+    </View>
+    <View>
+      <Text style={styles.benefitTitle}>Bezpieczeństwo</Text>
+      <Text style={styles.benefitText}>Sprzęt sprawdzony i gotowy</Text>
+    </View>
+  </View>
+
+  <View style={styles.benefitDivider} />
+
+  <View style={styles.benefitItem}>
+    <View style={styles.benefitIcon}>
+      <MaterialIcons name="headset-mic" size={24} color="#2563EB" />
+    </View>
+    <View>
+      <Text style={styles.benefitTitle}>Wsparcie 24/7</Text>
+      <Text style={styles.benefitText}>Jesteśmy dla Ciebie</Text>
+    </View>
+  </View>
+
           </View>
 
+          </View>
     </View>
 
     </View>

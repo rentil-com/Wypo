@@ -1,13 +1,9 @@
-import { Tabs } from "expo-router";
-import { View ,Text,Image, FlatList,StyleSheet,Platform,Pressable,ScrollView} from "react-native";
-import { TextInput } from "react-native";
-import  {useState,useEffect} from "react"
-import dane from  "../dane.json"
-import { ThemedText } from "@/components/themed-text";
-import { SymbolView } from "expo-symbols";
 import { MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import dane from "../dane.json";
 
 export default function User() {
   {/* CZAS RESETU */}
@@ -451,7 +447,8 @@ const styles = StyleSheet.create({
   logo: {
   width: 72,
   height: 72,
-  zIndex: 2,
+  zIndex: 1,
+
   },
 
   searchBar: {
@@ -486,6 +483,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 7,
   },
+
 
   headerActionText: {
     fontSize: 14,
