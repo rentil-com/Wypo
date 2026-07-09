@@ -3,6 +3,7 @@
 # dependencies
 node_modules/
 TODO
+ODPALANIE_TELEFON.MD
 .vscode
 # Expo
 .expo/

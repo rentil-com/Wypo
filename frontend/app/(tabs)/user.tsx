@@ -10,9 +10,15 @@ import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function User() {
+  {/* CZAS RESETU */}
+  const RESET_HOUR = 9
+  const RESET_MINUTE = 6
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+  const [lastResetDate,setLastResetDate] = useState<string | null>(null);
+
   const [katalog,setKatalog] = useState(dane)
   const [searchText,setsearchText] = useState("")
-  var temp_losowy_indeks = Math.floor(Math.random() * dane.length)
+  const [randomIndex,setRandomIndex] = useState(0)
   
   const kategorieMap = new Map();
   kategorieMap.set(1,"Buty")
@@ -20,7 +26,49 @@ export default function User() {
   kategorieMap.set(3,"Narzedzia")
   kategorieMap.set(4,"Sport i rekreacja")
 
+  const calculate_time_left =()=> {
+    const now = new Date()
+    let target = new Date(now)
+    const todayString = now.toDateString();
+    {/* ustawienie timera na reset nowej oferty */}
+    target.setHours(RESET_HOUR,RESET_MINUTE,0,0)
 
+    if(now >= target ) {
+      {/*Ustawienie nowego licznika jak poprzedni sie skonczyl */}
+      target.setDate(target.getDate() +1)
+    }
+
+
+    
+   const shouldResetToday = now.getHours() > RESET_HOUR || 
+                          (now.getHours() === RESET_HOUR && now.getMinutes() >= RESET_MINUTE);
+
+
+  if (shouldResetToday && lastResetDate !== todayString) {
+    const new_random_index = Math.floor(Math.random() * dane.length);
+    setRandomIndex(new_random_index);
+    
+    console.log("Reset oferty - nowy indeks:", new_random_index);
+    setLastResetDate(todayString);
+  }
+
+    const diffMs = target.getTime() - now.getTime();
+    
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+    setTimeLeft({ hours, minutes, seconds });
+
+  }
+
+
+  useEffect(()=> {
+      calculate_time_left();
+      const interval = setInterval(calculate_time_left,1000)
+      
+      return () => clearInterval(interval);
+  },[lastResetDate])
   return (
   <View style={styles.screen}>
         <ScrollView
@@ -106,13 +154,18 @@ export default function User() {
           <View style={styles.offerBubbleOne} />
           <View style={styles.offerBubbleTwo} />
 
+
+          <View>
+            <ThemedText> DO RESETU OFERTY: {timeLeft.hours} | {timeLeft.minutes} | {timeLeft.seconds}</ThemedText>
+            </View>
+
           <View style={styles.offerLeft}>
             <Text style={styles.offerTopText}>Specjalna oferta dla Ciebie</Text>
 
             <Text style={styles.offerTitle}>Wypożycz sprzęt taniej</Text>
 
             <Text style={styles.offerSubtitle} numberOfLines={2}>
-              {dane[temp_losowy_indeks]?.nazwa ||
+              {dane[randomIndex]?.nazwa ||
                 "Wybrany produkt dostępny już dziś"}
             </Text>
                     
@@ -123,13 +176,13 @@ export default function User() {
               <Text style={styles.offerOldPrice}>179,99 zł</Text>
             </View>
 
-            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${dane[temp_losowy_indeks]?.id}`)}>
+            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${dane[randomIndex]?.id}`)}>
               <Text style={styles.offerButtonText}>Zobacz ofertę</Text>
             </Pressable>
           </View>
 
           <Image
-            source={{ uri: dane[temp_losowy_indeks]?.zdjecie_url }}
+            source={{ uri: dane[randomIndex]?.zdjecie_url }}
             style={styles.offerImage}
             resizeMode="contain"
           />

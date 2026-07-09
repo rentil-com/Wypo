@@ -25,7 +25,7 @@ export default function LoginScreen() {
 
   const sprawdzHaslo =()=> {
     if(adresEmail === testLogin && haslo === testHaslo){
-      router.replace("/(tabs)/home")
+      router.replace("/(tabs)/user")
     }
     if(adresEmail !== testLogin || haslo !== testHaslo){
       alert('Login lub haslo jest nieprawidlowe')
@@ -150,7 +150,7 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <Link href="/rejestracja" dismissTo style={mobileStyles.mobileLink}>
+                <Link  dismissTo style={mobileStyles.mobileLink} onPress={()=> router.push("./rejestracja.tsx")}>
                   <Text style={mobileStyles.mobileLinkText}>
                     Nie masz jeszcze konta?{" "}
                     <Text style={mobileStyles.mobileLinkTextBlue}>Zarejestruj się</Text>
