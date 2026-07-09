@@ -154,12 +154,33 @@ export default function User() {
           <View style={styles.offerBubbleOne} />
           <View style={styles.offerBubbleTwo} />
 
-
-          <View>
-            <ThemedText> DO RESETU OFERTY: {timeLeft.hours} | {timeLeft.minutes} | {timeLeft.seconds}</ThemedText>
-            </View>
-
           <View style={styles.offerLeft}>
+
+            <View style={styles.offerTimerWrapper}>
+        <Text style={styles.offerTimerLabel}>NOWA OFERTA JUŻ ZA</Text>
+        
+        <View style={styles.timerRow}>
+          <View style={styles.timerSegment}>
+            <Text style={styles.timerValue}>{timeLeft.hours}</Text>
+            <Text style={styles.timerLabel}>GODZ</Text>
+          </View>
+
+          <Text style={styles.timerColon}>:</Text>
+
+          <View style={styles.timerSegment}>
+            <Text style={styles.timerValue}>{timeLeft.minutes}</Text>
+            <Text style={styles.timerLabel}>MIN</Text>
+          </View>
+
+          <Text style={styles.timerColon}>:</Text>
+
+          <View style={styles.timerSegment}>
+            <Text style={styles.timerValue}>{timeLeft.seconds}</Text>
+            <Text style={styles.timerLabel}>SEK</Text>
+          </View>
+        </View>
+      </View>
+
             <Text style={styles.offerTopText}>Specjalna oferta dla Ciebie</Text>
 
             <Text style={styles.offerTitle}>Wypożycz sprzęt taniej</Text>
@@ -768,5 +789,57 @@ const styles = StyleSheet.create({
   },
   headerName : {
     fontFamily: 'Arial'
-  }
+  },
+  offerTimerWrapper: {
+  backgroundColor: "rgba(255,255,255,0.16)",
+  borderRadius: 20,
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  alignSelf: "flex-start",
+  borderWidth: 1,
+  borderColor: "rgba(255,255,255,0.25)",
+  marginBottom: 20,
+},
+
+offerTimerLabel: {
+  color: "rgba(255, 255, 255, 0.85)",
+  fontSize: 13,
+  fontWeight: "700",
+  letterSpacing: 1,
+  textAlign: "center",
+  marginBottom: 8,
+},
+
+timerRow: {
+  flexDirection: "row",
+  alignItems: "center",
+},
+
+timerSegment: {
+  alignItems: "center",
+  minWidth: 62,
+},
+
+timerValue: {
+  fontSize: 28,
+  fontWeight: "900",
+  color: "#FFFFFF",
+  lineHeight: 30,
+},
+
+timerLabel: {
+  fontSize: 11,
+  fontWeight: "700",
+  color: "rgba(255,255,255,0.75)",
+  marginTop: 4,
+  letterSpacing: 0.5,
+},
+
+timerColon: {
+  fontSize: 28,
+  fontWeight: "300",
+  color: "rgba(255,255,255,0.65)",
+  marginHorizontal: 10,
+  paddingBottom: 6,
+},
 });
