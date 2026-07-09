@@ -11,15 +11,48 @@ import { LinearGradient } from "expo-linear-gradient";
 
 export default function User() {
   {/* CZAS RESETU */}
-  const RESET_HOUR = 9
-  const RESET_MINUTE = 6
+  const RESET_HOUR = 10
+  const RESET_MINUTE = 0
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [lastResetDate,setLastResetDate] = useState<string | null>(null);
 
   const [katalog,setKatalog] = useState(dane)
   const [searchText,setsearchText] = useState("")
   const [randomIndex,setRandomIndex] = useState(0)
+
+  {/*statusy Sprzetu */}
+  type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
+
+  type StatusStyle = {
+  label: string;
+  backgroundColor: string;
+  textColor: string;
+  icon: keyof typeof MaterialIcons.glyphMap;
+  };
+
+  const statusStyles: Record<StatusSprzetu, StatusStyle> = {
+  dostepny: {
+    label: "Dostępny",
+    backgroundColor: "#DCFCE7",
+    textColor: "#166534",
+    icon: "check-circle",
+  },
+  wypozyczony: {
+    label: "Wypożyczony",
+    backgroundColor: "#DBEAFE",
+    textColor: "#1E40AF",
+    icon: "hourglass-empty",
+  },
+  w_naprawie: {
+    label: "W naprawie",
+    backgroundColor: "#FEF3C7",
+    textColor: "#92400E",
+    icon: "build",
+  },
+  };
+
   
+   
   const kategorieMap = new Map();
   kategorieMap.set(1,"Buty")
   kategorieMap.set(2,"Elektronika")
@@ -193,7 +226,8 @@ export default function User() {
 
           {/* TEMP CENA */}
             <View style={styles.offerPriceRow}>
-              <Text style={styles.offerPrice}>129,99 zł</Text>
+              {/*PROMOCJA 5% */}
+              <Text style={styles.offerPrice}>{Math.round(129 * 0.95)}zł</Text>
               <Text style={styles.offerOldPrice}>179,99 zł</Text>
             </View>
 
@@ -314,7 +348,32 @@ export default function User() {
               </Text>
 
                   {/* STATUS PRODUKTU */}
-              <Text style={styles.productStatus}>{item.status}</Text>
+                            <View
+            style={[
+              styles.productStatusBadge,
+              {
+                backgroundColor:
+                  statusStyles[item.status as keyof typeof statusStyles].backgroundColor,
+              },
+            ]}
+          >
+            <MaterialIcons
+              name={statusStyles[item.status as keyof typeof statusStyles].icon}
+              size={14}
+              color={statusStyles[item.status as keyof typeof statusStyles].textColor}
+            />
+
+            <Text
+              style={[
+                styles.productStatusText,
+                {
+                  color: statusStyles[item.status as keyof typeof statusStyles].textColor,
+                },
+              ]}
+            >
+              {statusStyles[item.status as keyof typeof statusStyles].label}
+            </Text>
+          </View>
 
                   {/* OPIS PRODUKTU */}
               <Text style={styles.productDescription} numberOfLines={2}>
@@ -728,13 +787,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "#111827",
     marginBottom: 4,
-  },
-
-  productStatus: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#64748B",
-    marginBottom: 8,
   },
 
   productDescription: {
