@@ -814,7 +814,8 @@ Ważne: ten endpoint musi być zdefiniowany po bardziej szczegółowych trasach,
 
 * `/recenzje/sprzet/:id`
 * `/recenzje/moje`
-* `/recenzje/edytuj/:id`
+* `/recenzje/ukryj/:id`
+* `/recenzje/odkryj/:id`
 * `/recenzje/usun/:id`
 
 Przykładowa odpowiedź:
@@ -842,35 +843,63 @@ Możliwe błędy:
 * `404` - nie znaleziono recenzji
 * `500` - błąd serwera
 
-### `PATCH /recenzje/edytuj/:id`
+### `PATCH /recenzje/ukryj/:id`
 
-### `PUT /recenzje/edytuj/:id`
+### `PUT /recenzje/ukryj/:id`
 
-Wymaga logowania.
+Wymaga logowania i roli `admin`.
 
-Edytuje recenzję.
+Ukrywa recenzję logicznie, ustawiając `status = 'ukryta'`.
 
-Body może zawierać:
-
-```json
-{
-  "gwiazdki": 4,
-  "tresc": "Zmieniona treść recenzji.",
-  "status": "ukryta"
-}
-```
+Body nie jest wymagane.
 
 Zasady:
 
-* użytkownik może edytować tylko swoją recenzję
-* użytkownik może zmienić tylko `gwiazdki` i `tresc`
-* użytkownik nie może zmieniać statusu recenzji
-* admin może zmienić `gwiazdki`, `tresc` i `status`
-* ukrywanie recenzji odbywa się przez admina przez zmianę `status` na `ukryta`
-* przywracanie recenzji odbywa się przez admina przez zmianę `status` na `aktywna`
-* usunięcie logiczne może być wykonane przez zmianę `status` na `usunieta`
-* `gwiazdki` muszą być liczbą od `1` do `5`
-* `status` musi być jednym z: `aktywna`, `ukryta`, `usunieta`
+* zwykły użytkownik nie może edytować recenzji
+* użytkownik może tylko usunąć własną recenzję przez `DELETE /recenzje/usun/:id`
+* admin może ukryć każdą nieusuniętą recenzję
+* nie można ukryć recenzji ze statusem `usunieta`
+* rekord nie jest usuwany fizycznie z bazy
+* endpoint nie zmienia `gwiazdki` ani `tresc`
+
+Przykładowa odpowiedź:
+
+```json
+{
+  "id": 1,
+  "uzytkownik_id": 2,
+  "sprzet_id": 1,
+  "wypozyczenie_id": 5,
+  "gwiazdki": 4,
+  "tresc": "Zmieniona treść recenzji.",
+  "status": "ukryta",
+  "data_dodania": "2026-07-08T10:00:00.000Z"
+}
+```
+
+Możliwe błędy:
+
+* `400` - nieprawidłowe ID recenzji albo recenzja jest usunięta
+* `401` - wymagane logowanie
+* `403` - brak uprawnień
+* `404` - nie znaleziono recenzji
+* `500` - błąd serwera
+
+### `PATCH /recenzje/odkryj/:id`
+
+### `PUT /recenzje/odkryj/:id`
+
+Wymaga logowania i roli `admin`.
+
+Odkrywa recenzję logicznie, ustawiając `status = 'aktywna'`.
+
+Body nie jest wymagane.
+
+Zasady:
+
+* admin może odkryć każdą nieusuniętą recenzję
+* nie można odkryć recenzji ze statusem `usunieta`
+* endpoint nie zmienia `gwiazdki` ani `tresc`
 
 Przykładowa odpowiedź:
 
@@ -889,9 +918,9 @@ Przykładowa odpowiedź:
 
 Możliwe błędy:
 
-* `400` - nieprawidłowe ID, brak danych do aktualizacji, nieprawidłowa liczba gwiazdek albo nieprawidłowy status
+* `400` - nieprawidłowe ID recenzji albo recenzja jest usunięta
 * `401` - wymagane logowanie
-* `403` - brak uprawnień albo próba zmiany statusu przez zwykłego użytkownika
+* `403` - brak uprawnień
 * `404` - nie znaleziono recenzji
 * `500` - błąd serwera
 
