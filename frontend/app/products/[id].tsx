@@ -5,7 +5,6 @@ import { useLocalSearchParams, router } from "expo-router";
 import dane from  "../dane.json"
 import { ThemedText } from '@/components/themed-text';
 import { useState } from 'react';
-
 export default function ProductDetailedView () {
   {/*STATUSY */}
     type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
@@ -100,7 +99,9 @@ export default function ProductDetailedView () {
        <View style={styles.page}>
        <View style={styles.header}>
        <View style={styles.headerName}>
-           <ThemedText style={styles.headerText} onPress={()=> router.push("/(tabs)/user")}>Wypożyczalnia</ThemedText>
+          <Pressable onPress={()=> router.push("../(tabs)/user")}>
+            <Image source={require("../../assets/logos/rentil.png")} style={styles.logo} />
+            </Pressable>
        </View>
    
 
@@ -292,7 +293,7 @@ export default function ProductDetailedView () {
             
         {/*Cena */}
         <ThemedText> Cena 129.99 zł / za okres</ThemedText>
-        
+
         </View>
           </View>
 
@@ -309,6 +310,7 @@ export default function ProductDetailedView () {
 
 
 const styles = StyleSheet.create({ 
+
     screen: {
     flex: 1,
     backgroundColor: "#F4F8FF",
@@ -342,7 +344,7 @@ const styles = StyleSheet.create({
 
   header: {
     width: "100%",
-    minHeight: 76,
+    minHeight: 72,
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
     paddingHorizontal: 24,
@@ -586,5 +588,10 @@ const styles = StyleSheet.create({
   productStatusText: {
     fontSize: 12,
     fontWeight: "800",
+  },
+  logo: {
+  width: 92,
+  height: 72,
+  zIndex: 2,
   },
 })

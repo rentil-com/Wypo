@@ -113,7 +113,7 @@ export default function User() {
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerName}>
-          <Text style={styles.logoText}>Wypożyczalnia</Text>
+         <Image source={require("../../assets/logos/rentil.png")} style={styles.logo} />
         </View>
 
         {/*SEARCH BAR */}
@@ -448,10 +448,10 @@ const styles = StyleSheet.create({
     minWidth: 210,
   },
 
-  logoText: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: "#111827",
+  logo: {
+  width: 72,
+  height: 72,
+  zIndex: 2,
   },
 
   searchBar: {
