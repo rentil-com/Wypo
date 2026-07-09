@@ -289,7 +289,10 @@ export default function ProductDetailedView () {
         {/* opinie */}
         <MaterialIcons name="star" size={18} color="#F59E0B" />
                 <Text style={styles.ratingText}>4.8 (124 opinie)</Text>
-              
+            
+        {/*Cena */}
+        <ThemedText> Cena 129.99 zł / za okres</ThemedText>
+        
         </View>
           </View>
 

@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
 
   offerImage: {
     width: 380,
-    height: 240,
+    height: 340,
     zIndex: 2,
   },
    sectionHeader: {

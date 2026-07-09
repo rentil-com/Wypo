@@ -9,7 +9,9 @@ import { ThemedText } from "./components/themed-text";
 import { Link } from 'expo-router';
 import { Ionicons } from "@expo/vector-icons";
 
+
 export default function LoginScreen() {
+  const [errors,setErrors] = useState("")
 
   const { width } = useWindowDimensions()
   const scrollRef = useRef<ScrollView>(null)
@@ -28,7 +30,7 @@ export default function LoginScreen() {
       router.replace("/(tabs)/user")
     }
     if(adresEmail !== testLogin || haslo !== testHaslo){
-      alert('Login lub haslo jest nieprawidlowe')
+      setErrors("Login lub haslo jest niepoprawne")
     }
     
   }
@@ -77,7 +79,16 @@ export default function LoginScreen() {
                 />
               </View>
 
-              <View style={mobileStyles.loginCard}>
+          <View style={mobileStyles.loginCard}>
+          {/*ERRORY */}
+          {errors !== "" && (
+                  <View style={mobileStyles.mobileErrorMessageWrapper}>
+                    <Text style={mobileStyles.mobileErrorMessagesText}>
+                      {errors}
+                    </Text>
+                  </View>
+                )}
+
                 <Text style={mobileStyles.mobileTitle}>Zaloguj się</Text>
 
                 <View style={mobileStyles.mobileForm}>
@@ -150,7 +161,7 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <Link  dismissTo style={mobileStyles.mobileLink} onPress={()=> router.push("./rejestracja.tsx")}>
+                <Link href="/rejestracja" dismissTo style={mobileStyles.mobileLink} onPress={()=> router.push("./rejestracja.tsx")}>
                   <Text style={mobileStyles.mobileLinkText}>
                     Nie masz jeszcze konta?{" "}
                     <Text style={mobileStyles.mobileLinkTextBlue}>Zarejestruj się</Text>
@@ -194,7 +205,11 @@ export default function LoginScreen() {
                 />
 
       </View>
-
+      { errors!= "" &&
+        <View style={styles.errorMessageWrapper}>
+         <ThemedText style={styles.errorMessagesText}>  {errors !=" " && errors} </ThemedText>
+        </View>
+}
          <ThemedText type="title" style={styles.title} >Zaloguj sie</ThemedText>
 
           <View style={styles.form}>
@@ -281,6 +296,33 @@ export default function LoginScreen() {
 };
 
 const desktopStyles = StyleSheet.create({
+    errorMessageWrapper : {
+    width: "100%",
+    minHeight: 54,
+    backgroundColor: "#FEF2F2",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 22,
+
+    shadowColor: "#DC2626",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+    },
+    errorMessagesText: {
+      flex: 1,
+      color: "#991B1B",
+      fontSize: 14,
+      lineHeight: 20,
+      fontWeight: "700",
+    },
     container: {
       flex: 1,
       backgroundColor: '#f8fafc',
@@ -527,6 +569,34 @@ const desktopStyles = StyleSheet.create({
 });
 
 const mobileStyles = StyleSheet.create({
+  mobileErrorMessageWrapper: {
+  width: "100%",
+  minHeight: 46,
+  backgroundColor: "#FEF2F2",
+  borderRadius: 13,
+  borderWidth: 1,
+  borderColor: "#FECACA",
+  paddingHorizontal: 12,
+  paddingVertical: 9,
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+  marginBottom: 12,
+
+  shadowColor: "#DC2626",
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.07,
+  shadowRadius: 12,
+  elevation: 3,
+  },
+  mobileErrorMessagesText: {
+    flex: 1,
+    color: "#991B1B",
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#F4F8FF",
