@@ -46,7 +46,7 @@ CREATE TABLE sprzety (
     kategoria_id INTEGER NOT NULL,
     zdjecia_url JSONB NOT NULL DEFAULT '{}'::jsonb,
 
-    cena NUMERIC(10, 2) NOT NULL,
+    cena numeric(10,2) NOT NULL DEFAULT 0,
     cena_po_promocji NUMERIC(10, 2),
 
     status status_sprzetu NOT NULL DEFAULT 'dostepny',
@@ -176,8 +176,5 @@ CREATE TABLE recenzje (
         ON DELETE SET NULL,
 
     CONSTRAINT chk_recenzje_gwiazdki
-        CHECK (gwiazdki >= 1 AND gwiazdki <= 5),
-
-    CONSTRAINT uq_recenzje_uzytkownik_sprzet
-        UNIQUE (uzytkownik_id, sprzet_id)
+        CHECK (gwiazdki >= 1 AND gwiazdki <= 5)
 );
