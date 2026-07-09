@@ -1,6 +1,16 @@
 import { pool } from '../db/pool.js';
 import { Router } from 'express';
 import { pobierzUzytkownikaZSesji } from "../auth/sessions.js";
+import { wyslijMail } from '../mail/wysylkaMaili.js';
+import {
+  mailAktywacjaWypozyczenia,
+  mailDecyzjaWnioskuWypozyczenia,
+  mailPotwierdzenieZapytaniaWypozyczenia,
+  mailPotwierdzenieZwrotu,
+  mailPrzeterminowanyZwrot,
+  mailPrzypomnienieOOdbiorze,
+  mailPrzypomnienieOZwrocie
+} from '../mail/formatyMaili.js';
 
 const router = Router();
 
@@ -14,6 +24,7 @@ const dozwoloneStatusyWypozyczen = [
 const statusyBlokujaceSprzet = ["aktywny"];
 const statusyListyWypozyczen = dozwoloneStatusyWypozyczen;
 const limitWnioskowNaStrone = 10;
+const MS_DZIEN = 1000 * 60 * 60 * 24;
 
 function normalizujTekst(wartosc) {
   return typeof wartosc === "string"
@@ -228,6 +239,121 @@ function parsujDecyzje(wartosc) {
   return null;
 }
 
+function formatujUrlZdjecia(zdjecieUrl) {
+  if (!zdjecieUrl) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(zdjecieUrl)) {
+    return zdjecieUrl;
+  }
+
+  if (!process.env.S3_WEB_ENDPOINT) {
+    return zdjecieUrl;
+  }
+
+  return `${process.env.S3_WEB_ENDPOINT.replace(/\/+$/, '')}/${String(zdjecieUrl).replace(/^\/+/, '')}`;
+}
+
+function wybierzZdjecieProduktu(zdjeciaUrl) {
+  if (!zdjeciaUrl || typeof zdjeciaUrl !== "object" || Array.isArray(zdjeciaUrl)) {
+    return null;
+  }
+
+  const pierwszeZdjecie = Object.entries(zdjeciaUrl)
+    .sort(([pierwszy], [drugi]) => Number(pierwszy) - Number(drugi))[0];
+
+  return pierwszeZdjecie
+    ? formatujUrlZdjecia(pierwszeZdjecie[1])
+    : null;
+}
+
+async function pobierzDaneMailaWypozyczenia(wypozyczenieId) {
+  const result = await pool.query(
+    `
+    SELECT
+      w.id,
+      w.sprzet_id,
+      w.uzytkownik_id,
+      w.data_zlozenia,
+      w.data_od,
+      w.data_do,
+      w.status,
+      w.data_zwrotu_rzeczywista,
+      u.imie,
+      u.email,
+      s.nazwa AS nazwa_sprzetu,
+      s.zdjecia_url
+    FROM wypozyczenia w
+    JOIN uzytkownicy u
+      ON u.id = w.uzytkownik_id
+    JOIN sprzety s
+      ON s.id = w.sprzet_id
+    WHERE w.id = $1
+    LIMIT 1;
+    `,
+    [wypozyczenieId]
+  );
+
+  return result.rows[0] || null;
+}
+
+function mapujDaneMailaWypozyczenia(dane) {
+  return {
+    imie: dane.imie,
+    nazwaSprzetu: dane.nazwa_sprzetu,
+    zdjecieProduktuUrl: wybierzZdjecieProduktu(dane.zdjecia_url),
+    dataOd: dane.data_od,
+    dataDo: dane.data_do,
+    dataZwrotu: dane.data_zwrotu_rzeczywista,
+    wypozyczenieId: dane.id
+  };
+}
+
+async function wyslijMailWypozyczenia(dane, zbudujFormat) {
+  return wyslijMail({
+    do: dane.email,
+    ...zbudujFormat(mapujDaneMailaWypozyczenia(dane))
+  });
+}
+
+function wyslijMailWypozyczeniaWTle(wypozyczenieId, zbudujFormat, opis) {
+  void (async () => {
+    const dane = await pobierzDaneMailaWypozyczenia(wypozyczenieId);
+
+    if (!dane?.email) {
+      return;
+    }
+
+    await wyslijMailWypozyczenia(dane, zbudujFormat);
+  })().catch((err) => {
+    console.error(`Nie udalo sie wyslac maila: ${opis}.`, err);
+  });
+}
+
+function pobierzOpcjeZBody(body, nazwy, envName) {
+  for (const nazwa of nazwy) {
+    const wartosc = normalizujTekst(body?.[nazwa]);
+
+    if (wartosc) {
+      return wartosc;
+    }
+  }
+
+  return process.env[envName] || '';
+}
+
+function policzDniDoDaty(data) {
+  const roznica = new Date(data).getTime() - Date.now();
+
+  return Math.max(0, Math.ceil(roznica / MS_DZIEN));
+}
+
+function policzDniPoDacie(data) {
+  const roznica = Date.now() - new Date(data).getTime();
+
+  return Math.max(1, Math.floor(roznica / MS_DZIEN));
+}
 router.post("/wypozycz", async (req, res) => {
   const client = await pool.connect();
 
@@ -285,6 +411,12 @@ router.post("/wypozycz", async (req, res) => {
     );
 
     await client.query("COMMIT");
+
+    wyslijMailWypozyczeniaWTle(
+      result.rows[0].id,
+      mailPotwierdzenieZapytaniaWypozyczenia,
+      "potwierdzenie zapytania o wypozyczenie"
+    );
 
     return res.status(201).json(mapujWypozyczenie(result.rows[0]));
   } catch (err) {
@@ -566,6 +698,16 @@ async function zarzadzajWnioskiem(req, res) {
 
     await client.query("COMMIT");
 
+    wyslijMailWypozyczeniaWTle(
+      result.rows[0].id,
+      (dane) => mailDecyzjaWnioskuWypozyczenia({
+        ...dane,
+        status: nowyStatus,
+        powod: normalizujTekst(req.body?.powod)
+      }),
+      "decyzja wniosku o wypozyczenie"
+    );
+
     return res.status(200).json(mapujWypozyczenie(result.rows[0]));
   } catch (err) {
     await client.query("ROLLBACK").catch(console.error);
@@ -655,6 +797,16 @@ async function aktywujWypozyczenie(req, res) {
 
       await client.query("COMMIT");
 
+      wyslijMailWypozyczeniaWTle(
+        odrzuconyResult.rows[0].id,
+        (dane) => mailDecyzjaWnioskuWypozyczenia({
+          ...dane,
+          status: "odrzucony",
+          powod: "Daty koliduja z aktywnym wypozyczeniem."
+        }),
+        "automatyczne odrzucenie wniosku o wypozyczenie"
+      );
+
       return res.status(409).json({
         error: "Wniosek zostal automatycznie odrzucony, bo daty koliduja z aktywnym wypozyczeniem.",
         konflikt_wypozyczenie_id: konfliktAktywnego.id,
@@ -700,6 +852,24 @@ async function aktywujWypozyczenie(req, res) {
     );
 
     await client.query("COMMIT");
+
+    wyslijMailWypozyczeniaWTle(
+      result.rows[0].id,
+      mailAktywacjaWypozyczenia,
+      "aktywacja wypozyczenia"
+    );
+
+    for (const odrzuconeId of odrzuconeKonflikty) {
+      wyslijMailWypozyczeniaWTle(
+        odrzuconeId,
+        (dane) => mailDecyzjaWnioskuWypozyczenia({
+          ...dane,
+          status: "odrzucony",
+          powod: "Daty koliduja z aktywowanym wypozyczeniem."
+        }),
+        "automatyczne odrzucenie konfliktujacego wniosku"
+      );
+    }
 
     return res.status(200).json({
       ...mapujWypozyczenie(result.rows[0]),
@@ -782,6 +952,12 @@ async function zwrocWypozyczenie(req, res) {
     await odswiezStatusSprzetu(client, wypozyczenie.sprzet_id, false);
     await client.query("COMMIT");
 
+    wyslijMailWypozyczeniaWTle(
+      result.rows[0].id,
+      mailPotwierdzenieZwrotu,
+      "potwierdzenie zwrotu wypozyczenia"
+    );
+
     return res.status(200).json(mapujWypozyczenie(result.rows[0]));
   } catch (err) {
     await client.query("ROLLBACK").catch(console.error);
@@ -798,6 +974,157 @@ async function zwrocWypozyczenie(req, res) {
 router.patch("/zwrot/:id", zwrocWypozyczenie);
 router.post("/zwrot/:id", zwrocWypozyczenie);
 
+async function pobierzDaneWypozyczeniaDlaMaila(req, res) {
+  const uzytkownik = await pobierzZalogowanego(req, res);
+
+  if (!uzytkownik) {
+    return null;
+  }
+
+  if (!sprawdzAdmina(uzytkownik, res)) {
+    return null;
+  }
+
+  const id = parsujId(req.params.id);
+
+  if (!id) {
+    res.status(400).json({
+      error: "Nieprawidlowe ID wypozyczenia."
+    });
+
+    return null;
+  }
+
+  const dane = await pobierzDaneMailaWypozyczenia(id);
+
+  if (!dane) {
+    res.status(404).json({
+      error: "Nie znaleziono wypozyczenia."
+    });
+
+    return null;
+  }
+
+  return dane;
+}
+
+async function wyslijPrzypomnienieOOdbiorze(req, res) {
+  try {
+    const dane = await pobierzDaneWypozyczeniaDlaMaila(req, res);
+
+    if (!dane) {
+      return;
+    }
+
+    if (dane.status !== "zaakceptowany") {
+      return res.status(409).json({
+        error: "Przypomnienie o odbiorze mozna wyslac tylko dla zaakceptowanego wypozyczenia."
+      });
+    }
+
+    const mail = await wyslijMailWypozyczenia(dane, (daneMaila) => mailPrzypomnienieOOdbiorze({
+      ...daneMaila,
+      miejsceOdbioru: pobierzOpcjeZBody(req.body, ["miejsce_odbioru", "miejsceOdbioru"], "MAIL_PICKUP_LOCATION"),
+      godzinyOdbioru: pobierzOpcjeZBody(req.body, ["godziny_odbioru", "godzinyOdbioru"], "MAIL_PICKUP_HOURS")
+    }));
+
+    return res.status(200).json({
+      message: "Mail wyslany.",
+      mail,
+      wypozyczenie: mapujWypozyczenie(dane)
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Nie udalo sie wyslac maila."
+    });
+  }
+}
+
+async function wyslijPrzypomnienieOZwrocie(req, res) {
+  try {
+    const dane = await pobierzDaneWypozyczeniaDlaMaila(req, res);
+
+    if (!dane) {
+      return;
+    }
+
+    if (dane.status !== "aktywny") {
+      return res.status(409).json({
+        error: "Przypomnienie o zwrocie mozna wyslac tylko dla aktywnego wypozyczenia."
+      });
+    }
+
+    if (new Date(dane.data_do).getTime() < Date.now()) {
+      return res.status(409).json({
+        error: "Termin zwrotu juz minal. Uzyj przypomnienia o przeterminowanym zwrocie."
+      });
+    }
+
+    const mail = await wyslijMailWypozyczenia(dane, (daneMaila) => mailPrzypomnienieOZwrocie({
+      ...daneMaila,
+      dniDoZwrotu: policzDniDoDaty(dane.data_do),
+      miejsceZwrotu: pobierzOpcjeZBody(req.body, ["miejsce_zwrotu", "miejsceZwrotu"], "MAIL_RETURN_LOCATION")
+    }));
+
+    return res.status(200).json({
+      message: "Mail wyslany.",
+      mail,
+      wypozyczenie: mapujWypozyczenie(dane)
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Nie udalo sie wyslac maila."
+    });
+  }
+}
+
+async function wyslijPrzeterminowanyZwrot(req, res) {
+  try {
+    const dane = await pobierzDaneWypozyczeniaDlaMaila(req, res);
+
+    if (!dane) {
+      return;
+    }
+
+    if (dane.status !== "aktywny") {
+      return res.status(409).json({
+        error: "Mail o przeterminowanym zwrocie mozna wyslac tylko dla aktywnego wypozyczenia."
+      });
+    }
+
+    if (new Date(dane.data_do).getTime() >= Date.now()) {
+      return res.status(409).json({
+        error: "Termin zwrotu jeszcze nie minal."
+      });
+    }
+
+    const mail = await wyslijMailWypozyczenia(dane, (daneMaila) => mailPrzeterminowanyZwrot({
+      ...daneMaila,
+      dniPoTerminie: policzDniPoDacie(dane.data_do),
+      kontakt: pobierzOpcjeZBody(req.body, ["kontakt"], "MAIL_CONTACT")
+    }));
+
+    return res.status(200).json({
+      message: "Mail wyslany.",
+      mail,
+      wypozyczenie: mapujWypozyczenie(dane)
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Nie udalo sie wyslac maila."
+    });
+  }
+}
+
+router.post("/przypomnienie-odbioru/:id", wyslijPrzypomnienieOOdbiorze);
+router.post("/przypomnienie-zwrotu/:id", wyslijPrzypomnienieOZwrocie);
+router.post("/przeterminowany-zwrot/:id", wyslijPrzeterminowanyZwrot);
 async function edytujWypozyczenie(req, res) {
   const client = await pool.connect();
 
@@ -953,6 +1280,7 @@ async function edytujWypozyczenie(req, res) {
       }
     }
 
+    let odrzuconeKonfliktyPoEdycji = [];
     const blokujePrzedZmiana = czyStatusBlokujeSprzet(obecneWypozyczenie.status);
     const blokujePoZmianie = czyStatusBlokujeSprzet(finalnyStatus);
     const czyZmianaSprzetu = finalnySprzetId !== obecneWypozyczenie.sprzet_id;
@@ -1052,7 +1380,7 @@ async function edytujWypozyczenie(req, res) {
         `,
         [finalnySprzetId]
       );
-      await odrzucKonfliktujaceWnioski(client, result.rows[0]);
+      odrzuconeKonfliktyPoEdycji = await odrzucKonfliktujaceWnioski(client, result.rows[0]);
     } else {
       await odswiezStatusSprzetu(client, finalnySprzetId, finalnyStatus !== "zwrocony");
     }
@@ -1062,6 +1390,47 @@ async function edytujWypozyczenie(req, res) {
     }
 
     await client.query("COMMIT");
+
+    if (nowyStatus && result.rows[0].status !== obecneWypozyczenie.status) {
+      if (["zaakceptowany", "odrzucony"].includes(result.rows[0].status)) {
+        wyslijMailWypozyczeniaWTle(
+          result.rows[0].id,
+          (dane) => mailDecyzjaWnioskuWypozyczenia({
+            ...dane,
+            status: result.rows[0].status
+          }),
+          "reczna zmiana decyzji wniosku"
+        );
+      }
+
+      if (result.rows[0].status === "aktywny") {
+        wyslijMailWypozyczeniaWTle(
+          result.rows[0].id,
+          mailAktywacjaWypozyczenia,
+          "reczna aktywacja wypozyczenia"
+        );
+      }
+
+      if (result.rows[0].status === "zwrocony") {
+        wyslijMailWypozyczeniaWTle(
+          result.rows[0].id,
+          mailPotwierdzenieZwrotu,
+          "reczne potwierdzenie zwrotu"
+        );
+      }
+    }
+
+    for (const odrzuconeId of odrzuconeKonfliktyPoEdycji) {
+      wyslijMailWypozyczeniaWTle(
+        odrzuconeId,
+        (dane) => mailDecyzjaWnioskuWypozyczenia({
+          ...dane,
+          status: "odrzucony",
+          powod: "Daty koliduja z aktywnym wypozyczeniem."
+        }),
+        "automatyczne odrzucenie konfliktujacego wniosku po edycji"
+      );
+    }
 
     return res.status(200).json(mapujWypozyczenie(result.rows[0]));
   } catch (err) {

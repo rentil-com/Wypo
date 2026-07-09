@@ -512,6 +512,54 @@ Efekt w jednej transakcji:
 * `data_zwrotu_rzeczywista` ustawiana jest na aktualny czas
 * status sprzętu wraca na `dostepny`
 
+### `POST /wypozyczenia/przypomnienie-odbioru/:id`
+
+Admin only.
+
+Wysyla mailowe przypomnienie o odbiorze sprzetu. Dziala tylko dla wypozyczenia ze statusem `zaakceptowany`.
+
+Opcjonalne body:
+
+```json
+{
+  "miejsce_odbioru": "Punkt wypozyczalni, ul. Przykladowa 1",
+  "godziny_odbioru": "9:00-17:00"
+}
+```
+
+Jesli pola nie zostana podane, backend uzywa `MAIL_PICKUP_LOCATION` i `MAIL_PICKUP_HOURS`.
+
+### `POST /wypozyczenia/przypomnienie-zwrotu/:id`
+
+Admin only.
+
+Wysyla mailowe przypomnienie o zblizajacym sie zwrocie sprzetu. Dziala tylko dla wypozyczenia ze statusem `aktywny`, ktore nie jest jeszcze po terminie.
+
+Opcjonalne body:
+
+```json
+{
+  "miejsce_zwrotu": "Punkt wypozyczalni, ul. Przykladowa 1"
+}
+```
+
+Jesli pole nie zostanie podane, backend uzywa `MAIL_RETURN_LOCATION`.
+
+### `POST /wypozyczenia/przeterminowany-zwrot/:id`
+
+Admin only.
+
+Wysyla mailowa informacje o przeterminowanym zwrocie. Dziala tylko dla aktywnego wypozyczenia, ktorego `data_do` jest w przeszlosci.
+
+Opcjonalne body:
+
+```json
+{
+  "kontakt": "kontakt@example.com"
+}
+```
+
+Jesli pole nie zostanie podane, backend uzywa `MAIL_CONTACT`.
 ### `PATCH /wypozyczenia/edytuj/:id`
 
 ### `PUT /wypozyczenia/edytuj/:id`
