@@ -1,20 +1,21 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useState } from "react";
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import dane from "../dane.json";
-export default function ProductDetailedView () {
-  {/*STATUSY */}
-    type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
 
-    type StatusStyle = {
+export default function ProductDetailedView() {
+  {/* STATUSY SPRZETU */}
+  type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
+
+  type StatusStyle = {
     label: string;
     backgroundColor: string;
     textColor: string;
     icon: keyof typeof MaterialIcons.glyphMap;
-    };
+  };
 
-    const statusStyles: Record<StatusSprzetu, StatusStyle> = {
+  const statusStyles: Record<StatusSprzetu, StatusStyle> = {
     dostepny: {
       label: "Dostępny",
       backgroundColor: "#DCFCE7",
@@ -33,206 +34,226 @@ export default function ProductDetailedView () {
       textColor: "#92400E",
       icon: "build",
     },
-    };
+  };
 
+  {/* STANY I PARAMETRY */}
+  const [searchText, setsearchText] = useState("");
+  const { id } = useLocalSearchParams();
+  const [indexaktualneZdjecie, setindexaktualneZdjecie] = useState(0);
 
-    const [searchText,setsearchText] = useState("")
-    const { id } = useLocalSearchParams();
-    const [indexaktualneZdjecie,setindexaktualneZdjecie] = useState(0)
-   
-    {/* Produkt o danym id */}
-    const product = dane.find((item)=> item.id.toString() === id)
-      const kategorieMap = new Map();
-    kategorieMap.set(1,"Buty")
-    kategorieMap.set(2,"Elektronika")
-    kategorieMap.set(3,"Narzedzia")
-    kategorieMap.set(4,"Sport i rekreacja")
+  {/* PRODUKT O DANYM ID */}
+  const product = dane.find((item) => item.id.toString() === id);
 
+  {/* MAPA KATEGORII */}
+  const kategorieMap = new Map();
+  kategorieMap.set(1, "Buty");
+  kategorieMap.set(2, "Elektronika");
+  kategorieMap.set(3, "Narzedzia");
+  kategorieMap.set(4, "Sport i rekreacja");
 
-    {/* tymczasowa galeria zdjec, narazie mam jedno zdjecie (potem bedzie wiele) */}
-    const temp_photos_gallery = [
-        product?.zdjecie_url, 
-        product?.zdjecie_url,
-        product?.zdjecie_url,
-        product?.zdjecie_url,
-        product?.zdjecie_url,
-        product?.zdjecie_url
-    ]
+  {/* TYMCZASOWA GALERIA ZDJEC, NARAZIE MAM JEDNO ZDJECIE (POTEM BEDZIE WIELE) */}
+  const temp_photos_gallery = [
+    product?.zdjecie_url,
+    product?.zdjecie_url,
+    product?.zdjecie_url,
+    product?.zdjecie_url,
+    product?.zdjecie_url,
+    product?.zdjecie_url,
+  ];
 
-    if (!product) {
-        return (
-        <View style={styles.screen}>
-            <Text style={styles.errorText}>Nie znaleziono produktu.</Text>
-        </View>
-        );
+  if (!product) {
+    return (
+      <View style={styles.screen}>
+        <Text style={styles.errorText}>Nie znaleziono produktu.</Text>
+      </View>
+    );
   }
 
-  const przejdzDoNastepnegoZdjecia =()=> {
-    let nowy_index = indexaktualneZdjecie +1;
-    if(nowy_index >= temp_photos_gallery.length ){
-    
-        nowy_index = 0
+  {/* FUNKCJE GALERII */}
+  const przejdzDoNastepnegoZdjecia = () => {
+    let nowy_index = indexaktualneZdjecie + 1;
+
+    if (nowy_index >= temp_photos_gallery.length) {
+      nowy_index = 0;
     }
-    setindexaktualneZdjecie(nowy_index)
-  }
 
-  const przejdzDoPoprzedniegoZdjecia =()=>{
-     let nowy_index = indexaktualneZdjecie -1;
-       if(nowy_index < 0){
-        nowy_index = 5
+    setindexaktualneZdjecie(nowy_index);
+  };
+
+  const przejdzDoPoprzedniegoZdjecia = () => {
+    let nowy_index = indexaktualneZdjecie - 1;
+
+    if (nowy_index < 0) {
+      nowy_index = temp_photos_gallery.length - 1;
     }
-    setindexaktualneZdjecie(nowy_index)
-  }
 
+    setindexaktualneZdjecie(nowy_index);
+  };
 
   return (
-   
     <View style={screen}>
-       <ScrollView
-            style={styles.scroll}
-         contentContainerStyle={styles.scrollContent}
-         showsVerticalScrollIndicator={false} >
-       
-   
-       <View style={styles.page}>
-       <View style={styles.header}>
-       <View style={styles.headerName}>
-          <Pressable onPress={()=> router.push("../(tabs)/user")}>
-            <Image source={require("../../assets/logos/rentil.png")} style={styles.logo} />
-            </Pressable>
-       </View>
-   
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.page}>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <View style={styles.headerName}>
+              <Pressable onPress={() => router.push("../(tabs)/user")}>
+                <Image source={require("../../assets/logos/rentil.png")} style={styles.logo} />
+              </Pressable>
+            </View>
 
-    {/*WIDOK SEARCHBARU*/}
-       <View style={styles.searchBar}>
-           <MaterialIcons name="search" size={22} color="#8A96A8" />
-             <TextInput
-            value={searchText}
-            onChangeText={(val) => setsearchText(val)}
-            style={styles.searchText}
-            placeholder="Wyszukaj produktów, marek i kategorii"
-            placeholderTextColor="#9AA4B2"
-          />
-       </View>
-        {/*KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM , JAK TO DZIALA */}
+            {/* WIDOK SEARCHBARU */}
+            <View style={styles.searchBar}>
+              <MaterialIcons name="search" size={22} color="#8A96A8" />
+              <TextInput
+                value={searchText}
+                onChangeText={(val) => setsearchText(val)}
+                style={styles.searchText}
+                placeholder="Wyszukaj produktów, marek i kategorii"
+                placeholderTextColor="#9AA4B2"
+              />
+            </View>
 
-        <View style={styles.sideheaderActions}>
-          <Pressable style={styles.sideheaderAction} >
-            <Text style={styles.sideheaderText}>Kategorie</Text>
-          </Pressable>
-       </View>
+            {/* KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM, JAK TO DZIALA */}
+            <View style={styles.sideheaderActions}>
+              <Pressable style={styles.sideheaderAction}>
+                <Text style={styles.sideheaderText}>Kategorie</Text>
+              </Pressable>
+            </View>
 
+            <View style={styles.sideheaderActions}>
+              <Pressable style={styles.sideheaderAction}>
+                <Text style={styles.sideheaderText}>Jak to działa?</Text>
+              </Pressable>
+            </View>
 
-        
-        <View style={styles.sideheaderActions}>
-          <Pressable style={styles.sideheaderAction} >
-            <Text style={styles.sideheaderText}>Jak to działa?</Text>
-          </Pressable>
-       </View>
+            <View style={styles.sideheaderActions}>
+              <Pressable style={styles.sideheaderAction}>
+                <Text style={styles.sideheaderText}>Dla firm</Text>
+              </Pressable>
+            </View>
 
-        <View style={styles.sideheaderActions}>
-          <Pressable style={styles.sideheaderAction} >
-            <Text style={styles.sideheaderText}>Dla firm</Text>
-          </Pressable>
-       </View>
+            <View style={styles.sideheaderActions}>
+              <Pressable style={styles.sideheaderAction}>
+                <Text style={styles.sideheaderText}>Kontakt</Text>
+              </Pressable>
+            </View>
 
-        <View style={styles.sideheaderActions}>
-          <Pressable style={styles.sideheaderAction} >
-            <Text style={styles.sideheaderText}>Kontakt</Text>
-          </Pressable>
-       </View>
-
-
-
-        {/*CONTROLS */}
-        {/*Przenoszenie do odpowiednich widokow */}
-        <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/wishlist")}>
-            <MaterialIcons name="favorite-border" size={24} color="#111827"/>
-            <Text style={styles.headerActionText}>Ulubione</Text>
-          </Pressable>
-       </View>
+            {/* CONTROLS */}
+            {/* PRZENOSZENIE DO ODPOWIEDNICH WIDOKOW */}
+            <View style={styles.headerActions}>
+              <Pressable style={styles.headerAction} onPress={() => router.replace("/(tabs)/wishlist")}>
+                <MaterialIcons name="favorite-border" size={24} color="#111827" />
+                <Text style={styles.headerActionText}>Ulubione</Text>
+              </Pressable>
+            </View>
 
             <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/basket")}>
-            <MaterialIcons name="shopping-cart" size={24} color="#111827"/>
-            <Text style={styles.headerActionText}>Koszyk</Text>
-          </Pressable>
-       </View>
+              <Pressable style={styles.headerAction} onPress={() => router.replace("/(tabs)/basket")}>
+                <MaterialIcons name="shopping-cart" size={24} color="#111827" />
+                <Text style={styles.headerActionText}>Koszyk</Text>
+              </Pressable>
+            </View>
 
+            <View style={styles.headerActions}>
+              <Pressable style={styles.headerAction} onPress={() => router.replace("/(tabs)/basket")}>
+                <MaterialIcons name="person-outline" size={24} color="#111827" />
+                <Text style={styles.headerActionText}>Konto</Text>
+              </Pressable>
+            </View>
+          </View>
 
-          <View style={styles.headerActions}>
-          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/basket")}>
-            <MaterialIcons name="person-outline" size={24} color="#111827"/>
-            <Text style={styles.headerActionText}>Konto</Text>
-          </Pressable>
-       </View>
-   
-       </View>
+          {/* SCIEZKA KATEGORII */}
+          <View>
+            <View style={styles.category_path}>
+              {/* PRZENOSZENIE DO STRONY GLOWNEJ */}
+              <Pressable
+                style={styles.breadcrumbItem}
+                onPress={() => {
+                  router.push("/(tabs)/user");
+                }}
+              >
+                <MaterialIcons name="home" size={20} color="#176BDE" />
+              </Pressable>
 
-    <View>
-        <View style={styles.category_path}>
-            {/*przenoszenie do odpowiedniej kategorii */}
-    <Pressable style={styles.breadcrumbItem} onPress={() => {router.push("/(tabs)/user")}}>
-      <MaterialIcons name="home" size={20} color="#176BDE" />
-    </Pressable>
+              {/* SEPARATOR */}
+              <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
 
-    {/* Separator */}
-    <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
+              {/* PRZENOSZENIE DO ODPOWIEDNIEJ KATEGORII -> ELEKTRONIKA NP. */}
+              <Pressable
+                style={styles.breadcrumbItem}
+                onPress={() => {
+                  router.push(`../category/${product.kategoria_id}`);
+                }}
+              >
+                <Text style={styles.breadcrumbText}>{kategorieMap.get(product.kategoria_id)}</Text>
+              </Pressable>
 
-       {/*przenoszenie do odpowiedniej kategorii-> Elektronika np. */}
-    <Pressable style={styles.breadcrumbItem} onPress={() => {router.push(`../category/${product.kategoria_id}`)}}>
-      <Text style={styles.breadcrumbText}>{kategorieMap.get(product.kategoria_id)}</Text>
-    </Pressable>
+              {/* SEPARATOR */}
+              <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
 
-    {/* Separator */}
-    <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
+              {/* KATEGORIA PODRZEDNA */}
+              <Pressable style={styles.breadcrumbItem} onPress={() => {}}>
+                <Text style={styles.breadcrumbText}>Laptopy</Text>
+              </Pressable>
 
-    {/* Kategoria podrzedna */}
-    <Pressable style={styles.breadcrumbItem} onPress={() => {}}>
-      <Text style={styles.breadcrumbText}>Laptopy</Text>
-    </Pressable>
+              {/* SEPARATOR */}
+              <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
 
-    {/* Separator */}
-    <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
+              {/* OSTATNI AKTYWNY ELEMENT */}
+              <Pressable
+                style={styles.breadcrumbItem}
+                onPress={() => {
+                  router.push(`../products/${product.id}`);
+                }}
+              >
+                <Text style={styles.breadcrumbLast}>{product.nazwa}</Text>
+              </Pressable>
+            </View>
+          </View>
 
-    {/* Ostatnie aktywny element */}
-    <Pressable style={styles.breadcrumbItem} onPress={() => {router.push(`../products/${product.id}`)}}>
-      <Text style={styles.breadcrumbLast}>{product.nazwa}</Text>
-    </Pressable>
-</View>
-     
-    </View>
+          {/* SEKCJA PRODUKTU */}
+          <View style={styles.productSection}>
+            {/* GALERIA ZDJEC */}
+            <View style={styles.galleryCard}>
+              <View style={styles.imageCounter}>
+                <Text style={styles.imageCounterText}>
+                  {/* ILOSC ZDJEC NA ILE */}
+                  {indexaktualneZdjecie + 1} / {temp_photos_gallery.length}
+                </Text>
+              </View>
 
-    <View style={styles.productSection}>
-       <View style={styles.galleryCard}>
-        <View style={styles.imageCounter}>
-            <Text style={styles.imageCounterText}>
-                {/* ilosc zdjec na ile */}
-                 {indexaktualneZdjecie + 1} / {temp_photos_gallery.length}
-            </Text>
-        </View>
+              {/* COFNIECIE ZDJECIA */}
+              <Pressable
+                onPress={() => przejdzDoPoprzedniegoZdjecia()}
+                style={[styles.galleryArrow, styles.galleryArrowLeft]}
+              >
+                <MaterialIcons name="chevron-left" size={28} color="#0F172A" />
+              </Pressable>
 
-        {/* COFNIECIE ZDJECIA*/}
-        <Pressable onPress={()=> przejdzDoPoprzedniegoZdjecia()}  style={[styles.galleryArrow, styles.galleryArrowLeft]}>
-      <MaterialIcons name="chevron-left" size={28} color="#0F172A" />
-</Pressable>
+              {/* GLOWNE ZDJECIE PRODUKTU */}
+              <View style={styles.mainImageBox}>
+                <Image
+                  source={{ uri: temp_photos_gallery[indexaktualneZdjecie] }}
+                  style={styles.mainProductImage}
+                  resizeMode="contain"
+                />
+              </View>
 
-    <View style={styles.mainImageBox}>
-      <Image
-        source={{ uri: temp_photos_gallery[indexaktualneZdjecie] }}
-        style={styles.mainProductImage}
-        resizeMode="contain"
-      />
-    </View>
+              {/* KOLEJNE ZDJECIE */}
+              <Pressable
+                onPress={() => przejdzDoNastepnegoZdjecia()}
+                style={[styles.galleryArrow, styles.galleryArrowRight]}
+              >
+                <MaterialIcons name="chevron-right" size={28} color="#0F172A" />
+              </Pressable>
 
-   
-           {/* KOLEJNE ZDJECIE*/}
-       <Pressable onPress={()=> przejdzDoNastepnegoZdjecia()}  style={[styles.galleryArrow, styles.galleryArrowRight]}>
-      <MaterialIcons name="chevron-right" size={28} color="#0F172A" />
-    </Pressable>
-
-    <View style={styles.thumbnailRow}>
+              {/* MINIATURY ZDJEC */}
+              <View style={styles.thumbnailRow}>
                 {temp_photos_gallery.map((image, index) => (
                   <Pressable
                     key={index}
@@ -242,202 +263,198 @@ export default function ProductDetailedView () {
                     ]}
                     onPress={() => setindexaktualneZdjecie(index)}
                   >
-                    <Image
-                      source={{ uri: image }}
-                      style={styles.thumbnailImage}
-                      resizeMode="contain"
-                    />
+                    <Image source={{ uri: image }} style={styles.thumbnailImage} resizeMode="contain" />
                   </Pressable>
                 ))}
               </View>
-       </View>
-    {/* PRAWA STRONA - SZCZEGOLY */}
-    <View style={styles.detailsCard}>
+            </View>
 
-        <Text style={styles.productTitle}>{product.nazwa}</Text>
-          <View style={styles.statusRow}>
+            {/* PRAWA STRONA - SZCZEGOLY */}
+            <View style={styles.detailsCard}>
+              {/* NAZWA PRODUKTU */}
+              <Text style={styles.productTitle}>{product.nazwa}</Text>
+
+              {/* STATUS PRODUKTU */}
+              <View style={styles.statusRow}>
                 <View style={styles.statusDot} />
-            
-                  <View
-                        style={[
-                          styles.productStatusBadge,
-                          {
-                            backgroundColor:
-                              statusStyles[product.status as keyof typeof statusStyles].backgroundColor,
-                          },
-                        ]}
-                      >
-                        <MaterialIcons
-                          name={statusStyles[product.status as keyof typeof statusStyles].icon}
-                          size={14}
-                          color={statusStyles[product.status as keyof typeof statusStyles].textColor}
-                        />
-            
-                        <Text
-                          style={[
-                            styles.productStatusText,
-                            {
-                              color: statusStyles[product.status as keyof typeof statusStyles].textColor,
-                            },
-                          ]}
-                        >
-                          {statusStyles[product.status as keyof typeof statusStyles].label}
-                        </Text>
-                      </View>
-            
 
-        {/* opinie do zobaczenia po klikneciue */}
-         <View style={styles.ratingRow}>
-        <MaterialIcons name="star" size={18} color="#F59E0B" />
-                <Text style={styles.ratingText}>4.8 (124 opinie)</Text>
-         </View>
-        {/*Cena produktu */}
+                <View
+                  style={[
+                    styles.productStatusBadge,
+                    {
+                      backgroundColor:
+                        statusStyles[product.status as keyof typeof statusStyles].backgroundColor,
+                    },
+                  ]}
+                >
+                  <MaterialIcons
+                    name={statusStyles[product.status as keyof typeof statusStyles].icon}
+                    size={14}
+                    color={statusStyles[product.status as keyof typeof statusStyles].textColor}
+                  />
 
-        <View style={styles.priceRow}>
-      <Text style={styles.price}>129,99 zł</Text>
-      <Text style={styles.pricePeriod}>/ za okres</Text>
-    </View>
+                  <Text
+                    style={[
+                      styles.productStatusText,
+                      {
+                        color: statusStyles[product.status as keyof typeof statusStyles].textColor,
+                      },
+                    ]}
+                  >
+                    {statusStyles[product.status as keyof typeof statusStyles].label}
+                  </Text>
+                </View>
 
-    <View style={styles.oldPriceRow}>
-      <Text style={styles.oldPrice}>179,99 zł</Text>
-      <View style={styles.discountBadge}>
-        <Text style={styles.discountText}>-28%</Text>
-      </View>
-      </View>
+                {/* OPINIE DO ZOBACZENIA PO KLIKNIECIU */}
+                <View style={styles.ratingRow}>
+                  <MaterialIcons name="star" size={18} color="#F59E0B" />
+                  <Text style={styles.ratingText}>4.8 (124 opinie)</Text>
+                </View>
 
+                {/* CENA PRODUKTU */}
+                <View style={styles.priceRow}>
+                  <Text style={styles.price}>129,99 zł</Text>
+                  <Text style={styles.pricePeriod}>/ za okres</Text>
+                </View>
 
-      <Text style={styles.description}>
-      {product.opis}
-    </Text>
-                          
+                <View style={styles.oldPriceRow}>
+                  <Text style={styles.oldPrice}>179,99 zł</Text>
+                  <View style={styles.discountBadge}>
+                    <Text style={styles.discountText}>-28%</Text>
+                  </View>
+                </View>
 
-      {/*SPECYFIKACJE */}    
+                {/* OPIS PRODUKTU */}
+                <Text style={styles.description}>{product.opis}</Text>
 
-         <View style={styles.specList}>
-      <View style={styles.specRow}>
-        <View style={styles.specLeft}>
-          <Text style={styles.specLabel}>Procesor</Text>
-        </View>
-        <Text style={styles.specValue}>Intel Core i5-1145G7</Text>
-      </View>
+                {/* SPECYFIKACJE */}
+                <View style={styles.specList}>
+                  <View style={styles.specRow}>
+                    <View style={styles.specLeft}>
+                      <Text style={styles.specLabel}>Procesor</Text>
+                    </View>
+                    <Text style={styles.specValue}>Intel Core i5-1145G7</Text>
+                  </View>
 
-      <View style={styles.specRow}>
-        <View style={styles.specLeft}>
-          <Text style={styles.specLabel}>Pamięć RAM</Text>
-        </View>
-        <Text style={styles.specValue}>16 GB DDR4</Text>
-      </View>
+                  <View style={styles.specRow}>
+                    <View style={styles.specLeft}>
+                      <Text style={styles.specLabel}>Pamięć RAM</Text>
+                    </View>
+                    <Text style={styles.specValue}>16 GB DDR4</Text>
+                  </View>
 
-      <View style={styles.specRow}>
-        <View style={styles.specLeft}>
-          <Text style={styles.specLabel}>Dysk</Text>
-        </View>
-        <Text style={styles.specValue}>512 GB SSD</Text>
-      </View>
+                  <View style={styles.specRow}>
+                    <View style={styles.specLeft}>
+                      <Text style={styles.specLabel}>Dysk</Text>
+                    </View>
+                    <Text style={styles.specValue}>512 GB SSD</Text>
+                  </View>
 
-      <View style={styles.specRow}>
-        <View style={styles.specLeft}>
-          <Text style={styles.specLabel}>Ekran</Text>
-        </View>
-        <Text style={styles.specValue}>14" Full HD</Text>
-      </View>
+                  <View style={styles.specRow}>
+                    <View style={styles.specLeft}>
+                      <Text style={styles.specLabel}>Ekran</Text>
+                    </View>
+                    <Text style={styles.specValue}>14&quot; Full HD</Text>
+                  </View>
 
-      <View style={styles.specRow}>
-        <View style={styles.specLeft}>
-          <Text style={styles.specLabel}>System</Text>
-        </View>
-        <Text style={styles.specValue}>Windows 11 Pro</Text>
-      </View>
-    </View>
+                  <View style={styles.specRow}>
+                    <View style={styles.specLeft}>
+                      <Text style={styles.specLabel}>System</Text>
+                    </View>
+                    <Text style={styles.specValue}>Windows 11 Pro</Text>
+                  </View>
+                </View>
 
-    <View style={styles.divider} />
+                <View style={styles.divider} />
 
+                {/* OKRES WYNAJMU */}
+                <View style={styles.periodHeader}>
+                  <Text style={styles.periodTitle}>Wybierz okres wynajmu</Text>
 
-        <View style={styles.periodHeader}>
-      <Text style={styles.periodTitle}>Wybierz okres wynajmu</Text>
+                  {/* PRZEKIEROWANIE */}
+                  <Pressable style={styles.howItWorksButton}>
+                    <MaterialIcons name="info-outline" size={16} color="#2563EB" />
+                    <Text style={styles.howItWorksText}>Jak to działa?</Text>
+                  </Pressable>
+                </View>
 
+                <View style={styles.periodOptions}>
+                  <Pressable style={[styles.periodOption, styles.periodOptionActive]}>
+                    <Text style={styles.periodOptionTitleActive}>1 dzień</Text>
+                    <Text style={styles.periodOptionPriceActive}>129,99 zł</Text>
+                  </Pressable>
+                </View>
 
-    {/* przekierowanie*/}
-      <Pressable style={styles.howItWorksButton}>
-        <MaterialIcons name="info-outline" size={16} color="#2563EB" />
-        <Text style={styles.howItWorksText}>Jak to działa?</Text>
-      </Pressable>
-    </View>
+                {/* PRZYCISKI INTERAKTYWNE */}
+                <Pressable style={styles.primaryButton}>
+                  <MaterialIcons name="flash-on" size={22} color="#FFFFFF" />
+                  <Text style={styles.primaryButtonText}>Wypożycz teraz</Text>
+                </Pressable>
 
-     <View style={styles.periodOptions}>
-      <Pressable style={[styles.periodOption, styles.periodOptionActive]}>
-        <Text style={styles.periodOptionTitleActive}>1 dzień</Text>
-        <Text style={styles.periodOptionPriceActive}>129,99 zł</Text>
-      </Pressable>
-        </View>
-
-
-
-      {/* przyciski interaktywne */}
-        <Pressable style={styles.primaryButton}>
-      <MaterialIcons name="flash-on" size={22} color="#FFFFFF" />
-      <Text style={styles.primaryButtonText}>Wypożycz teraz</Text>
-    </Pressable>
-
-    <Pressable style={styles.secondaryButton}>
-      <MaterialIcons name="shopping-cart" size={22} color="#2563EB" />
-      <Text style={styles.secondaryButtonText}>Dodaj do koszyka</Text>
-    </Pressable>
-
-  <View style={styles.benefitDivider} />
-
-  <View style={styles.benefitItem}>
-    <View style={styles.benefitIcon}>
-      <MaterialIcons name="sync" size={24} color="#2563EB" />
-    </View>
-    <View>
-      <Text style={styles.benefitTitle}>Elastyczny wynajem</Text>
-      <Text style={styles.benefitText}>Krótko- i długoterminowy</Text>
-    </View>
-  </View>
-
-  <View style={styles.benefitDivider} />
-
-  <View style={styles.benefitItem}>
-    <View style={styles.benefitIcon}>
-      <MaterialIcons name="shield" size={24} color="#2563EB" />
-    </View>
-    <View>
-      <Text style={styles.benefitTitle}>Bezpieczeństwo</Text>
-      <Text style={styles.benefitText}>Sprzęt sprawdzony i gotowy</Text>
-    </View>
-  </View>
-
-  <View style={styles.benefitDivider} />
-
-  <View style={styles.benefitItem}>
-    <View style={styles.benefitIcon}>
-      <MaterialIcons name="headset-mic" size={24} color="#2563EB" />
-    </View>
-    <View>
-      <Text style={styles.benefitTitle}>Wsparcie 24/7</Text>
-      <Text style={styles.benefitText}>Jesteśmy dla Ciebie</Text>
-    </View>
-  </View>
-
+                <Pressable style={styles.secondaryButton}>
+                  <MaterialIcons name="shopping-cart" size={22} color="#2563EB" />
+                  <Text style={styles.secondaryButtonText}>Dodaj do koszyka</Text>
+                </Pressable>
+              </View>
+            </View>
           </View>
 
-          </View>
-    </View>
+          {/* PASEK ZALET */}
+          <View style={styles.benefitsBar}>
+            <View style={styles.benefitItem}>
+              <View style={styles.benefitIcon}>
+                <MaterialIcons name="local-shipping" size={24} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={styles.benefitTitle}>Darmowa dostawa</Text>
+                <Text style={styles.benefitText}>Na terenie całej Polski</Text>
+              </View>
+            </View>
 
+            <View style={styles.benefitDivider} />
+
+            <View style={styles.benefitItem}>
+              <View style={styles.benefitIcon}>
+                <MaterialIcons name="sync" size={24} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={styles.benefitTitle}>Elastyczny wynajem</Text>
+                <Text style={styles.benefitText}>Krótko- i długoterminowy</Text>
+              </View>
+            </View>
+
+            <View style={styles.benefitDivider} />
+
+            <View style={styles.benefitItem}>
+              <View style={styles.benefitIcon}>
+                <MaterialIcons name="shield" size={24} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={styles.benefitTitle}>Bezpieczeństwo</Text>
+                <Text style={styles.benefitText}>Sprzęt sprawdzony i gotowy</Text>
+              </View>
+            </View>
+
+            <View style={styles.benefitDivider} />
+
+            <View style={styles.benefitItem}>
+              <View style={styles.benefitIcon}>
+                <MaterialIcons name="headset-mic" size={24} color="#2563EB" />
+              </View>
+              <View>
+                <Text style={styles.benefitTitle}>Wsparcie 24/7</Text>
+                <Text style={styles.benefitText}>Jesteśmy dla Ciebie</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </View>
-       </ScrollView>
-       </View>
-   
   );
-};
+}
 
-
-
-
-const styles = StyleSheet.create({ 
-
-    screen: {
+const styles = StyleSheet.create({
+  screen: {
     flex: 1,
     backgroundColor: "#F4F8FF",
   },
@@ -559,6 +576,9 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#334155",
   },
+
+  /* SCIEZKA KATEGORII */
+
   category_path: {
     marginTop: 28,
     marginBottom: 24,
@@ -629,7 +649,8 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#64748B",
   },
-    mainImageBox: {
+
+  mainImageBox: {
     flex: 1,
     minHeight: 540,
     alignItems: "center",
@@ -644,6 +665,7 @@ const styles = StyleSheet.create({
     height: "100%",
     maxHeight: 540,
   },
+
   thumbnailRow: {
     marginTop: 20,
     flexDirection: "row",
@@ -672,7 +694,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-    galleryArrow: {
+
+  galleryArrow: {
     position: "absolute",
     top: "48%",
     width: 44,
@@ -700,6 +723,8 @@ const styles = StyleSheet.create({
     right: 28,
   },
 
+  /* PRAWA STRONA - SZCZEGOLY */
+
   productStatusBadge: {
     alignSelf: "flex-start",
     flexDirection: "row",
@@ -715,9 +740,351 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "800",
   },
+
   logo: {
-  width: 92,
-  height: 72,
-  zIndex: 2,
+    width: 92,
+    height: 72,
+    zIndex: 2,
   },
-})
+
+  detailsCard: {
+    flex: 1,
+    minHeight: 720,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 26,
+    padding: 30,
+
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 5,
+  },
+
+  productTitle: {
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: "900",
+    color: "#07163D",
+    marginBottom: 14,
+  },
+
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 18,
+    marginBottom: 18,
+  },
+
+  availableRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  availableDot: {
+    width: 11,
+    height: 11,
+    borderRadius: 99,
+    backgroundColor: "#10B981",
+  },
+
+  availableText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  ratingText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    marginTop: 4,
+  },
+
+  price: {
+    fontSize: 38,
+    lineHeight: 44,
+    fontWeight: "900",
+    color: "#2563EB",
+  },
+
+  pricePeriod: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#64748B",
+    marginBottom: 6,
+  },
+
+  oldPriceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 10,
+    marginBottom: 22,
+  },
+
+  oldPrice: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#64748B",
+    textDecorationLine: "line-through",
+  },
+
+  discountBadge: {
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+
+  discountText: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#059669",
+  },
+
+  description: {
+    fontSize: 15,
+    lineHeight: 23,
+    fontWeight: "500",
+    color: "#475569",
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#E2E8F0",
+    marginVertical: 24,
+  },
+
+  specList: {
+    gap: 14,
+  },
+
+  specRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 16,
+  },
+
+  specLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  specLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+
+  specValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#334155",
+    textAlign: "right",
+  },
+
+  periodHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+
+  periodTitle: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
+
+  howItWorksButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  howItWorksText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2563EB",
+  },
+
+  periodOptions: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+
+  periodOption: {
+    flex: 1,
+    minHeight: 68,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    backgroundColor: "#FFFFFF",
+  },
+
+  periodOptionActive: {
+    borderWidth: 2,
+    borderColor: "#2563EB",
+    backgroundColor: "#F8FBFF",
+  },
+
+  periodOptionTitle: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#0F172A",
+    marginBottom: 6,
+  },
+
+  periodOptionTitleActive: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#2563EB",
+    marginBottom: 6,
+  },
+
+  periodOptionPriceActive: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#2563EB",
+  },
+
+  periodPriceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  periodOldPrice: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#64748B",
+    textDecorationLine: "line-through",
+  },
+
+  periodDiscount: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#059669",
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+
+  primaryButton: {
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: "#2563EB",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 10,
+
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.24,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+
+  primaryButtonText: {
+    fontSize: 17,
+    fontWeight: "900",
+    color: "#FFFFFF",
+  },
+
+  secondaryButton: {
+    height: 52,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "#2563EB",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#2563EB",
+  },
+
+  /* PASEK ZALET */
+
+  benefitsBar: {
+    marginTop: 24,
+    minHeight: 88,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 4,
+  },
+
+  benefitItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+
+  benefitIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  benefitTitle: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#0F172A",
+    marginBottom: 4,
+  },
+
+  benefitText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+
+  benefitDivider: {
+    width: 1,
+    height: 42,
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 20,
+  },
+});
