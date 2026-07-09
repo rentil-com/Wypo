@@ -683,20 +683,20 @@ Możliwe błędy:
 
 Wymaga logowania.
 
-Zwraca recenzje aktualnie zalogowanego użytkownika.
+Zwraca aktywne recenzje aktualnie zalogowanego użytkownika.
 
 Query parametry:
 
 * `strona` - numer strony, domyślnie `1`
-* `status` - opcjonalny filtr po statusie: `aktywna`, `ukryta`, `usunieta`
 
 Endpoint zwraca maksymalnie 10 recenzji na stronę.
+
+Zwracane są tylko recenzje ze statusem `aktywna`.
 
 Odpowiedź zawiera:
 
 * `strona`
 * `limitRecenzjiNaStrone`
-* `filtry`
 * `total`
 * `liczbaStron`
 * `dane`
@@ -707,9 +707,6 @@ Przykładowa odpowiedź:
 {
   "strona": 1,
   "limitRecenzjiNaStrone": 10,
-  "filtry": {
-    "status": "aktywna"
-  },
   "total": 1,
   "liczbaStron": 1,
   "dane": [
@@ -732,7 +729,6 @@ Przykładowa odpowiedź:
 
 Możliwe błędy:
 
-* `400` - nieprawidłowy status recenzji
 * `401` - wymagane logowanie
 * `500` - błąd serwera
 

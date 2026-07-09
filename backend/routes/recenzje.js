@@ -272,6 +272,7 @@ router.post("/dodaj", async (req, res) => {
       FROM recenzje
       WHERE uzytkownik_id = $1
         AND sprzet_id = $2
+        AND status != 'usunieta'::status_recenzji
       LIMIT 1;
       `,
       [uzytkownik.id, sprzetId]
@@ -438,25 +439,11 @@ router.get("/moje", async (req, res) => {
     }
 
     const strona = parsujId(req.query.strona) || 1;
-    const where = ["r.uzytkownik_id = $1"];
+    const where = [
+      "r.uzytkownik_id = $1",
+      "r.status = 'aktywna'::status_recenzji"
+    ];
     const params = [uzytkownik.id];
-    const filtry = {
-      status: null
-    };
-
-    if (czyPolePrzekazane(req.query, "status")) {
-      const status = normalizujTekst(req.query.status);
-
-      if (!dozwoloneStatusyRecenzji.includes(status)) {
-        return res.status(400).json({
-          error: "Nieprawidlowy status recenzji."
-        });
-      }
-
-      params.push(status);
-      where.push(`r.status = $${params.length}::status_recenzji`);
-      filtry.status = status;
-    }
 
     const lista = await pobierzListeRecenzji(where, params, strona);
 
