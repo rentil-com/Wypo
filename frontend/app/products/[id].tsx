@@ -111,7 +111,7 @@ export default function ProductDetailedView() {
           <View style={styles.header}>
             <View style={styles.headerName}>
               <Pressable onPress={() => router.push("../(tabs)/user")}>
-                <Image source={require("../../assets/logos/rentil.png")} style={styles.logo} />
+                <Image source={{uri : "https://wypozyczalnia.calantris.com/logo.svg"}} style={styles.logo} />
               </Pressable>
             </View>
 
@@ -405,7 +405,7 @@ export default function ProductDetailedView() {
                   {/* PRZEKIEROWANIE */}
                   <Pressable style={styles.howItWorksButton}>
                     <MaterialIcons name="info-outline" size={16} color="#2563EB" />
-                    <Text style={styles.howItWorksText}>Jak to działa?</Text>
+                    <Text style={styles.howItWorksText} onPress={()=> router.push("/(tabs)/howItWorks")}>Jak to działa?</Text>
                   </Pressable>
                 </View>
 
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 4,
     zIndex : 200,
-    
+
   },
 
   headerName: {
@@ -779,8 +779,8 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 92,
-    height: 72,
+    width: 52,
+    height: 52,
     zIndex: 2,
   },
 

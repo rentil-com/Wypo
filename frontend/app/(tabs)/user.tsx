@@ -124,7 +124,7 @@ export default function User() {
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerName}>
-         <Image source={require("../../assets/logos/rentil.png")} style={styles.logo} />
+         <Image source={{uri : "https://wypozyczalnia.calantris.com/logo.svg"}} style={styles.logo} />
         </View>
 
         {/*SEARCH BAR */}
@@ -487,8 +487,8 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-  width: 72,
-  height: 72,
+  width: 52,
+  height: 52,
   zIndex: 1,
 
   },
