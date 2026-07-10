@@ -251,7 +251,7 @@ export default function User() {
         <Text style={styles.sectionTitle}>Kategorie</Text>
 
         <View style={styles.sectionActions}>
-          <Pressable style={styles.allButton}>
+          <Pressable style={styles.allButton} onPress={()=> router.push("../catalog/catalog")}>
             <Text style={styles.allButtonText}>Wszystkie</Text>
           </Pressable>
 
@@ -268,12 +268,12 @@ export default function User() {
       {/* KATEGORIE */}
       <View style={styles.categoriesRow}>
         
-        <Pressable onPress={()=> router.push("../promotions/promotions")} style={[styles.categoryCard]}>
-          <View style={styles.categoryIconBox}> 
+        <Pressable onPress={()=> router.push("../promotions/promotions")} style={[styles.categoryCardActive]}>
+          <View style={styles.categoryIconBoxActive}> 
   <MaterialIcons name={"discount"} size={32}
                 color="#F43F5E"/>
           </View>
-      <Text style={styles.categoryName}>Promocje</Text>
+      <Text style={styles.categoryNameActive}>Promocje</Text>
         </Pressable>
 
         {Array.from(kategorieMap).map(([key, val], index) => (
@@ -320,7 +320,7 @@ export default function User() {
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Bestsellery</Text>
 
-        <Pressable style={styles.seeAllButton}>
+        <Pressable style={styles.seeAllButton} onPress={()=> router.push("../catalog/catalog")}>
           <Text style={styles.seeAllText}>Zobacz wszystkie</Text>
           <MaterialIcons name="chevron-right" size={22} color="#176BDE" />
         </Pressable>
@@ -697,6 +697,19 @@ const styles = StyleSheet.create({
   },
 
   categoryCardActive: {
+       flex: 1,
+    minHeight: 118,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 14,
+
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 3,
     backgroundColor: "#FFEAF0",
     borderColor: "#FFD0DC",
   },
@@ -712,6 +725,12 @@ const styles = StyleSheet.create({
   },
 
   categoryIconBoxActive: {
+    width: 54,
+    height: 54,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
     backgroundColor: "#FFFFFF",
   },
 
@@ -723,7 +742,10 @@ const styles = StyleSheet.create({
   },
 
   categoryNameActive: {
+    fontSize: 15,
+    fontWeight: "800",
     color: "#F43F5E",
+    textAlign: "center",
   },
   seeAllButton: {
       flexDirection: "row",
