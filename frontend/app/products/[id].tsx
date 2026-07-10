@@ -39,13 +39,16 @@ export default function ProductDetailedView() {
   {/* STANY I PARAMETRY */}
   const [searchText, setsearchText] = useState("");
   const { id } = useLocalSearchParams();
+  {/* index = aktualne zdjecie w galerii */}
   const [indexaktualneZdjecie, setindexaktualneZdjecie] = useState(0);
 
   {/* PRODUKT O DANYM ID */}
   const product = dane.find((item) => item.id.toString() === id);
-  {/*sugestie */}
-  const suggestions = dane.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
 
+  {/* SUGESTIE WYSZUKIWANIA */}
+  const suggestions = dane.filter((item) =>
+    item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase())
+  );
 
   {/* MAPA KATEGORII */}
   const kategorieMap = new Map();
@@ -93,11 +96,12 @@ export default function ProductDetailedView() {
     setindexaktualneZdjecie(nowy_index);
   };
 
-   const handleSearchSubmit =()=> {
-    const query = searchText.trim()
+  {/* SEARCH SUBMIT - query = tekst wyszukania */}
+  const handleSearchSubmit = () => {
+    const query = searchText.trim();
 
-    router.push({pathname : "../catalog/catalog", params : {query : searchText} })
-  }
+    router.push({ pathname: "../catalog/catalog", params: { query } });
+  };
 
   return (
     <View style={screen}>
@@ -128,26 +132,28 @@ export default function ProductDetailedView() {
                 placeholderTextColor="#9AA4B2"
               />
             </View>
-          {suggestions.length > 0 && searchText.trim().length > 0 &&
-                  <View style={styles.suggestionsPanel}>
-                    {/*SUGGESTIONS PANEL */}
-                  {suggestions.map((item)=>(
-                    <Pressable key={item.id} onPress={()=> router.push(`../products/${item.id}`)} style={styles.suggestionItem}>
-                        <Image source={{uri : item.zdjecie_url}} style={styles.suggestionImage} />
-                        <View style={styles.suggestionInfo}>
-                  <Text style={styles.suggestionName} numberOfLines={1}>
-                    {item.nazwa}
-                  </Text>
-          
-                  <Text style={styles.suggestionPrice}>
-                    {item.cena} zł
-                  </Text>
-                </View>
-                    </Pressable>
-                  ))}
-                  </View>
-          }
+            {/* PANEL SUGESTII */}
+            {suggestions.length > 0 && searchText.trim().length > 0 && (
+              <View style={styles.suggestionsPanel}>
+                {suggestions.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    style={styles.suggestionItem}
+                    onPress={() => router.push(`../products/${item.id}`)}
+                  >
+                    <Image source={{ uri: item.zdjecie_url }} style={styles.suggestionImage} />
 
+                    <View style={styles.suggestionInfo}>
+                      <Text style={styles.suggestionName} numberOfLines={1}>
+                        {item.nazwa}
+                      </Text>
+
+                      <Text style={styles.suggestionPrice}>{item.cena} z{"\u0142"}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            )}
 
             {/* KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM, JAK TO DZIALA */}
             <View style={styles.sideheaderActions}>
@@ -1126,59 +1132,63 @@ const styles = StyleSheet.create({
     backgroundColor: "#E2E8F0",
     marginHorizontal: 20,
   },
+
+  /* SUGESTIE SEARCHBARU */
+
   suggestionsPanel: {
-  position: "absolute",
-  top: 68,
-  left: 0,
-  right: 0,
-  zIndex: 300,
+    position: "absolute",
+    top: 68,
+    left: 0,
+    right: 0,
+    zIndex: 300,
 
-  backgroundColor: "#F8FBFF",
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: "#D7E8F7",
-  paddingVertical: 6,
+    backgroundColor: "#F8FBFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D7E8F7",
+    paddingVertical: 6,
 
-  shadowColor: "#176B87",
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.18,
-  shadowRadius: 8,
-  elevation: 12,
-  overflow: "hidden",
-},
-suggestionItem: {
-  flexDirection: "row",
-  alignItems: "center",
-  minHeight: 64,
-  paddingHorizontal: 12,
-  paddingVertical: 8,
-  borderBottomWidth: 1,
-  borderBottomColor: "#E4EFF7",
-},
+    shadowColor: "#176B87",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 12,
+    overflow: "hidden",
+  },
 
-suggestionImage: {
-  width: 46,
-  height: 46,
-  borderRadius: 8,
-  marginRight: 12,
-  backgroundColor: "#EAF2F7",
-},
+  suggestionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 64,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E4EFF7",
+  },
 
-suggestionInfo: {
-  flex: 1,
-},
+  suggestionImage: {
+    width: 46,
+    height: 46,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: "#EAF2F7",
+  },
 
-suggestionName: {
-  color: "#163A4A",
-  fontSize: 14,
-  fontWeight: "600",
-},
+  suggestionInfo: {
+    flex: 1,
+  },
 
-suggestionPrice: {
-  marginTop: 4,
-  color: "#16849B",
-  fontSize: 13,
-  fontWeight: "700",
-},
+  suggestionName: {
+    color: "#163A4A",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  suggestionPrice: {
+    marginTop: 4,
+    color: "#16849B",
+    fontSize: 13,
+    fontWeight: "700",
+  },
 });
   
