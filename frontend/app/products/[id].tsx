@@ -90,6 +90,12 @@ export default function ProductDetailedView() {
     setindexaktualneZdjecie(nowy_index);
   };
 
+   const handleSearchSubmit =()=> {
+    const query = searchText.trim()
+
+    router.push({pathname : "../catalog/catalog", params : {query : searchText} })
+  }
+
   return (
     <View style={screen}>
       <ScrollView
@@ -113,6 +119,8 @@ export default function ProductDetailedView() {
                 value={searchText}
                 onChangeText={(val) => setsearchText(val)}
                 style={styles.searchText}
+                returnKeyType="search"
+                onSubmitEditing={handleSearchSubmit}
                 placeholder="Wyszukaj produktów, marek i kategorii"
                 placeholderTextColor="#9AA4B2"
               />
