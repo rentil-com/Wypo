@@ -7,6 +7,7 @@ import crypto from "crypto";
 import 'dotenv/config';
 
 const limitPrzedmiotowNaStrone = 20;
+const limitWynikowWyszukiwania = 5;
 const MAKSYMALNA_CENA = 99999999.99;
 
 const router = Router();
@@ -120,6 +121,11 @@ function formatujZdjeciaUrl(zdjecia_url) {
   return Object.fromEntries(
     Object.entries(zdjecia).map(([numer, url]) => [numer, formatujUrlZdjecia(url)])
   );
+}
+
+function pobierzPierwszeZdjecieUrl(zdjecia_url) {
+  return Object.values(formatujZdjeciaUrl(zdjecia_url))
+    .find((url) => Boolean(url)) ?? null;
 }
 
 function formatujSpecyfikacje(specyfikacje) {
@@ -1298,6 +1304,55 @@ router.get("/usun", async (req, res) => {
     );
 
     const dane = result.rows.map((sprzet) => sprzet.id);
+
+    return res.status(200).json(dane);
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Blad serwera"
+    });
+  }
+});
+
+router.get("/search", async (req, res) => {
+  try {
+    const wyszukiwanaNazwa = normalizujTekst(
+      req.query.q ?? req.query.search ?? req.query.nazwa
+    );
+
+    if (!wyszukiwanaNazwa) {
+      return res.status(200).json([]);
+    }
+
+    const result = await pool.query(
+      `
+      SELECT nazwa, zdjecia_url, cena, cena_po_promocji
+      FROM sprzety
+      WHERE nazwa ILIKE $1
+      ORDER BY
+        CASE WHEN nazwa ILIKE $2 THEN 0 ELSE 1 END,
+        nazwa,
+        id
+      LIMIT $3;
+      `,
+      [
+        `%${wyszukiwanaNazwa}%`,
+        `${wyszukiwanaNazwa}%`,
+        limitWynikowWyszukiwania
+      ]
+    );
+
+    const dane = result.rows.map((sprzet) => ({
+      nazwa_przedmiotu: sprzet.nazwa,
+      zdjecie_url: pobierzPierwszeZdjecieUrl(sprzet.zdjecia_url),
+      cena: Number(sprzet.cena),
+      cena_po_promocji: sprzet.cena_po_promocji === null
+        ? null
+        : Number(sprzet.cena_po_promocji),
+      czy_promocja: sprzet.cena_po_promocji !== null &&
+        Number(sprzet.cena_po_promocji) < Number(sprzet.cena)
+    }));
 
     return res.status(200).json(dane);
   } catch (err) {
