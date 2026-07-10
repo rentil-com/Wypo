@@ -1,7 +1,19 @@
 
 import { router } from "expo-router";
 import { useRef, useState } from "react";
-import { Button, TextInput, View,StyleSheet,Text,TouchableOpacity, Image, Platform, useWindowDimensions, ScrollView, KeyboardAvoidingView } from "react-native";
+import {
+  Button,
+  TextInput,
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Image,
+  Platform,
+  useWindowDimensions,
+  ScrollView,
+  KeyboardAvoidingView,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from "@react-navigation/elements";
 import { ThemedView } from "./components/themed-view";
@@ -11,41 +23,42 @@ import { Ionicons } from "@expo/vector-icons";
 
 
 export default function LoginScreen() {
-  const [errors,setErrors] = useState("")
+  const [errors, setErrors] = useState("");
 
-  const { width } = useWindowDimensions()
-  const scrollRef = useRef<ScrollView>(null)
-  const [adresEmail,setadresEmail] =  useState("")
-  const [haslo,setHaslo] = useState("")
-  const testLogin = "admin"
-  const testHaslo = "admin"
+  const { width } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null); // ref = przewijanie formularza
+  const [adresEmail, setadresEmail] = useState(""); // email = adres e-mail
+  const [haslo, setHaslo] = useState(""); // pass = haslo
+  const testLogin = "admin"; // login testowy
+  const testHaslo = "admin"; // haslo testowe
 
-  const sprawdzDane =()=> {
-    console.log(adresEmail,haslo)
+  const sprawdzDane = () => {
+    console.log(adresEmail, haslo);
   }
 
 
-  const sprawdzHaslo =()=> {
-    if(adresEmail === testLogin && haslo === testHaslo){
-      router.replace("/(tabs)/user")
+  const sprawdzHaslo = () => {
+    if (adresEmail === testLogin && haslo === testHaslo) {
+      router.replace("/(tabs)/user");
     }
-    if(adresEmail !== testLogin || haslo !== testHaslo){
-      setErrors("Login lub haslo jest niepoprawne")
+    if (adresEmail !== testLogin || haslo !== testHaslo) {
+      setErrors("Login lub haslo jest niepoprawne");
     }
     
   }
 
   const scrollToLoginForm = (offset: number) => {
     setTimeout(() => {
-      scrollRef.current?.scrollTo({ y: offset, animated: true })
-    }, 80)
+      scrollRef.current?.scrollTo({ y: offset, animated: true });
+    }, 80);
   }
 
-  if(Platform.OS !== "web"){
-    const mobileWidth = Math.min(width, 430)
-    const heroImageWidth = mobileWidth * 0.92
-    const heroImageHeight = heroImageWidth * 1.333
-    const heroFrameHeight = heroImageHeight * 0.86
+  // WIDOK MOBILNY
+  if (Platform.OS !== "web") {
+    const mobileWidth = Math.min(width, 430); // szerokosc ekranu
+    const heroImageWidth = mobileWidth * 0.92; // szerokosc grafiki
+    const heroImageHeight = heroImageWidth * 1.333; // wysokosc grafiki
+    const heroFrameHeight = heroImageHeight * 0.86; // ramka grafiki
 
     return (
       <SafeAreaProvider style={mobileStyles.container}>
@@ -144,6 +157,7 @@ export default function LoginScreen() {
                   <View style={mobileStyles.mobileDividerLine} />
                 </View>
 
+                {/* LOGOWANIE PRZEZ SOCIAL MEDIA */
                 <View style={mobileStyles.mobileSocialContainer}>
                   <TouchableOpacity style={mobileStyles.mobileSocialButton} activeOpacity={0.75}>
                     <Image source={require('../assets/icons/google-icon.png')} style={mobileStyles.mobileSocialIcon} resizeMode="contain" />
@@ -177,12 +191,12 @@ export default function LoginScreen() {
   }
 
 
+  // WIDOK DESKTOPOWY
   return (
-    
-   <SafeAreaProvider style={styles.container}>
+    <SafeAreaProvider style={styles.container}>
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.loginPage}>
-      {/* LEWA STRONA  */}
+          {/* LEWA STRONA */}
         <View style={styles.leftSide}>
           <View style={styles.heroImageWrapper}> 
            <Image
@@ -194,9 +208,10 @@ export default function LoginScreen() {
             </View>
         </View>
 
-      {/* PRAWA STRONA */}
-      <ThemedView style={styles.innerContainer} >
-        <View style={styles.card}>
+          {/* PRAWA STRONA */}
+          <ThemedView style={styles.innerContainer}>
+            {/* FORMULARZ LOGOWANIA */
+            <View style={styles.card}>
             <View style={styles.cardTop}>
                 <Image
                   source={require("../assets/logos/rentil.png")}
@@ -250,7 +265,8 @@ export default function LoginScreen() {
     </View>
 
 
-     <View style={styles.socialContainer}>
+            {/* LOGOWANIE PRZEZ SOCIAL MEDIA */
+            <View style={styles.socialContainer}>
                     <TouchableOpacity style={styles.socialButtonWrapper}> 
                     <Image source={require('../assets/icons/facebook-icon.png')} style={styles.socialIcon} resizeMode="contain">
 
