@@ -146,22 +146,26 @@ export default function TabsLayout() {
 
 
         {/*NAGŁOWEK STRONY, OPISY ZACHECAJACE */}
-        <View>
-            <View>
-              <ThemedText>Wszystkie produkty</ThemedText>
+        <View style={styles.pageHeading}>
+            <View style={styles.pageHeadingContent}>
+              <ThemedText style={styles.pageTitle}>Wszystkie produkty</ThemedText>
 
-              <ThemedText>
+              <ThemedText style={styles.pageDescription}>
                 Odkryj pełną ofertę tysięcy produktów dostępnych na wynajem.
                 Wybierz, porównaj i wynajmij już dziś.
               </ThemedText>
             </View>
 
-            <View>
-              <ThemedText>▱</ThemedText>
+            <View style={styles.productsInfo}>
+              <View style={styles.productsInfoIcon}>
+                <ThemedText style={styles.productsInfoIconText}>
+                 <MaterialIcons name="business-center" size={32}  />
+                </ThemedText>
+              </View>
 
               <View>
-                <ThemedText>Tysiące produktów</ThemedText>
-                <ThemedText>w jednym miejscu</ThemedText>
+                <ThemedText  style={styles.productsInfoTitle}>Tysiące produktów</ThemedText>
+                <ThemedText style={styles.productsInfoDescription}>w jednym miejscu</ThemedText>
               </View>
             </View>
           </View>
@@ -470,6 +474,78 @@ suggestionPrice: {
     flexWrap: "nowrap",
     overflow: "hidden",
     gap: 8,
+  },
+pageHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop: 18,
+    marginBottom: 22,
+  },
+
+  pageHeadingContent: {
+    flex: 1,
+  },
+
+  pageTitle: {
+    color: "#111827",
+    fontSize: 42,
+    lineHeight: 48,
+    fontWeight: "900",
+  },
+
+  pageDescription: {
+    color: "#7A89A6",
+    fontSize: 14,
+    marginTop: 6,
+  },
+
+  productsInfo: {
+    minWidth: 235,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
+
+    shadowColor: "#1E3A8A",
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.04,
+    shadowRadius: 18,
+    elevation: 2,
+  },
+
+  productsInfoIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EEF4FF",
+  },
+
+  productsInfoIconText: {
+    color: "#0877FF",
+    fontSize: 23,
+    fontWeight: "700",
+  },
+
+  productsInfoTitle: {
+    color: "#172033",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  productsInfoDescription: {
+    color: "#8995AB",
+    fontSize: 12,
+    marginTop: 2,
   },
 
 })
