@@ -17,6 +17,7 @@ export default function User() {
   const [katalog,setKatalog] = useState(dane)
   const [searchText,setsearchText] = useState("")
   const [randomIndex,setRandomIndex] = useState(0)
+  const [showcategoryPanel,setshowcategoryPanel] = useState(false)
 
   
 
@@ -161,13 +162,27 @@ export default function User() {
         </View>
 }
         {/*KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM , JAK TO DZIALA */}
+        <View style={styles.categoryContainer}>
          <View style={styles.headerSideActions}>
-                <Pressable style={styles.headerInfo} >
+          {/*onHoverIn, onHoverOut - działaja tylko na web , do mobliek dodac onPressIn, onPressOut */}
+                <Pressable style={styles.headerInfo} onHoverIn={()=>setshowcategoryPanel(true)} onHoverOut={()=> setshowcategoryPanel(false)}  >
                   <Text style={styles.headerInfoText}>Kategorie</Text>
                 </Pressable>
              </View>
-      
-      
+      {/*ROZWIJANY PANEL KATEGORII, NARAZIE NIE WSZYSTKIE KATEGORIE */}
+      {/*przeniesienie do odpowiedniego widoku kategorii, dodac ikonki do poszczegółnych kategorii */}
+      {showcategoryPanel && <View style={styles.categoryPanel}>
+        {Array.from(kategorieMap).map((item,index)=>
+        <Pressable key={index} style={styles.categoryItem}> 
+        <View style={styles.categoryInfo}>
+          <Text style={styles.categoryName}>{item}</Text>
+        </View>
+         </Pressable>
+        ) }
+        
+        </View>
+        }
+      </View>
               
               <View style={styles.headerSideActions}>
                 <Pressable style={styles.headerInfo} >
@@ -1027,4 +1042,35 @@ suggestionPrice: {
   fontSize: 13,
   fontWeight: "700",
 },
+categoryPanel : {
+  position: "absolute",
+  top: 52,                    
+  left: "50%",                
+  transform: [{ translateX: -110 }],   
+  backgroundColor: "#FFFFFF",
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: "#E2E8F0",
+  paddingVertical: 8,
+  paddingHorizontal: 6,
+  width: 220,
+  shadowColor: "#0F172A",
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.15,
+  shadowRadius: 20,
+  elevation: 18,
+  zIndex: 300,
+  overflow: "hidden",
+},
+categoryItem : {
+  flexDirection: "row",
+  alignItems: "center",
+  paddingVertical: 13,
+  paddingHorizontal: 16,
+  borderRadius: 10,
+  marginHorizontal: 4,
+},
+categoryContainer :{
+  position : "relative"
+}
 });
