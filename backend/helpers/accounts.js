@@ -1,6 +1,5 @@
 import { normalizujTekst } from "./common.js";
 
-export const LIMIT_KONT_NA_STRONE = 10;
 export const DOZWOLONE_ROLE = ["uzytkownik", "admin"];
 
 export function czyPoprawnyEmail(email) {

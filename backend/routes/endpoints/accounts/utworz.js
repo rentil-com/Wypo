@@ -2,6 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcrypt";
 import { pool } from "../../../db/pool.js";
 import {
+  BCRYPT_KOSZT_HASLA,
   generujKod,
   hashujKod,
   KOD_REJESTRACJI_WAZNY_MINUT,
@@ -65,7 +66,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const hasloHash = await bcrypt.hash(hasloKonta, 12);
+    const hasloHash = await bcrypt.hash(hasloKonta, BCRYPT_KOSZT_HASLA);
     const kod = generujKod();
     const kodHash = await hashujKod(kod);
     const dataWygasniecia = new Date(

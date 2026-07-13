@@ -9,7 +9,6 @@ export const DOZWOLONE_STATUSY_WYPOZYCZEN = [
 ];
 export const STATUSY_BLOKUJACE_SPRZET = ["aktywny"];
 export const STATUSY_LISTY_WYPOZYCZEN = DOZWOLONE_STATUSY_WYPOZYCZEN;
-export const LIMIT_WNIOSKOW_NA_STRONE = 10;
 const MS_DZIEN = 1000 * 60 * 60 * 24;
 
 export function parsujDate(wartosc) {

@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { pool } from "../../../db/pool.js";
 import { czyPoprawneHaslo } from "../../../helpers/accounts.js";
 import {
+  BCRYPT_KOSZT_HASLA,
   hashujTokenWyzwania,
   MAKSYMALNA_LICZBA_PROB_KODU,
   porownajKod
@@ -92,7 +93,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Nieprawidlowy lub wygasly kod." });
     }
 
-    const hasloHash = await bcrypt.hash(haslo, 12);
+    const hasloHash = await bcrypt.hash(haslo, BCRYPT_KOSZT_HASLA);
     await client.query(
       "UPDATE uzytkownicy SET haslo_hash = $1 WHERE id = $2",
       [hasloHash, reset.uzytkownik_id]

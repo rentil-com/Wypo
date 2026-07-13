@@ -1,3 +1,10 @@
+import {
+  KOD_2FA_WAZNY_MINUT,
+  KOD_REJESTRACJI_WAZNY_MINUT,
+  KOD_RESETU_HASLA_WAZNY_MINUT,
+  KOD_ZMIANY_EMAIL_WAZNY_MINUT
+} from "../helpers/zabezpieczenia.js";
+
 function pobierzBranding(opcje = {}) {
   return {
     nazwa: opcje.nazwa || process.env.MAIL_BRAND_NAME || 'Wypozyczalnia narzedzi',
@@ -332,7 +339,7 @@ function zbudujMailHtml({
 </html>`;
 }
 
-export function mail2FA({ kod, imie, waznyMinut = 10, branding } = {}) {
+export function mail2FA({ kod, imie, waznyMinut = KOD_2FA_WAZNY_MINUT, branding } = {}) {
   const temat = 'Kod logowania 2FA';
   const wstep = imie
     ? `Czesc ${imie}, uzyj ponizszego kodu, aby dokonczyc logowanie.`
@@ -358,7 +365,7 @@ export function mail2FA({ kod, imie, waznyMinut = 10, branding } = {}) {
   };
 }
 
-export function mailKodRejestracji({ kod, imie, waznyMinut = 15, branding } = {}) {
+export function mailKodRejestracji({ kod, imie, waznyMinut = KOD_REJESTRACJI_WAZNY_MINUT, branding } = {}) {
   const temat = 'Kod potwierdzenia konta';
   const wstep = imie
     ? `Czesc ${imie}, wpisz ten kod, aby potwierdzic adres e-mail i zalozyc konto.`
@@ -384,7 +391,7 @@ export function mailKodRejestracji({ kod, imie, waznyMinut = 15, branding } = {}
   };
 }
 
-export function mailKodResetuHasla({ kod, imie, waznyMinut = 15, branding } = {}) {
+export function mailKodResetuHasla({ kod, imie, waznyMinut = KOD_RESETU_HASLA_WAZNY_MINUT, branding } = {}) {
   const temat = 'Kod resetu hasla';
   const wstep = imie
     ? `Czesc ${imie}, wpisz ten kod, aby ustawic nowe haslo.`
@@ -430,7 +437,7 @@ export function mailHasloZmienione({ imie, branding } = {}) {
   };
 }
 
-export function mailKodZmianyEmail({ kod, imie, waznyMinut = 15, branding } = {}) {
+export function mailKodZmianyEmail({ kod, imie, waznyMinut = KOD_ZMIANY_EMAIL_WAZNY_MINUT, branding } = {}) {
   const temat = 'Kod potwierdzenia nowego adresu e-mail';
   const wstep = imie
     ? `Czesc ${imie}, wpisz ten kod, aby potwierdzic nowy adres e-mail.`

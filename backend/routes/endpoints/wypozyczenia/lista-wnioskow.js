@@ -6,11 +6,11 @@ import {
   parsujId
 } from "../../../helpers/common.js";
 import {
-  LIMIT_WNIOSKOW_NA_STRONE,
   mapujWypozyczenie,
   parsujDate,
   STATUSY_LISTY_WYPOZYCZEN
 } from "../../../helpers/wypozyczenia.js";
+import { LIMIT_WNIOSKOW_NA_STRONE } from "../../../helpers/constants.js";
 
 const router = Router();
 

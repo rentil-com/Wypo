@@ -3,9 +3,9 @@ import { pool } from "../../../db/pool.js";
 import { parsujId } from "../../../helpers/common.js";
 import {
   dodajFiltryKont,
-  LIMIT_KONT_NA_STRONE,
   mapujKonto
 } from "../../../helpers/accounts.js";
+import { LIMIT_KONT_NA_STRONE } from "../../../helpers/constants.js";
 
 const router = Router();
 

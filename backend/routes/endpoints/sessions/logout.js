@@ -2,6 +2,7 @@ import { Router } from "express";
 import { pool } from "../../../db/pool.js";
 import {
   hashujTokenSesji,
+  SESSION_COOKIE_NAME,
   wyczyscCookieSesji
 } from "../../../services/sessions.js";
 
@@ -9,7 +10,7 @@ const router = Router();
 
 router.post("/", async (req, res) => {
   try {
-    const tokenSesji = req.cookies?.session_id;
+    const tokenSesji = req.cookies?.[SESSION_COOKIE_NAME];
 
     if (tokenSesji) {
       const hashSesji = hashujTokenSesji(tokenSesji);

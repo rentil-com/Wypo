@@ -1,10 +1,20 @@
 import crypto from "crypto";
 import { pool } from "../db/pool.js";
+import { pobierzDodatniaLiczbeCalkowitaEnv } from "../helpers/env.js";
 
-export const SESSION_MAX_AGE = 1000 * 60 * 60 * 24;
+export const SESSION_MAX_AGE = pobierzDodatniaLiczbeCalkowitaEnv(
+  "SESSION_MAX_AGE_MS",
+  1000 * 60 * 60 * 24
+);
+const DLUGOSC_TOKENU_SESJI_BAJTY = pobierzDodatniaLiczbeCalkowitaEnv(
+  "DLUGOSC_TOKENU_SESJI_BAJTY",
+  32
+);
+export const SESSION_COOKIE_NAME =
+  process.env.SESSION_COOKIE_NAME || "session_id";
 
 export function stworzTokenSesji() {
-  return crypto.randomBytes(32).toString("hex");
+  return crypto.randomBytes(DLUGOSC_TOKENU_SESJI_BAJTY).toString("hex");
 }
 
 export function hashujTokenSesji(token) {
@@ -12,7 +22,7 @@ export function hashujTokenSesji(token) {
 }
 
 export function ustawCookieSesji(res, tokenSesji) {
-  res.cookie("session_id", tokenSesji, {
+  res.cookie(SESSION_COOKIE_NAME, tokenSesji, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "prod",
     sameSite: "lax",
@@ -21,7 +31,7 @@ export function ustawCookieSesji(res, tokenSesji) {
 }
 
 export function wyczyscCookieSesji(res) {
-  res.clearCookie("session_id", {
+  res.clearCookie(SESSION_COOKIE_NAME, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "prod",
     sameSite: "lax"
@@ -58,7 +68,7 @@ export function odpowiedzZalogowano(res, tokenSesji, user) {
 }
 
 export async function pobierzUzytkownikaZSesji(req) {
-  const tokenSesji = req.cookies?.session_id;
+  const tokenSesji = req.cookies?.[SESSION_COOKIE_NAME];
 
   if (!tokenSesji) {
     return null;

@@ -1,7 +1,10 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import { pool } from "../../../db/pool.js";
-import { normalizujEmail } from "../../../helpers/zabezpieczenia.js";
+import {
+  BCRYPT_KOSZT_HASLA,
+  normalizujEmail
+} from "../../../helpers/zabezpieczenia.js";
 import {
   czyPolePrzekazane,
   normalizujTekst,
@@ -98,7 +101,7 @@ async function edytujKonto(req, res) {
         });
       }
 
-      const hasloHash = await bcrypt.hash(haslo, 12);
+      const hasloHash = await bcrypt.hash(haslo, BCRYPT_KOSZT_HASLA);
       params.push(hasloHash);
       pola.push(`haslo_hash = $${params.length}`);
     }

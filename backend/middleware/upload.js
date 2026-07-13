@@ -1,20 +1,30 @@
 import multer from "multer";
+import { pobierzDodatniaLiczbeCalkowitaEnv } from "../helpers/env.js";
+
+const UPLOAD_MAX_FILE_SIZE_BYTES = pobierzDodatniaLiczbeCalkowitaEnv(
+  "UPLOAD_MAX_FILE_SIZE_BYTES",
+  5 * 1024 * 1024
+);
+const UPLOAD_MAX_PHOTOS = pobierzDodatniaLiczbeCalkowitaEnv(
+  "UPLOAD_MAX_PHOTOS",
+  10
+);
 
 export const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024
+    fileSize: UPLOAD_MAX_FILE_SIZE_BYTES
   }
 });
 
 export const uploadDodawanieSprzetu = upload.fields([
-  { name: "zdjecia", maxCount: 10 },
+  { name: "zdjecia", maxCount: UPLOAD_MAX_PHOTOS },
   { name: "zdjecie", maxCount: 1 }
 ]);
 
 export const uploadDodawanieZdjec = upload.fields([
-  { name: "zdjecie", maxCount: 10 },
-  { name: "zdjecia", maxCount: 10 }
+  { name: "zdjecie", maxCount: UPLOAD_MAX_PHOTOS },
+  { name: "zdjecia", maxCount: UPLOAD_MAX_PHOTOS }
 ]);
 
 export function parsujEdycjeBezZdjec(req, res, next) {
