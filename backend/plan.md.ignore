@@ -1,0 +1,150 @@
+# System zwrotów: zgłoszenie klienta i potwierdzenie admina
+
+## Założenie
+
+Klient w aplikacji wybiera swoje aktywne wypożyczenie i klika „Chcę zwrócić”. Backend rejestruje zgłoszenie zwrotu. Przedmiot nadal jest formalnie wypożyczony, dopóki administrator nie potwierdzi odbioru. Dopiero potwierdzenie admina oznacza faktyczny zwrot.
+
+## Statusy pozycji wypożyczenia
+
+```text
+wypozyczony
+zwrot_zgloszony
+zwrocony
+```
+
+Opcjonalnie później:
+
+```text
+zwrot_odrzucony
+```
+
+## Endpointy klienta
+
+### Lista własnych wypożyczeń
+
+```http
+GET /wypozyczenia/moje
+```
+
+Zwraca tylko wypożyczenia zalogowanego użytkownika, wraz ze statusem każdego przedmiotu.
+
+### Zgłoszenie chęci zwrotu
+
+```http
+POST /wypozyczenia/:wypozyczenieId/przedmioty/:przedmiotId/zwrot
+```
+
+Backend:
+
+1. Sprawdza sesję użytkownika.
+2. Sprawdza, czy wypożyczenie należy do użytkownika.
+3. Sprawdza, czy wskazany przedmiot jest w tym wypożyczeniu.
+4. Sprawdza, czy przedmiot ma status `wypozyczony`.
+5. Zmienia status na `zwrot_zgloszony`.
+6. Zapisuje datę zgłoszenia.
+
+Odpowiedź:
+
+```json
+{
+  "message": "Zwrot został zgłoszony i oczekuje na potwierdzenie administratora.",
+  "status": "zwrot_zgloszony"
+}
+```
+
+### Anulowanie zgłoszenia zwrotu
+
+```http
+POST /wypozyczenia/:wypozyczenieId/przedmioty/:przedmiotId/anuluj-zwrot
+```
+
+Klient może anulować tylko własne zgłoszenie ze statusem `zwrot_zgloszony`, zanim zatwierdzi je administrator.
+
+## Endpointy administratora
+
+Wszystkie poniższe endpointy wymagają zalogowanego użytkownika z rolą administratora.
+
+### Lista oczekujących zgłoszeń
+
+```http
+GET /admin/zwroty?status=zwrot_zgloszony
+```
+
+Zwraca przedmioty oczekujące na odbiór, np. z nazwą przedmiotu, użytkownikiem, datą zgłoszenia i identyfikatorem wypożyczenia.
+
+### Szczegóły zgłoszenia
+
+```http
+GET /admin/zwroty/:wypozyczenieId/przedmioty/:przedmiotId
+```
+
+Przydatne przed zatwierdzeniem: administrator widzi dane wypożyczenia, przedmiot i historię statusu.
+
+### Potwierdzenie fizycznego odbioru
+
+```http
+POST /admin/zwroty/:wypozyczenieId/przedmioty/:przedmiotId/potwierdz
+```
+
+Body opcjonalne:
+
+```json
+{
+  "uwagi": "Przedmiot oddany kompletny i bez uszkodzeń"
+}
+```
+
+Backend, w jednej transakcji:
+
+1. Sprawdza rolę administratora.
+2. Blokuje rekord przedmiotu w wypożyczeniu.
+3. Sprawdza, czy status to `zwrot_zgloszony`.
+4. Ustawia status `zwrocony` oraz datę faktycznego zwrotu.
+5. Zapisuje identyfikator administratora zatwierdzającego i uwagi.
+6. Ustawia przedmiot jako dostępny do kolejnego wypożyczenia, jeżeli nie jest uszkodzony.
+7. Rozlicza ewentualne opóźnienie zgodnie z zasadami aplikacji.
+
+### Odrzucenie zgłoszenia (opcjonalne)
+
+```http
+POST /admin/zwroty/:wypozyczenieId/przedmioty/:przedmiotId/odrzuc
+```
+
+Body:
+
+```json
+{
+  "powod": "Przedmiot nie został fizycznie dostarczony do wypożyczalni."
+}
+```
+
+Może przywrócić status `wypozyczony` albo użyć osobnego statusu `zwrot_odrzucony`.
+
+## Workflow
+
+```text
+Klient otwiera „Moje wypożyczenia”
+        ↓
+wybiera przedmiot i klika „Chcę zwrócić”
+        ↓
+status: wypozyczony → zwrot_zgloszony
+        ↓
+administrator widzi zgłoszenie na liście zwrotów
+        ↓
+klient dostarcza przedmiot do wypożyczalni
+        ↓
+administrator sprawdza przedmiot i klika „Potwierdź zwrot”
+        ↓
+status: zwrot_zgloszony → zwrocony
+        ↓
+przedmiot jest ponownie dostępny
+```
+
+## Ważne reguły
+
+- Klient nie może sam oznaczyć przedmiotu jako zwróconego.
+- Jeden przedmiot może mieć tylko jeden aktywny status zwrotu.
+- Zgłoszenie nie może być utworzone drugi raz dla statusu `zwrot_zgloszony` lub `zwrocony`.
+- Administrator powinien zatwierdzać zwrot dopiero po fizycznym odebraniu przedmiotu.
+- Warto zachować: datę zgłoszenia, datę potwierdzenia, administratora i uwagi. Ułatwi to reklamację oraz sprawdzenie, kto zatwierdził zwrot.
+- Jeśli wypożyczenie ma kilka przedmiotów, każdy zwraca się osobno. Całe wypożyczenie można uznać za zamknięte, gdy wszystkie jego pozycje mają status `zwrocony`.
