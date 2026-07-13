@@ -11,10 +11,11 @@ import { router } from "expo-router";
 {/*props */}
 type CatalogViewProps = {
   kategoriaId?: string;
+  tylkoPromocje? : boolean;
   };
 
 
-export default function TabsLayout({kategoriaId} : CatalogViewProps) {
+export default function TabsLayout({kategoriaId,tylkoPromocje} : CatalogViewProps) {
   {/*kategorie-dostepne */}
     
   const kategorieMap = new Map();
@@ -65,9 +66,9 @@ export default function TabsLayout({kategoriaId} : CatalogViewProps) {
     const tab_filtered = tab.filter((item)=> {
        const filterSearch = item.nazwa.toLowerCase().includes(searchQuery);
        const filterCategory = !kategoriaId || String(item.kategoria_id) === String(kategoriaId);
+       const filterPromotion = !tylkoPromocje || item.promocja === true
 
-
-       return filterSearch && filterCategory
+       return filterSearch && filterCategory && filterPromotion
       })
     
     const suggestions = dane.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
@@ -241,25 +242,25 @@ export default function TabsLayout({kategoriaId} : CatalogViewProps) {
                  <ThemedText style={styles.sidebarTitle}>
                 Kategorie
               </ThemedText>
-               <Pressable  onPress={()=> router.push(`/catalog/catalog`)}  style={[styles.categoryItem, !kategoriaId && styles.categoryItemActive]}>
+               <Pressable  onPress={()=> router.push(`/catalog/catalog`)}  style={[styles.categoryItem, !kategoriaId && !tylkoPromocje && styles.categoryItemActive]}>
                 <MaterialIcons name="grid-view" size={32} color="#176BDE" style={styles.categoryIcon} />
 
-                    <ThemedText style={[styles.categoryText, styles.categoryTextActive]}>Wszystkie kategorie</ThemedText>
+                    <ThemedText style={[styles.categoryText,!kategoriaId && !tylkoPromocje && styles.categoryTextActive]}>Wszystkie kategorie</ThemedText>
 
                   </Pressable>
-                   <Pressable  onPress={()=> router.push("/promotions/promotions")}  style={styles.categoryItem}>
+                   <Pressable  onPress={()=> router.push("/catalog/promotions")}  style={[styles.categoryItem,tylkoPromocje && styles.categoryItemActive]}>
                     <MaterialIcons name={"discount"} size={32}
                                     color="#F43F5E" style={styles.categoryIcon}/>
                   
 
-                    <ThemedText style={styles.categoryText}>Promocje</ThemedText>
+                    <ThemedText style={[styles.categoryText,tylkoPromocje && styles.categoryTextActive]}>Promocje</ThemedText>
                     {/*ikonka do kategorii */}
                    
                   </Pressable>
 
               {Array.from(kategorieMap).map(([key,val],index)=> (
                   <Pressable key={key} onPress={()=> router.push(`catalog/category/${key}`)}  style={[styles.categoryItem , String(kategoriaId)=== String(key) && styles.categoryItemActive]}>
-                    <ThemedText style={styles.categoryText}>{val}</ThemedText>
+                    <ThemedText style={[styles.categoryText, String(kategoriaId)=== String(key) && styles.categoryTextActive]}>{val}</ThemedText>
                     {/*ikonka do kategorii */}
                     <ThemedText></ThemedText>
                   </Pressable>
@@ -319,10 +320,10 @@ export default function TabsLayout({kategoriaId} : CatalogViewProps) {
                     </Pressable>
                   </View>
 
-                  <Pressable style={styles.promotionFilter}>
+                  <Pressable style={styles.promotionFilter} >
                     <ThemedText style={styles.promotionIcon}>◆</ThemedText>
                     <ThemedText style={styles.promotionLabel}>Promocja</ThemedText>
-                    <View style={styles.switchTrack}>
+                    <View style={[styles.switchTrack, tylkoPromocje && styles.switchTrack1]}>
                       <View style={styles.switchThumb} />
                     </View>
                   </Pressable>
@@ -1174,6 +1175,9 @@ pageHeading: {
   mainContent : {
     width : "100%",
     marginTop : 0,
+  },
+  switchTrack1 :{ 
+    backgroundColor : "red"
   }
 
 
