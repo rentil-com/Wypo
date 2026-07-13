@@ -35,13 +35,28 @@ Autoryzacja działa przez cookie `session_id`. Bez 2FA cookie jest ustawiane prz
 
 ### `GET /`
 
-Zwraca listę kategorii na stronę główną.
+Zwraca status API i połączenia z bazą danych.
 
-Zwracane pola:
+Sprawdzenie bazy ma limit 2,5 sekundy, dzięki czemu endpoint odpowiada w ciągu
+maksymalnie około 3 sekund.
 
-* `id`
-* `nazwa`
-* `zdjecie_url`
+Przy sprawnym API i bazie zwraca `200`:
+
+```json
+{
+  "api": "ok",
+  "database": "ok"
+}
+```
+
+Przy błędzie lub przekroczeniu czasu połączenia z bazą zwraca `503`:
+
+```json
+{
+  "api": "ok",
+  "database": "zle"
+}
+```
 
 ## Autoryzacja
 

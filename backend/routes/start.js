@@ -1,10 +1,10 @@
 import { Router } from "express";
-import listaKategoriiRouter from "./endpoints/start/lista-kategorii.js";
+import status from "./endpoints/start/status.js";
 import { obsluzBladRoutera } from "../middleware/error-handler.js";
 
 const router = Router();
 
-router.use("/", listaKategoriiRouter);
+router.use("/", status);
 router.use(obsluzBladRoutera);
 
 export default router;
