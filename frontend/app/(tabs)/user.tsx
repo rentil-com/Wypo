@@ -4,8 +4,11 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import dane from "../dane.json";
+import { useLocalSearchParams } from "expo-router";
 
 export default function User() {
+  const { kategoria_id } = useLocalSearchParams();
+
   {/* CZAS RESETU */}
   const RESET_HOUR = 10
   const RESET_MINUTE = 0
@@ -15,6 +18,7 @@ export default function User() {
   const [lastResetDate,setLastResetDate] = useState<string | null>(null);
 
   const [katalog,setKatalog] = useState(dane)
+  const products = kategoria_id ? katalog.filter((product)=> String(product.kategoria_id)=== String(kategoria_id)) : katalog
   const [searchText,setsearchText] = useState("")
   const [randomIndex,setRandomIndex] = useState(0)
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
@@ -170,19 +174,17 @@ export default function User() {
   > 
          <View style={styles.headerSideActions}>
           {/*onHoverIn, onHoverOut - działaja tylko na web , do mobliek dodac onPressIn, onPressOut */}
-                <Pressable style={styles.headerInfo} onHoverIn={()=>setshowcategoryPanel(true)} onHoverOut={()=> setshowcategoryPanel(false)}  >
+                <View style={styles.headerInfo}   >
                   <Text style={styles.headerInfoText}>Kategorie</Text>
-                </Pressable>
+                </View>
              </View>
       {/*ROZWIJANY PANEL KATEGORII, NARAZIE NIE WSZYSTKIE KATEGORIE */}
       {/*przeniesienie do odpowiedniego widoku kategorii, dodac ikonki do poszczegółnych kategorii */}
       {showcategoryPanel && <View style={styles.categoryPanel} >
-        {Array.from(kategorieMap).map((item,index)=>
-        <Pressable key={index} style={styles.categoryItem}> 
+        {Array.from(kategorieMap).map(([key,val],index)=>
         <View style={styles.categoryInfo}>
-          <Text style={styles.categoryName}>{item}</Text>
+          <Text style={styles.categoryName} onPress={()=>router.push(`../catalog/category/${key}`)}>{val}</Text>
         </View>
-         </Pressable>
         ) }
         
         </View>
@@ -301,7 +303,7 @@ export default function User() {
         <Text style={styles.sectionTitle}>Kategorie</Text>
 
         <View style={styles.sectionActions}>
-          <Pressable style={styles.allButton} onPress={()=> router.push("../catalog/catalog")}>
+          <Pressable style={styles.allButton} onPress={()=> router.push("/catalog/catalog")}>
             <Text style={styles.allButtonText}>Wszystkie</Text>
           </Pressable>
 
@@ -370,7 +372,7 @@ export default function User() {
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Bestsellery</Text>
 
-        <Pressable style={styles.seeAllButton} onPress={()=> router.push("../catalog/catalog")}>
+        <Pressable style={styles.seeAllButton} onPress={()=> router.push("/catalog/catalog")}>
           <Text style={styles.seeAllText}>Zobacz wszystkie</Text>
           <MaterialIcons name="chevron-right" size={22} color="#176BDE" />
         </Pressable>
@@ -378,7 +380,7 @@ export default function User() {
 
       {/* KATALOG -> PRODUKTY/BESTSELLERY*/}
       <FlatList
-        data={dane}
+        data={products}
         keyExtractor={(item) => item.id.toString()}
         numColumns={4}
         scrollEnabled={false}
@@ -1050,7 +1052,7 @@ suggestionPrice: {
 },
 categoryPanel : {
  position: "absolute",
-  top: 52,
+  top: "100%",
   left: -20,
   transform: [{ translateX: -110 }],
   backgroundColor: "#FFFFFF",
