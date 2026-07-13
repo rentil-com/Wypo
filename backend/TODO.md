@@ -2,5 +2,5 @@
 
 ## Maile
 
-- [ ] Reset hasla
-- [ ] Zmiana maila
+- [x] Reset hasla
+- [x] Zmiana maila

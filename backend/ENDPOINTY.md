@@ -121,6 +121,53 @@ Wymaga logowania. Wyłącza 2FA, usuwa oczekujące wyzwanie logowania i wysyła 
 
 Wylogowuje użytkownika, usuwa sesję z bazy i czyści cookie `session_id`.
 
+### `POST /auth/password-reset`
+
+Publiczny endpoint rozpoczynający reset hasła. Niezależnie od tego, czy konto istnieje, zwraca ogólny komunikat, aby nie ujawniać adresów zapisanych w bazie.
+
+Body:
+
+```json
+{
+  "email": "jan@example.com"
+}
+```
+
+Jeśli konto istnieje, na jego adres zostaje wysłany sześciocyfrowy kod. Odpowiedź `202` zawiera:
+
+```json
+{
+  "message": "Jesli konto istnieje, wyslano kod resetu hasla.",
+  "challenge": "64-znakowy-token",
+  "expires_in": 900,
+  "max_attempts": 5
+}
+```
+
+### `POST /auth/password-reset/confirm`
+
+Potwierdza reset hasła i ustawia nowe hasło.
+
+Body:
+
+```json
+{
+  "challenge": "token-z-odpowiedzi-password-reset",
+  "code": "123456",
+  "password": "NoweHaslo!"
+}
+```
+
+Zamiast `challenge`, `code` i `password` można użyć pól `wyzwanie`, `kod` i `haslo`. Kod jest ważny 15 minut i pozwala na maksymalnie 5 prób. Nowe hasło musi mieć co najmniej 8 znaków, dużą literę, małą literę i znak specjalny.
+
+Po poprawnej zmianie backend:
+
+* usuwa wykorzystane żądanie resetu
+* usuwa oczekującą zmianę adresu e-mail
+* usuwa oczekujące wyzwanie 2FA
+* kończy wszystkie sesje użytkownika i czyści cookie
+* wysyła powiadomienie o zmianie hasła
+
 ## Konta
 
 ### `POST /account/create`
@@ -139,6 +186,53 @@ Body:
 ```
 
 Zamiast `password` można użyć pola `haslo`.
+
+### `POST /account/email-change`
+
+Wymaga logowania i podania aktualnego hasła. Rozpoczyna zmianę adresu e-mail oraz wysyła kod potwierdzający na nowy adres.
+
+Body:
+
+```json
+{
+  "new_email": "jan.nowak@example.com",
+  "password": "AktualneHaslo!"
+}
+```
+
+Zamiast `new_email` można użyć `nowy_email` albo `email`. Zamiast `password` można użyć `haslo`.
+
+Odpowiedź `202`:
+
+```json
+{
+  "message": "Wyslano kod potwierdzajacy na nowy adres e-mail.",
+  "challenge": "64-znakowy-token",
+  "expires_in": 900,
+  "max_attempts": 5
+}
+```
+
+### `POST /account/email-change/confirm`
+
+Wymaga logowania. Potwierdza kod wysłany na nowy adres e-mail.
+
+Body:
+
+```json
+{
+  "challenge": "token-z-odpowiedzi-email-change",
+  "code": "123456"
+}
+```
+
+Zamiast `challenge` i `code` można użyć pól `wyzwanie` i `kod`. Kod jest ważny 15 minut i pozwala na maksymalnie 5 prób.
+
+Po poprawnej zmianie backend:
+
+* pozostawia aktywną bieżącą sesję, ale kończy pozostałe sesje użytkownika
+* usuwa oczekujący reset hasła i wyzwanie 2FA
+* wysyła powiadomienie na poprzedni adres e-mail
 
 ### `GET /account/details`
 
@@ -172,7 +266,7 @@ Zwykły użytkownik może pobrać tylko swoje konto. Admin może pobrać dowolne
 
 Wymaga logowania.
 
-Zwykły użytkownik może edytować tylko swoje konto. Admin może edytować inne konta oraz zmieniać rolę, ale nie może zmienić własnej roli.
+Zwykły użytkownik może edytować tylko swoje imię, nazwisko i hasło. Adres e-mail zmienia przez `POST /account/email-change`. Admin może edytować inne konta, bezpośrednio zmieniać ich adresy e-mail oraz zmieniać rolę, ale nie może zmienić własnej roli.
 
 Body może zawierać:
 

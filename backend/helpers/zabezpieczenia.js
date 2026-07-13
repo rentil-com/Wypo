@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 
 export const KOD_REJESTRACJI_WAZNY_MINUT = 15;
 export const KOD_2FA_WAZNY_MINUT = 10;
+export const KOD_RESETU_HASLA_WAZNY_MINUT = 15;
+export const KOD_ZMIANY_EMAIL_WAZNY_MINUT = 15;
 export const MAKSYMALNA_LICZBA_PROB_KODU = 5;
 
 export function normalizujEmail(email) {

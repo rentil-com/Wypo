@@ -384,6 +384,107 @@ export function mailKodRejestracji({ kod, imie, waznyMinut = 15, branding } = {}
   };
 }
 
+export function mailKodResetuHasla({ kod, imie, waznyMinut = 15, branding } = {}) {
+  const temat = 'Kod resetu hasla';
+  const wstep = imie
+    ? `Czesc ${imie}, wpisz ten kod, aby ustawic nowe haslo.`
+    : 'Wpisz ten kod, aby ustawic nowe haslo.';
+  const dopisek = `Kod jest wazny przez ${waznyMinut} minut. Jesli nie prosiles o reset hasla, zignoruj te wiadomosc.`;
+
+  return {
+    temat,
+    tekst: linieTekstu([
+      temat,
+      wstep,
+      `Kod: ${kod}`,
+      dopisek
+    ]),
+    html: zbudujMailHtml({
+      tytul: temat,
+      wstep,
+      kod,
+      dopisek,
+      preheader: `Kod resetu hasla: ${kod}`,
+      branding
+    })
+  };
+}
+
+export function mailHasloZmienione({ imie, branding } = {}) {
+  const temat = 'Haslo zostalo zmienione';
+  const wstep = imie
+    ? `Czesc ${imie}, haslo do Twojego konta zostalo zmienione.`
+    : 'Haslo do Twojego konta zostalo zmienione.';
+  const dopisek = 'Wszystkie aktywne sesje zostaly zakonczone. Jesli to nie Ty zmieniles haslo, skontaktuj sie z obsluga wypozyczalni.';
+
+  return {
+    temat,
+    tekst: linieTekstu([temat, wstep, dopisek]),
+    html: zbudujMailHtml({
+      tytul: temat,
+      wstep,
+      dopisek,
+      preheader: temat,
+      branding
+    })
+  };
+}
+
+export function mailKodZmianyEmail({ kod, imie, waznyMinut = 15, branding } = {}) {
+  const temat = 'Kod potwierdzenia nowego adresu e-mail';
+  const wstep = imie
+    ? `Czesc ${imie}, wpisz ten kod, aby potwierdzic nowy adres e-mail.`
+    : 'Wpisz ten kod, aby potwierdzic nowy adres e-mail.';
+  const dopisek = `Kod jest wazny przez ${waznyMinut} minut. Jesli nie zlecales zmiany adresu, zignoruj te wiadomosc.`;
+
+  return {
+    temat,
+    tekst: linieTekstu([
+      temat,
+      wstep,
+      `Kod: ${kod}`,
+      dopisek
+    ]),
+    html: zbudujMailHtml({
+      tytul: temat,
+      wstep,
+      kod,
+      dopisek,
+      preheader: `Kod zmiany adresu e-mail: ${kod}`,
+      branding
+    })
+  };
+}
+
+export function mailEmailZmieniony({ imie, nowyEmail, branding } = {}) {
+  const temat = 'Adres e-mail konta zostal zmieniony';
+  const wstep = imie
+    ? `Czesc ${imie}, adres e-mail przypisany do Twojego konta zostal zmieniony.`
+    : 'Adres e-mail przypisany do Twojego konta zostal zmieniony.';
+  const dopisek = 'Jesli to nie Ty wykonales te zmiane, niezwlocznie skontaktuj sie z obsluga wypozyczalni.';
+  const szczegoly = [
+    { etykieta: 'Nowy adres e-mail', wartosc: nowyEmail }
+  ];
+
+  return {
+    temat,
+    tekst: linieTekstu([
+      temat,
+      wstep,
+      nowyEmail && `Nowy adres e-mail: ${nowyEmail}`,
+      dopisek
+    ]),
+    html: zbudujMailHtml({
+      tytul: temat,
+      wstep,
+      szczegoly,
+      dopisek,
+      preheader: temat,
+      branding
+    })
+  };
+}
+
 export function mailWlaczono2FA({ imie, branding } = {}) {
   const temat = 'Wlaczono uwierzytelnianie dwuetapowe';
   const wstep = imie

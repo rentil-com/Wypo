@@ -64,6 +64,12 @@ async function edytujKonto(req, res) {
     }
 
     if (czyPolePrzekazane(body, "email")) {
+      if (!czyAdmin) {
+        return res.status(400).json({
+          error: "Adres e-mail zmien przez endpoint /account/email-change."
+        });
+      }
+
       const email = normalizujEmail(body.email);
 
       if (!email || email.length > 255 || !czyPoprawnyEmail(email)) {

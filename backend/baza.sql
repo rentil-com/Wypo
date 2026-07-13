@@ -75,6 +75,52 @@ CREATE TABLE wyzwania_2fa (
 CREATE INDEX idx_wyzwania_2fa_data_wygasniecia
     ON wyzwania_2fa(data_wygasniecia);
 
+CREATE TABLE resety_hasla (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    challenge_hash TEXT UNIQUE NOT NULL,
+    uzytkownik_id INTEGER UNIQUE NOT NULL,
+    kod_hash TEXT NOT NULL,
+    liczba_prob INTEGER NOT NULL DEFAULT 0,
+    data_utworzenia TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_wygasniecia TIMESTAMP NOT NULL,
+
+    CONSTRAINT fk_resety_hasla_uzytkownicy
+        FOREIGN KEY (uzytkownik_id)
+        REFERENCES uzytkownicy(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_resety_hasla_liczba_prob
+        CHECK (liczba_prob >= 0)
+);
+
+CREATE INDEX idx_resety_hasla_data_wygasniecia
+    ON resety_hasla(data_wygasniecia);
+
+CREATE TABLE zmiany_email (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    challenge_hash TEXT UNIQUE NOT NULL,
+    uzytkownik_id INTEGER UNIQUE NOT NULL,
+    nowy_email VARCHAR(255) NOT NULL,
+    kod_hash TEXT NOT NULL,
+    liczba_prob INTEGER NOT NULL DEFAULT 0,
+    data_utworzenia TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_wygasniecia TIMESTAMP NOT NULL,
+
+    CONSTRAINT fk_zmiany_email_uzytkownicy
+        FOREIGN KEY (uzytkownik_id)
+        REFERENCES uzytkownicy(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_zmiany_email_liczba_prob
+        CHECK (liczba_prob >= 0)
+);
+
+CREATE UNIQUE INDEX uq_zmiany_email_nowy_email_lower
+    ON zmiany_email (LOWER(nowy_email));
+
+CREATE INDEX idx_zmiany_email_data_wygasniecia
+    ON zmiany_email(data_wygasniecia);
+
 
 CREATE TABLE kategorie (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
