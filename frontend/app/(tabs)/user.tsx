@@ -2,12 +2,12 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import dane from "../dane.json";
 import { useLocalSearchParams } from "expo-router";
 
-import HeaderPanel from "@/components/shared/Header/HeaderPanel";
 import ProductCard from "@/components/shared/Product/ProductCard";
+import PageLayout from "@/components/shared/Layout/PageLayout";
 export default function User() {
   const { kategoria_id } = useLocalSearchParams();
 
@@ -78,15 +78,9 @@ export default function User() {
       return () => clearInterval(interval);
   },[lastResetDate])
   return (
-  <View style={styles.screen}>
-        <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-    <View style={styles.page}>
+  
+    <PageLayout> 
       {/* HEADER */}
-    <HeaderPanel/>
       
         {/*CONTROLS */}
         {/*Przenoszenie do odpowiednich widokow */}
@@ -181,7 +175,7 @@ export default function User() {
       {/* KATEGORIE */}
       <View style={styles.categoriesRow}>
         
-        <Pressable onPress={()=> router.push("../promotions/promotions")} style={[styles.categoryCardActive]}>
+        <Pressable onPress={()=> router.push("/catalog/promotions")} style={[styles.categoryCardActive]}>
           <View style={styles.categoryIconBoxActive}> 
   <MaterialIcons name={"discount"} size={32}
                 color="#F43F5E"/>
@@ -250,27 +244,11 @@ export default function User() {
         renderItem={({ item }) => ( <ProductCard item={item} />
         )}
       />
-    </View>
-    </ScrollView>
-  </View>
+    </PageLayout>
 );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F4F8FF",
-    paddingTop: 24,
-  },
-
-  page: {
-    width: "100%",
-    maxWidth: 1440,
-    alignSelf: "center",
-    paddingHorizontal: 32,
-    paddingBottom: 40,
-  },
-
   offerCardWrapper: {
     marginTop: 24,
     width: "100%",
@@ -537,13 +515,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  scroll: {
-  flex: 1,
-},
-
-  scrollContent: {
-    paddingBottom: 60,
-  },
   offerTimerWrapper: {
   backgroundColor: "rgba(255,255,255,0.16)",
   borderRadius: 20,

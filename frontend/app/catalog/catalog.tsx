@@ -1,5 +1,5 @@
 import { Tabs, useLocalSearchParams } from "expo-router";
-import { View ,Text, FlatList,Image, StyleSheet,Pressable,TextInput,ScrollView} from "react-native";
+import { View ,Text, FlatList,Image, StyleSheet,Pressable,TextInput} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack } from 'expo-router';
 import { ThemedText } from "@/components/themed-text";
@@ -7,8 +7,8 @@ import  dane from "../dane.json"
 import { useState } from "react";
 import { router } from "expo-router";
 
-import HeaderPanel from "@/components/shared/Header/HeaderPanel";
 import ProductCard from "@/components/shared/Product/ProductCard";
+import PageLayout from "@/components/shared/Layout/PageLayout";
 {/*props */}
 type CatalogViewProps = {
   kategoriaId?: string;
@@ -50,16 +50,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
   }
  
   return (
-    <View style={styles.screen}>
-         <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          > 
-    <View style={styles.page}>
-       
-      {/* HEADER */}
-      <HeaderPanel/>
+   <PageLayout wide>
         {/* GŁÓWNA ZAWARTOŚĆ */}
         <View style={styles.mainContent}>
 
@@ -287,25 +278,11 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
 
 
     </View>
-    </View>
-    </ScrollView>
-    </View>
+  </PageLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F4F7FC",
-  },
-
-  page: {
-    width: "100%",
-    maxWidth: 1920,
-    alignSelf: "center",
-    paddingTop: 16,
-    paddingHorizontal: 40,
-  },
   logoBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -488,13 +465,6 @@ pageHeading: {
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#FFFFFF",
-  },
-  scroll: {
-    flex: 1,
-    backgroundColor: "#F4F7FC",
-  },
-  scrollContent: {
-    paddingBottom: 34,
   },
   catalogContent: {
     flex: 1,

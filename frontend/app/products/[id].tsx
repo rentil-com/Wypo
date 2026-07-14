@@ -1,9 +1,10 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import dane from "../dane.json";
-import HeaderPanel from "@/components/shared/Header/HeaderPanel";
+
+import PageLayout from "@/components/shared/Layout/PageLayout";
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
   type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
@@ -95,16 +96,7 @@ export default function ProductDetailedView() {
 
 
   return (
-    <View style={screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.page}>
-          {/* HEADER */}
-          <HeaderPanel/>
-
+   <PageLayout> 
          
 
           {/* SCIEZKA KATEGORII */}
@@ -387,9 +379,7 @@ export default function ProductDetailedView() {
               </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </View>
+  </PageLayout>
   );
 }
 
@@ -398,24 +388,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F8FF",
   },
-
-  scroll: {
-    flex: 1,
-  },
-
-  scrollContent: {
-    paddingTop: 24,
-    paddingBottom: 60,
-  },
-
-  page: {
-    width: "100%",
-    maxWidth: 1440,
-    alignSelf: "center",
-    paddingHorizontal: 32,
-    paddingBottom: 40,
-  },
-
   errorText: {
     fontSize: 22,
     fontWeight: "900",
