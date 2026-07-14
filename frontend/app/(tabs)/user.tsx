@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import dane from "../dane.json";
 import { useLocalSearchParams } from "expo-router";
-
+import { kategorieMap } from "@/constants/categories";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 export default function User() {
@@ -22,12 +22,7 @@ export default function User() {
   const [katalog,setKatalog] = useState(dane)
   const products = kategoria_id ? katalog.filter((product)=> String(product.kategoria_id)=== String(kategoria_id)) : katalog
   const [randomIndex,setRandomIndex] = useState(0)
- 
-  const kategorieMap = new Map();
-  kategorieMap.set(1,"Buty")
-  kategorieMap.set(2,"Elektronika")
-  kategorieMap.set(3,"Narzedzia")
-  kategorieMap.set(4,"Sport i rekreacja")
+
 
 
 

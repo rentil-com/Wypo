@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import dane from "../dane.json";
-
+import { kategorieMap } from "@/constants/categories";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
@@ -47,12 +47,7 @@ export default function ProductDetailedView() {
 
   {/* SUGESTIE WYSZUKIWANIA */}
  
-  {/* MAPA KATEGORII */}
-  const kategorieMap = new Map();
-  kategorieMap.set(1, "Buty");
-  kategorieMap.set(2, "Elektronika");
-  kategorieMap.set(3, "Narzedzia");
-  kategorieMap.set(4, "Sport i rekreacja");
+
 
   {/* TYMCZASOWA GALERIA ZDJEC, NARAZIE MAM JEDNO ZDJECIE (POTEM BEDZIE WIELE) */}
   const temp_photos_gallery = [

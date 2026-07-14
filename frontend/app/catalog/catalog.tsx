@@ -6,7 +6,7 @@ import { ThemedText } from "@/components/themed-text";
 import  dane from "../dane.json"
 import { useState } from "react";
 import { router } from "expo-router";
-
+import { kategorieMap } from "@/constants/categories";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 {/*props */}
@@ -20,11 +20,8 @@ type CatalogViewProps = {
 export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : CatalogViewProps) {
   {/*kategorie-dostepne */}
     
-  const kategorieMap = new Map();
-  kategorieMap.set(1,"Buty")
-  kategorieMap.set(2,"Elektronika")
-  kategorieMap.set(3,"Narzedzia")
-  kategorieMap.set(4,"Sport i rekreacja")
+
+
 
 
     const [tab,setTab] = useState(dane)

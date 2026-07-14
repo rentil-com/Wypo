@@ -3,13 +3,11 @@ import { router } from "expo-router";
 import { useState } from "react";
 import {  Image, Pressable, Text, TextInput, View } from "react-native";
 import dane from "../../../dane.json"
+import { kategorieMap } from "@/constants/categories";
 import {styles} from "./HeaderPanel.styles"
 export default function HeaderPanel () { 
-    const kategorieMap = new Map();
-  kategorieMap.set(1,"Buty")
-  kategorieMap.set(2,"Elektronika")
-  kategorieMap.set(3,"Narzedzia")
-  kategorieMap.set(4,"Sport i rekreacja")
+ 
+  
 
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
@@ -21,7 +19,7 @@ export default function HeaderPanel () {
   const handleSearchSubmit =()=> {
     const query = searchText.trim()
 
-    router.push({pathname : "../catalog/catalog", params : {query : searchText} })
+    router.push({pathname : "/catalog/catalog", params : {query : searchText} })
   }
 
    return ( 
