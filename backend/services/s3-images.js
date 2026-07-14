@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import {
   DeleteObjectCommand,
+  HeadBucketCommand,
   PutObjectCommand,
   S3Client
 } from "@aws-sdk/client-s3";
@@ -39,6 +40,19 @@ const s3Client = new S3Client(s3Config);
 
 function czyS3Skonfigurowane() {
   return Boolean(s3Bucket && s3AccessKey && s3SecretKey);
+}
+
+export async function sprawdzPolaczenieZS3(abortSignal) {
+  if (!czyS3Skonfigurowane()) {
+    throw new Error("Brak konfiguracji S3.");
+  }
+
+  await s3Client.send(
+    new HeadBucketCommand({
+      Bucket: s3Bucket
+    }),
+    { abortSignal }
+  );
 }
 
 function normalizujFolderS3(folder) {

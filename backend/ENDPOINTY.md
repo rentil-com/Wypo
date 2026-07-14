@@ -35,26 +35,32 @@ Autoryzacja działa przez cookie `session_id`. Bez 2FA cookie jest ustawiane prz
 
 ### `GET /`
 
-Zwraca status API i połączenia z bazą danych.
+Zwraca status API, połączenia z bazą danych i dostępu do skonfigurowanego
+bucketa S3.
 
-Sprawdzenie bazy ma limit 2,5 sekundy, dzięki czemu endpoint odpowiada w ciągu
-maksymalnie około 3 sekund.
+Sprawdzenia bazy i S3 są wykonywane równolegle. Każde z nich ma limit 2,5
+sekundy. S3 jest sprawdzane przez operację `HeadBucket`, która nie zapisuje ani
+nie usuwa obiektów.
 
-Przy sprawnym API i bazie zwraca `200`:
+Gdy baza i S3 działają poprawnie, endpoint zwraca `200`:
 
 ```json
 {
   "api": "ok",
-  "database": "ok"
+  "database": "ok",
+  "s3": "ok"
 }
 ```
 
-Przy błędzie lub przekroczeniu czasu połączenia z bazą zwraca `503`:
+Jeśli połączenie z bazą albo S3 zakończy się błędem lub przekroczy limit czasu,
+endpoint zwraca `503`. Pola `database` i `s3` niezależnie wskazują stan każdej
+usługi jako `"ok"` albo `"zle"`, na przykład:
 
 ```json
 {
   "api": "ok",
-  "database": "zle"
+  "database": "ok",
+  "s3": "zle"
 }
 ```
 
