@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import dane from "../dane.json";
 import { kategorieMap } from "@/constants/categories";
+import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
@@ -95,53 +96,21 @@ export default function ProductDetailedView() {
          
 
           {/* SCIEZKA KATEGORII */}
-          <View>
-            <View style={styles.category_path}>
-              {/* PRZENOSZENIE DO STRONY GLOWNEJ */}
-              <Pressable
-                style={styles.breadcrumbItem}
-                onPress={() => {
-                  router.push("/(tabs)/user");
-                }}
-              >
-                <MaterialIcons name="home" size={20} color="#176BDE" />
-              </Pressable>
+          <Breadcrumbs
+  items={[
+      {
+        label:
+          kategorieMap.get(product.kategoria_id) ??
+          "Kategoria",
 
-              {/* SEPARATOR */}
-              <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
+        href: `/catalog/category/${product.kategoria_id}`,
+      },
+      {
+        label: product.nazwa,
+      },
+    ]}
+  />
 
-              {/* PRZENOSZENIE DO ODPOWIEDNIEJ KATEGORII -> ELEKTRONIKA NP. */}
-              <Pressable
-                style={styles.breadcrumbItem}
-                onPress={() => {
-                  router.push(`../catalog/category/${product.kategoria_id}`);
-                }}
-              >
-                <Text style={styles.breadcrumbText}>{kategorieMap.get(product.kategoria_id)}</Text>
-              </Pressable>
-
-              {/* SEPARATOR */}
-              <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
-
-              {/* KATEGORIA PODRZEDNA */}
-              <Pressable style={styles.breadcrumbItem} onPress={() => {}}>
-                <Text style={styles.breadcrumbText}>Laptopy</Text>
-              </Pressable>
-
-              {/* SEPARATOR */}
-              <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
-
-              {/* OSTATNI AKTYWNY ELEMENT */}
-              <Pressable
-                style={styles.breadcrumbItem}
-                onPress={() => {
-                  router.push(`../products/${product.id}`);
-                }}
-              >
-                <Text style={styles.breadcrumbLast}>{product.nazwa}</Text>
-              </Pressable>
-            </View>
-          </View>
 
           {/* SEKCJA PRODUKTU */}
           <View style={styles.productSection}>

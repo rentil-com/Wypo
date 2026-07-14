@@ -7,6 +7,7 @@ import  dane from "../dane.json"
 import { useState } from "react";
 import { router } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
+import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 {/*props */}
@@ -52,32 +53,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
         <View style={styles.mainContent}>
 
           {/* BREADCRUMBS */}
-          <View style={styles.category_path}>
-              <Pressable
-                style={styles.breadcrumbItem}
-                onPress={() => {
-                  router.push("/(tabs)/user");
-                }}
-              >
-                <MaterialIcons name="home" size={20} color="#176BDE" />
-              </Pressable>
-              {/* SEPARATOR */}
-              <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
-
-                <Pressable
-                style={styles.breadcrumbItem}
-                onPress={() => {
-                  router.push(`../catalog/catalog/`);
-                }}
-              >
-                <Text style={styles.breadcrumbLast}>Wszystkie</Text>
-                 </Pressable>
-
-                 {/*TU DALEJ JAKIEGOS KATEGORIE W BREADCRUMBIE */}
-
-                 
-       </View>
-
+        <Breadcrumbs items={[{label : "Wszystkie"}]}/>
 
         {/*NAGŁOWEK STRONY, OPISY ZACHECAJACE */}
         <View style={styles.pageHeading}>
@@ -285,37 +261,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     minWidth: 210,
-  },
-
-
- breadcrumbItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 2,
-    zIndex : 1,
-    position : "relative",
-  },
-
-  breadcrumbText: {
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "600",
-  },
-
-  breadcrumbLast: {
-    fontSize: 14,
-    color: "#176BDE",
-    fontWeight: "700",
-  },
-  category_path: {
-    marginTop: 24,
-    marginBottom: 16,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "nowrap",
-    overflow: "hidden",
-    gap: 8,
   },
 pageHeading: {
     flexDirection: "row",
