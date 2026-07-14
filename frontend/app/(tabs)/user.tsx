@@ -167,10 +167,10 @@ export default function User() {
 }
         {/*KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM , JAK TO DZIALA */}
         <View style={styles.categoryContainer}>
-          <Pressable
+          <View
     style={styles.categoryWrapper}
-    onHoverIn={() => setshowcategoryPanel(true)}
-    onHoverOut={() => setshowcategoryPanel(false)}
+    onPointerEnter={() => setshowcategoryPanel(true)}
+    onPointerLeave={() => setshowcategoryPanel(false)}
   > 
          <View style={styles.headerSideActions}>
           {/*onHoverIn, onHoverOut - działaja tylko na web , do mobliek dodac onPressIn, onPressOut */}
@@ -180,17 +180,65 @@ export default function User() {
              </View>
       {/*ROZWIJANY PANEL KATEGORII, NARAZIE NIE WSZYSTKIE KATEGORIE */}
       {/*przeniesienie do odpowiedniego widoku kategorii, dodac ikonki do poszczegółnych kategorii */}
-      {showcategoryPanel && <View style={styles.categoryPanel} >
+      {showcategoryPanel && <View style={styles.categoryPanelPositioner} >
+        <View style={styles.categoryPanel}>
+          <View style={styles.categoryGrid}> 
+          <Pressable style={[styles.panelCategoryItem,styles.panelCategoryItemActive]} onPress={()=>router.push(`../catalog/catalog`)}> 
+            <View style={[styles.panelCategoryIcon,styles.panelCategoryIconActive]}>
+                <MaterialIcons name="grid-view"size={25} color="#176BDE" />
+              </View>
+
+              <View style={styles.categoryTextContainer}>
+                <Text style={[styles.panelCategoryName,styles.panelCategoryNameActive]} >
+                  Wszystkie kategorie
+                </Text>
+              <Text style={styles.categoryDescription}>
+                      Zobacz wszystkie produkty
+                    </Text>
+                </View>
+                </Pressable>
+
+                {/*kategorie z mapy */}
+
         {Array.from(kategorieMap).map(([key,val],index)=>
-        <View style={styles.categoryInfo}>
-          <Text style={styles.categoryName} onPress={()=>router.push(`../catalog/category/${key}`)}>{val}</Text>
-        </View>
+        <Pressable style={styles.panelCategoryItem} onPress={()=>router.push(`../catalog/category/${key}`)}>
+          <View style={styles.panelCategoryIcon}> 
+            {/*ikonki */}
+             <MaterialIcons
+          name={
+            index === 0
+              ? "shopping-bag"
+              : index === 1
+                ? "devices"
+                : index === 2
+                  ? "build"
+                  : "sports-soccer"
+          }
+          size={25}
+          color="#176BDE"
+        />
+            </View>
+            <View style={styles.categoryTextContainer}> 
+          <Text style={styles.panelCategoryName} >{val}</Text>
+
+            <Text style={styles.categoryDescription}>
+            Sprzęt dostępny na wynajem
+          </Text>
+          
+          </View>
+            </Pressable>
+      
         ) }
         
         </View>
+        </View> 
+  </View>
         }
-        </Pressable>
+        
+        </View>
       </View>
+      
+      
               
               <View style={styles.headerSideActions}>
                 <Pressable style={styles.headerInfo} >
@@ -1050,39 +1098,123 @@ suggestionPrice: {
   fontSize: 13,
   fontWeight: "700",
 },
-categoryPanel : {
- position: "absolute",
-  top: "100%",
-  left: -20,
-  transform: [{ translateX: -110 }],
-  backgroundColor: "#FFFFFF",
-  borderRadius: 16,
-  borderWidth: 1,
-  borderColor: "#E2E8F0",
-  paddingVertical: 8,
-  paddingHorizontal: 12,
-  paddingTop: 24,           // zwiększone
-  width: 220,
-  shadowColor: "#0F172A",
-  shadowOffset: { width: 0, height: 10 },
-  shadowOpacity: 0.15,
-  shadowRadius: 20,
-  elevation: 18,
-  zIndex: 300,
-  overflow: "hidden",
-},
-categoryItem : {
+categoryItem: {
+  width: "32%",
+  minHeight: 72,
+
   flexDirection: "row",
   alignItems: "center",
-  paddingVertical: 13,
-  paddingHorizontal: 16,
-  borderRadius: 10,
-  marginHorizontal: 4,
+
+  paddingVertical: 12,
+  paddingHorizontal: 13,
+
+  borderRadius: 11,
+  borderWidth: 1,
+  borderColor: "transparent",
+
+  backgroundColor: "#FFFFFF",
 },
-categoryContainer :{
-  position : "relative",
+categoryContainer: {
+  position: "relative",
+  zIndex: 5000,
+  overflow: "visible",
 },
+
 categoryWrapper: {
   position: "relative",
+  zIndex: 5000,
+  overflow: "visible",
+},
+
+categoryPanelPositioner: {
+  position: "absolute",
+  top: "100%",
+  left: -220,
+  paddingTop: 12,
+  zIndex: 9999,
+  elevation: 30,
+},
+categoryPanel: {
+  width: 760,
+  backgroundColor: "#FFFFFF",
+
+  borderRadius: 18,
+  borderWidth: 1,
+  borderColor: "#DFE8F5",
+
+  padding: 20,
+
+  shadowColor: "#0F172A",
+  shadowOffset: {
+    width: 0,
+    height: 12,
+  },
+  shadowOpacity: 0.14,
+  shadowRadius: 28,
+
+  elevation: 25,
+  zIndex: 9999,
+  overflow: "hidden",
+},
+categoryGrid: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  columnGap: 12,
+  rowGap: 12,
+},
+
+panelCategoryItem: {
+  width: "32%",
+  minHeight: 76,
+
+  flexDirection: "row",
+  alignItems: "center",
+
+  paddingVertical: 13,
+  paddingHorizontal: 14,
+
+  backgroundColor: "#F8FAFE",
+
+  borderRadius: 13,
+  borderWidth: 1,
+  borderColor: "#E7EDF6",
+},
+panelCategoryIcon: {
+  width: 42,
+  height: 42,
+
+  borderRadius: 12,
+  backgroundColor: "#EAF2FF",
+
+  alignItems: "center",
+  justifyContent: "center",
+
+  marginRight: 12,
+},
+
+panelCategoryIconActive: {
+  backgroundColor: "#FFFFFF",
+},
+categoryTextContainer: {
+  flex: 1,
+  minWidth: 0,
+},
+panelCategoryName: {
+  color: "#172033",
+  fontSize: 14,
+  fontWeight: "800",
+  lineHeight: 19,
+},
+
+panelCategoryNameActive: {
+  color: "#176BDE",
+},
+
+categoryDescription: {
+  color: "#8190A5",
+  fontSize: 11,
+  fontWeight: "500",
+  lineHeight: 16,
+  marginTop: 3,
 },
 });

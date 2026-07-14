@@ -25,7 +25,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
   kategorieMap.set(3,"Narzedzia")
   kategorieMap.set(4,"Sport i rekreacja")
 
-  
+   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
 
   
   {/*statusy Sprzetu */}
@@ -141,12 +141,31 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
         </View>
 }
         {/*KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM , JAK TO DZIALA */}
-         <View style={styles.headerSideActions}>
-                <Pressable style={styles.headerInfo} >
-                  <Text style={styles.headerInfoText}>Kategorie</Text>
-                </Pressable>
-             </View>
-      
+         <View style={styles.categoryContainer}>
+                <View
+          style={styles.categoryWrapper}
+          onPointerEnter={() => setshowcategoryPanel(true)}
+          onPointerLeave={() => setshowcategoryPanel(false)}
+        > 
+               <View style={styles.headerSideActions}>
+                {/*onHoverIn, onHoverOut - działaja tylko na web , do mobliek dodac onPressIn, onPressOut */}
+                      <View style={styles.headerInfo}   >
+                        <Text style={styles.headerInfoText}>Kategorie</Text>
+                      </View>
+                   </View>
+            {/*ROZWIJANY PANEL KATEGORII, NARAZIE NIE WSZYSTKIE KATEGORIE */}
+            {/*przeniesienie do odpowiedniego widoku kategorii, dodac ikonki do poszczegółnych kategorii */}
+            {showcategoryPanel && <View style={styles.categoryPanel} >
+              {Array.from(kategorieMap).map(([key,val],index)=>
+              <View style={styles.categoryInfo}>
+                <Text style={styles.categoryName} onPress={()=>router.push(`../catalog/category/${key}`)}>{val}</Text>
+              </View>
+              ) }
+              
+              </View>
+              }
+              </View>
+            </View>
       
               
               <View style={styles.headerSideActions}>
@@ -835,6 +854,7 @@ pageHeading: {
     borderWidth: 1,
     borderColor: "#E2E8F0",
     padding: 16,
+    maxWidth : 500, //ograniczenie rozciagania sie produktu
     position: "relative",
 
     shadowColor: "#0F172A",
@@ -1193,7 +1213,40 @@ pageHeading: {
     alignItems: "flex-end",
     justifyContent: "center",
     backgroundColor : "red"
-  }
+  },
+  categoryPanel : {
+ position: "absolute",
+  top: "100%",
+  left: -20,
+  transform: [{ translateX: -110 }],
+  backgroundColor: "#FFFFFF",
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: "#E2E8F0",
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  paddingTop: 24,           
+  width: 220,
+  shadowColor: "#0F172A",
+  shadowOffset: { width: 0, height: 10 },
+  shadowOpacity: 0.15,
+  shadowRadius: 20,
+  elevation: 18,
+  zIndex: 300,
+  overflow: "hidden",
+},
+categoryContainer :{
+  position : "relative",
+},
+categoryWrapper: {
+  position : "relative",
+},
+  categoryName: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#111827",
+    textAlign: "center",
+  },
 
 
 
