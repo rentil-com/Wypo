@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import dane from "../dane.json";
-
+import HeaderPanel from "@/components/shared/Header/HeaderPanel";
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
   type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
@@ -37,7 +37,6 @@ export default function ProductDetailedView() {
   };
 
   {/* STANY I PARAMETRY */}
-  const [searchText, setsearchText] = useState("");
   const { id } = useLocalSearchParams();
   {/* index = aktualne zdjecie w galerii */}
   const [indexaktualneZdjecie, setindexaktualneZdjecie] = useState(0);
@@ -46,10 +45,7 @@ export default function ProductDetailedView() {
   const product = dane.find((item) => item.id.toString() === id);
 
   {/* SUGESTIE WYSZUKIWANIA */}
-  const suggestions = dane.filter((item) =>
-    item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase())
-  );
-
+ 
   {/* MAPA KATEGORII */}
   const kategorieMap = new Map();
   kategorieMap.set(1, "Buty");
@@ -96,12 +92,7 @@ export default function ProductDetailedView() {
     setindexaktualneZdjecie(nowy_index);
   };
 
-  {/* SEARCH SUBMIT - query = tekst wyszukania */}
-  const handleSearchSubmit = () => {
-    const query = searchText.trim();
 
-    router.push({ pathname: "../catalog/catalog", params: { query } });
-  };
 
   return (
     <View style={screen}>
@@ -112,97 +103,9 @@ export default function ProductDetailedView() {
       >
         <View style={styles.page}>
           {/* HEADER */}
-          <View style={styles.header}>
-            <View style={styles.headerName}>
-              <Pressable onPress={() => router.push("../(tabs)/user")}>
-                <Image source={{uri : "https://wypozyczalnia.calantris.com/logo.svg"}} style={styles.logo} />
-              </Pressable>
-            </View>
+          <HeaderPanel/>
 
-            {/* WIDOK SEARCHBARU */}
-            <View style={styles.searchBar}>
-              <MaterialIcons name="search" size={22} color="#8A96A8" />
-              <TextInput
-                value={searchText}
-                onChangeText={(val) => setsearchText(val)}
-                style={styles.searchText}
-                returnKeyType="search"
-                onSubmitEditing={handleSearchSubmit}
-                placeholder="Wyszukaj produktów, marek i kategorii"
-                placeholderTextColor="#9AA4B2"
-              />
-            </View>
-            {/* PANEL SUGESTII */}
-            {suggestions.length > 0 && searchText.trim().length > 0 && (
-              <View style={styles.suggestionsPanel}>
-                {suggestions.map((item) => (
-                  <Pressable
-                    key={item.id}
-                    style={styles.suggestionItem}
-                    onPress={() => router.push(`../products/${item.id}`)}
-                  >
-                    <Image source={{ uri: item.zdjecie_url }} style={styles.suggestionImage} />
-
-                    <View style={styles.suggestionInfo}>
-                      <Text style={styles.suggestionName} numberOfLines={1}>
-                        {item.nazwa}
-                      </Text>
-
-                      <Text style={styles.suggestionPrice}>{item.cena} z{"\u0142"}</Text>
-                    </View>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-
-            {/* KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM, JAK TO DZIALA */}
-            <View style={styles.sideheaderActions}>
-              <Pressable style={styles.sideheaderAction}>
-                <Text style={styles.sideheaderText}>Kategorie</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.sideheaderActions}>
-              <Pressable style={styles.sideheaderAction}>
-                <Text style={styles.sideheaderText}>Jak to działa?</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.sideheaderActions}>
-              <Pressable style={styles.sideheaderAction}>
-                <Text style={styles.sideheaderText}>Dla firm</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.sideheaderActions}>
-              <Pressable style={styles.sideheaderAction}>
-                <Text style={styles.sideheaderText}>Kontakt</Text>
-              </Pressable>
-            </View>
-
-            {/* CONTROLS */}
-            {/* PRZENOSZENIE DO ODPOWIEDNICH WIDOKOW */}
-            <View style={styles.headerActions}>
-              <Pressable style={styles.headerAction} onPress={() => router.replace("/(tabs)/wishlist")}>
-                <MaterialIcons name="favorite-border" size={24} color="#111827" />
-                <Text style={styles.headerActionText}>Ulubione</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.headerActions}>
-              <Pressable style={styles.headerAction} onPress={() => router.replace("/(tabs)/basket")}>
-                <MaterialIcons name="shopping-cart" size={24} color="#111827" />
-                <Text style={styles.headerActionText}>Koszyk</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.headerActions}>
-              <Pressable style={styles.headerAction} onPress={() => router.replace("/(tabs)/basket")}>
-                <MaterialIcons name="person-outline" size={24} color="#111827" />
-                <Text style={styles.headerActionText}>Konto</Text>
-              </Pressable>
-            </View>
-          </View>
+         
 
           {/* SCIEZKA KATEGORII */}
           <View>
@@ -520,59 +423,6 @@ const styles = StyleSheet.create({
     padding: 32,
   },
 
-  /* HEADER */
-
-  header: {
-    width: "100%",
-    minHeight: 72,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 24,
-
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 18,
-    elevation: 4,
-    zIndex : 200,
-
-  },
-
-  headerName: {
-    minWidth: 170,
-  },
-
-  headerText: {
-    fontSize: 28,
-    fontWeight: "900",
-    color: "#07163D",
-  },
-
-  searchBar: {
-    flex: 1,
-    maxWidth: 440,
-    height: 48,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-
-  searchText: {
-    flex: 1,
-    height: "100%",
-    fontSize: 15,
-    color: "#111827",
-    outlineStyle: "none" as any,
-  },
 
   navLinks: {
     flexDirection: "row",
@@ -596,24 +446,6 @@ const styles = StyleSheet.create({
     width: 1,
     height: 42,
     backgroundColor: "#E2E8F0",
-  },
-
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 22,
-  },
-
-  headerAction: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-
-  headerActionText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#334155",
   },
 
   /* SCIEZKA KATEGORII */
@@ -784,11 +616,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  logo: {
-    width: 52,
-    height: 52,
-    zIndex: 2,
-  },
 
   detailsCard: {
     flex: 1,
@@ -1133,62 +960,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
 
-  /* SUGESTIE SEARCHBARU */
-
-  suggestionsPanel: {
-    position: "absolute",
-    top: 68,
-    left: 0,
-    right: 0,
-    zIndex: 300,
-
-    backgroundColor: "#F8FBFF",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#D7E8F7",
-    paddingVertical: 6,
-
-    shadowColor: "#176B87",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 12,
-    overflow: "hidden",
-  },
-
-  suggestionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 64,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E4EFF7",
-  },
-
-  suggestionImage: {
-    width: 46,
-    height: 46,
-    borderRadius: 8,
-    marginRight: 12,
-    backgroundColor: "#EAF2F7",
-  },
-
-  suggestionInfo: {
-    flex: 1,
-  },
-
-  suggestionName: {
-    color: "#163A4A",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-
-  suggestionPrice: {
-    marginTop: 4,
-    color: "#16849B",
-    fontSize: 13,
-    fontWeight: "700",
-  },
 });
   
