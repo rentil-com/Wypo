@@ -6,7 +6,9 @@ import { ThemedText } from "@/components/themed-text";
 import  dane from "../dane.json"
 import { useState } from "react";
 import { router } from "expo-router";
+
 import HeaderPanel from "@/components/shared/Header/HeaderPanel";
+import ProductCard from "@/components/shared/Product/ProductCard";
 {/*props */}
 type CatalogViewProps = {
   kategoriaId?: string;
@@ -23,40 +25,6 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
   kategorieMap.set(2,"Elektronika")
   kategorieMap.set(3,"Narzedzia")
   kategorieMap.set(4,"Sport i rekreacja")
-
-   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
-
-  
-  {/*statusy Sprzetu */}
-  type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
-
-  type StatusStyle = {
-  label: string;
-  backgroundColor: string;
-  textColor: string;
-  icon: keyof typeof MaterialIcons.glyphMap;
-  };
-
-  const statusStyles: Record<StatusSprzetu, StatusStyle> = {
-  dostepny: {
-    label: "Dostępny",
-    backgroundColor: "#DCFCE7",
-    textColor: "#166534",
-    icon: "check-circle",
-  },
-  wypozyczony: {
-    label: "Wypożyczony",
-    backgroundColor: "#DBEAFE",
-    textColor: "#1E40AF",
-    icon: "hourglass-empty",
-  },
-  w_naprawie: {
-    label: "W naprawie",
-    backgroundColor: "#FEF3C7",
-    textColor: "#92400E",
-    icon: "build",
-  },
-  };
 
 
     const [tab,setTab] = useState(dane)
@@ -173,7 +141,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                   </Pressable>
 
               {Array.from(kategorieMap).map(([key,val],index)=> (
-                  <Pressable key={key} onPress={()=> router.push(`catalog/category/${key}`)}  style={[styles.categoryItem , String(kategoriaId)=== String(key) && styles.categoryItemActive]}>
+                  <Pressable key={key} onPress={()=> router.push(`/catalog/category/${key}`)}  style={[styles.categoryItem , String(kategoriaId)=== String(key) && styles.categoryItemActive]}>
                     <ThemedText style={[styles.categoryText, String(kategoriaId)=== String(key) && styles.categoryTextActive]}>{val}</ThemedText>
                     {/*ikonka do kategorii */}
                     <ThemedText></ThemedText>
@@ -267,84 +235,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     numColumns={4}
     columnWrapperStyle={styles.productsRow}
     contentContainerStyle={styles.productsGrid}
-    renderItem={({item})=> (
-        <View style={styles.productCard}>
-          {/*poprawny link do prodkutu */}
-          <Pressable onPress={()=> router.push(`../../products/${item.id}`)}>
-              {/* DODAJ DO ULUBIONYCH */}
-            <Pressable style={styles.favoriteButton}>
-              <MaterialIcons name="favorite-border" size={23} color="#111827" />
-            </Pressable>
-             {/* ZDJECIE PRODUKTU*/}
-            <View style={styles.productImageBox}>
-              <Image
-                source={{ uri: item.zdjecie_url }}
-                style={styles.productImage}
-                resizeMode="contain"
-              />
-            </View>
-
-             {/* NAZWA PRODUKTU */}
-            <View style={styles.productInfo}>
-              <Text style={styles.productName} numberOfLines={1}>
-                {item.nazwa}
-              </Text>
-
-                       <View
-            style={[
-              styles.productStatusBadge,
-              {
-                backgroundColor:
-                  statusStyles[item.status as keyof typeof statusStyles].backgroundColor,
-              },
-            ]}
-          >
-            <MaterialIcons
-              name={statusStyles[item.status as keyof typeof statusStyles].icon}
-              size={14}
-              color={statusStyles[item.status as keyof typeof statusStyles].textColor}
-            />
-
-            <Text
-              style={[
-                styles.productStatusText,
-                {
-                  color: statusStyles[item.status as keyof typeof statusStyles].textColor,
-                },
-              ]}
-            >
-              {statusStyles[item.status as keyof typeof statusStyles].label}
-            </Text>
-          </View>
-
-                  {/* OPIS PRODUKTU */}
-              <Text style={styles.productDescription} numberOfLines={2}>
-                {item.opis}
-              </Text>
-
-                  {/* CENA PRODUKTU */}
-              <View style={styles.productBottom}>
-                <View>
-                  <Text style={styles.productPrice}>99,99 zł</Text>
-                
-                  {/* OCENA PRODUKTU */}
-                  <View style={styles.ratingRow}>
-                    <MaterialIcons name="star" size={17} color="#F59E0B" />
-                    <Text style={styles.ratingText}>4.8</Text>
-                  </View>
-                </View>
-
-               {/* DODAJ DO KOSZYKA */}
-                <Pressable style={styles.addButton}>
-                  <MaterialIcons name="add" size={24} color="#176BDE" />
-                </Pressable>
-              </View>
-              </View>
-
-
-          </Pressable>
-         
-        </View>
+    renderItem={({item})=> ( <ProductCard item={item} />
       )}
 >
 
@@ -588,106 +479,6 @@ pageHeading: {
   productsRow: {
     gap: 12,
   },
-   productCard: {
-    flex: 1,
-    minHeight: 324,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    padding: 16,
-    maxWidth : 500, //ograniczenie rozciagania sie produktu
-    position: "relative",
-
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 18,
-    elevation: 4,
-  },
-  favoriteButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 5,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  productImageBox: {
-    height: 142,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 14,
-  },
-
-  productImage: {
-    width: "100%",
-    height: "100%",
-  },
-
-  productInfo: {
-    flex: 1,
-  },
-
-  productName: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: "#111827",
-    marginBottom: 4,
-  },
-  productStatusBadge: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    marginBottom: 8,
-  },
-
-  productStatusText: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  productDescription: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: "#64748B",
-    minHeight: 36,
-  },
-
-  productBottom: {
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
-
-  productPrice: {
-    fontSize: 17,
-    fontWeight: "900",
-    color: "#111827",
-    marginBottom: 8,
-  },
-
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-
-  ratingText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#64748B",
-  },
-
   addButton: {
     width: 42,
     height: 42,

@@ -1,10 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useState } from "react";
+import {  Image, Pressable, Text, TextInput, View } from "react-native";
 import dane from "../../../dane.json"
-import { useLocalSearchParams } from "expo-router";   
 import {styles} from "./HeaderPanel.styles"
 export default function HeaderPanel () { 
     const kategorieMap = new Map();
