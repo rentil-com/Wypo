@@ -4,12 +4,19 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Stack } from 'expo-router';
 import { ThemedText } from "@/components/themed-text";
 import  dane from "../dane.json"
-import { useState } from "react";
+import { useState,useEffect } from "react";
+import { pobierzProdukty } from "@/services/products.service";
+import type { ApiItem } from "@/types/product";
 import { router } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
+
+
+
+
+
 {/*props */}
 type CatalogViewProps = {
   kategoriaId?: string;
@@ -22,7 +29,29 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
   {/*kategorie-dostepne */}
     
 
+  useEffect (()=> {
+    async function zaladujProdukty() {
+      try {
+        const response = await pobierzProdukty()
 
+        setProdukty(response.dane);
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+      
+    }
+    void zaladujProdukty();
+
+  },[]);
+
+
+    const [produkty,setProdukty] = useState<ApiItem[]>([]);
+    const [loading,setLoading] = useState(true)
+    const [error,setEror] = useState<string | null>(null)
 
 
     const [tab,setTab] = useState(dane)
@@ -193,13 +222,17 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                 </View>
               </View>
              {/* LISTA PRODUKTÓW */}
+
+       {loading && <Text>Ładowanie .....</Text>}
+       {error !="" && <Text>{error}</Text>}
+
   <FlatList
-    data={tab_filtered}
+    data={produkty}
     keyExtractor={(elem)=> elem.id.toString()}
     numColumns={4}
     columnWrapperStyle={styles.productsRow}
     contentContainerStyle={styles.productsGrid}
-    renderItem={({item})=> ( <ProductCard item={item} />
+    renderItem={({item})=> ( <Text>{item.nazwa}</Text>
       )}
 >
 
