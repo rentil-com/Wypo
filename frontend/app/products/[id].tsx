@@ -1,11 +1,14 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import dane from "../dane.json";
 import { kategorieMap } from "@/constants/categories";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import PageLayout from "@/components/shared/Layout/PageLayout";
+import { pobierzPojedynczyProdukt } from "@/services/singleproduct.service";
+import { SingleProductApiItem } from "@/types/singleproduct";
+import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
   type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
@@ -38,17 +41,40 @@ export default function ProductDetailedView() {
     },
   };
 
+  const [pojedynczyProdukt,setPojedynczyProdukt] = useState<SingleProductApiItem>();
+  const [loading,setLoading] = useState(true)
+  const [error,setEror] = useState<string | null>(null)
   {/* STANY I PARAMETRY */}
   const { id } = useLocalSearchParams();
   {/* index = aktualne zdjecie w galerii */}
   const [indexaktualneZdjecie, setindexaktualneZdjecie] = useState(0);
-
+  const zdjecia = pojedynczyProdukt
+  ? Object.values(pojedynczyProdukt.zdjecia_url)
+  : [];
   {/* PRODUKT O DANYM ID */}
   const product = dane.find((item) => item.id.toString() === id);
 
   {/* SUGESTIE WYSZUKIWANIA */}
  
-
+    useEffect (()=> {
+      async function zaladujProdukty() {
+        try {
+          const response = await pobierzPojedynczyProdukt(Number(id))
+  
+          setPojedynczyProdukt(response);
+        }
+        catch(error){
+          setEror(error instanceof Error ? error.message : "Nieznany bład")
+        }
+        finally {
+          setLoading(false)
+        }
+        
+      }
+      void zaladujProdukty();
+  
+    },[]);
+  
 
   {/* TYMCZASOWA GALERIA ZDJEC, NARAZIE MAM JEDNO ZDJECIE (POTEM BEDZIE WIELE) */}
   const temp_photos_gallery = [
@@ -87,6 +113,7 @@ export default function ProductDetailedView() {
     }
 
     setindexaktualneZdjecie(nowy_index);
+
   };
 
 
@@ -119,7 +146,7 @@ export default function ProductDetailedView() {
               <View style={styles.imageCounter}>
                 <Text style={styles.imageCounterText}>
                   {/* ILOSC ZDJEC NA ILE */}
-                  {indexaktualneZdjecie + 1} / {temp_photos_gallery.length}
+                  {indexaktualneZdjecie +1} / {zdjecia.length}
                 </Text>
               </View>
 
@@ -134,7 +161,7 @@ export default function ProductDetailedView() {
               {/* GLOWNE ZDJECIE PRODUKTU */}
               <View style={styles.mainImageBox}>
                 <Image
-                  source={{ uri: temp_photos_gallery[indexaktualneZdjecie] }}
+                  source={{ uri: zdjecia[indexaktualneZdjecie] }}
                   style={styles.mainProductImage}
                   resizeMode="contain"
                 />
@@ -148,9 +175,14 @@ export default function ProductDetailedView() {
                 <MaterialIcons name="chevron-right" size={28} color="#0F172A" />
               </Pressable>
 
+                   <View style={styles.thumbnailRow}>
+                  
+
+                   </View>
+
               {/* MINIATURY ZDJEC */}
               <View style={styles.thumbnailRow}>
-                {temp_photos_gallery.map((image, index) => (
+                {zdjecia.map((image,index) => (
                   <Pressable
                     key={index}
                     style={[
@@ -168,7 +200,7 @@ export default function ProductDetailedView() {
             {/* PRAWA STRONA - SZCZEGOLY */}
             <View style={styles.detailsCard}>
               {/* NAZWA PRODUKTU */}
-              <Text style={styles.productTitle}>{product.nazwa}</Text>
+              <Text style={styles.productTitle}>{pojedynczyProdukt?.nazwa}</Text>
 
               {/* STATUS PRODUKTU */}
               <View >
@@ -209,19 +241,20 @@ export default function ProductDetailedView() {
 
                 {/* CENA PRODUKTU */}
                 <View style={styles.priceRow}>
-                  <Text style={styles.price}>129,99 zł</Text>
+                  <Text style={styles.price}>{pojedynczyProdukt?.cena}</Text>
                   <Text style={styles.pricePeriod}>/ za okres</Text>
                 </View>
-
+                
+                {pojedynczyProdukt?.cena_po_promocji !=null && 
                 <View style={styles.oldPriceRow}>
-                  <Text style={styles.oldPrice}>179,99 zł</Text>
+                  <Text style={styles.oldPrice}>{pojedynczyProdukt?.cena_po_promocji}</Text>
                   <View style={styles.discountBadge}>
                     <Text style={styles.discountText}>-28%</Text>
                   </View>
                 </View>
-
+                    }
                 {/* OPIS PRODUKTU */}
-                <Text style={styles.description}>{product.opis}</Text>
+                <Text style={styles.description}>{pojedynczyProdukt?.opis}</Text>
 
                 {/* SPECYFIKACJE */}
                 <View style={styles.specList}>
@@ -277,7 +310,7 @@ export default function ProductDetailedView() {
                 <View style={styles.periodOptions}>
                   <Pressable style={[styles.periodOption, styles.periodOptionActive]}>
                     <Text style={styles.periodOptionTitleActive}>1 dzień</Text>
-                    <Text style={styles.periodOptionPriceActive}>129,99 zł</Text>
+                    <Text style={styles.periodOptionPriceActive}>{pojedynczyProdukt?.cena}</Text>
                   </Pressable>
                 </View>
 
