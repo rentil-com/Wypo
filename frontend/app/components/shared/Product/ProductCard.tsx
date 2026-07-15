@@ -10,6 +10,7 @@ import {styles } from "./ProductCard.styles"
 
 type StatusSprzetu =
   | "dostepny"
+  | "niedostepny"
   | "wypozyczony"
   | "w_naprawie";
 
@@ -44,6 +45,12 @@ const statusStyles: Record<
     textColor: "#92400E",
     icon: "build",
   },
+  niedostepny: {
+  label: "Niedostępny",
+  backgroundColor: "#FEE2E2",
+  textColor: "#991B1B",
+  icon: "cancel",
+},
 };
 
 type ProductCardItem = {
@@ -52,6 +59,8 @@ type ProductCardItem = {
   opis: string;
   zdjecie_url: string;
   status: string;
+  cena: number;
+  cena_po_promocji: number | null;
 };
 
 type ProductCardProps = {
