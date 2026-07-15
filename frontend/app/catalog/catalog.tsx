@@ -232,11 +232,11 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     numColumns={4}
     columnWrapperStyle={styles.productsRow}
     contentContainerStyle={styles.productsGrid}
-    renderItem={({item})=> ( <Text>{item.nazwa}</Text>
+    renderItem={({item})=> (<ProductCard item={{...item,opis : item.opis ?? "",cena_po_promocji : item.cena_po_promocji ?? item.cena, zdjecie_url : item.zdjecia_url["1"]}} />
       )}
->
+/>
 
-</FlatList>
+
 
               <View style={styles.pagination}>
                 <View style={styles.paginationSide} />

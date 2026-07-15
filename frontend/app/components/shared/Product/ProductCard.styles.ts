@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
 
     position: "relative",
 
-    backgroundColor: "#FFFFFF",
+    
 
     borderRadius: 24,
     borderWidth: 1,

@@ -1,3 +1,4 @@
+
 export type ApiItem = {
   id: number;
   nazwa: string;
