@@ -9,11 +9,22 @@ import accounts from "./routes/accounts.js";
 import ulubione from "./routes/ulubione.js";
 import wypozyczenia from "./routes/wypozyczenia.js";
 import recenzje from "./routes/recenzje.js";
+import cors from "cors";
 import { pobierzDodatniaLiczbeCalkowitaEnv } from "./helpers/env.js";
 
 const app = express();
 const port = pobierzDodatniaLiczbeCalkowitaEnv("SERVER_PORT", 3000);
 const host = process.env.SERVER_HOST || "0.0.0.0";
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN || "http://localhost:8081",
+    credentials: true,
+  }),
+);
+
+app.use(express.json());
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(cookieParser());
