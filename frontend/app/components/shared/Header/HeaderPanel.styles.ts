@@ -19,9 +19,6 @@ export const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 4,
   },
-  headerName : {
-    fontFamily: 'Arial'
-  },
   searchBar: {
     position : "relative",
     flex: 1,
@@ -161,6 +158,9 @@ panelCategoryItem: {
   borderWidth: 1,
   borderColor: "#E7EDF6",
 },
+panelCategoryItemActive: {
+  backgroundColor: "#FFFFFF",
+},
 panelCategoryIcon: {
   width: 42,
   height: 42,
@@ -224,4 +224,22 @@ categoryDescription: {
   zIndex: 1,
 
   },
+  headerSideActions : {
+    display : "flex",
+    alignItems : "center",
+    gap : 5,
+    marginLeft : "auto",
+  },
+  headerInfo : {
+    display : "flex",
+    flexDirection : "column",
+    gap : 5,
+    minWidth : 0,
+  },
+  headerInfoText : {
+    margin : 0,
+    color : "#1f2937",
+    fontSize : 17,
+    lineHeight : 1.4,
+  }
 })

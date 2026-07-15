@@ -171,8 +171,8 @@ export default function ProductDetailedView() {
               <Text style={styles.productTitle}>{product.nazwa}</Text>
 
               {/* STATUS PRODUKTU */}
-              <View style={styles.statusRow}>
-                <View style={styles.statusDot} />
+              <View >
+                <View  />
 
                 <View
                   style={[
@@ -895,6 +895,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#E2E8F0",
     marginHorizontal: 20,
   },
-
+  
 });
   

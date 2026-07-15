@@ -25,7 +25,7 @@ export default function HeaderPanel () {
    return ( 
    <View style={styles.header}>
     <Pressable onPress={()=> router.push("/(tabs)/user")}>
-        <View style={styles.headerName}>
+        <View>
         
          <Image source={{uri : "https://wypozyczalnia.calantris.com/logo.svg"}} style={styles.logo} />
         </View>
