@@ -7,6 +7,9 @@ import  dane from "../dane.json"
 import { useState,useEffect } from "react";
 import { pobierzProdukty } from "@/services/products.service";
 import type { ApiItem } from "@/types/product";
+import { pobierzKategorie } from "@/services/categories.service";
+import { pobierzKategoriePoId } from "@/services/categories.service";
+import { CategoryApiItem } from "@/types/categories";
 import { router } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
@@ -30,11 +33,26 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     
 
   useEffect (()=> {
+    async function zaladujKategorie(){
+      try {
+        const response = await pobierzKategorie()
+
+        setKategorie(response)
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+  
+    }
+
     async function zaladujProdukty() {
       try {
-        const response = await pobierzProdukty()
+        const produkt = await pobierzProdukty()
 
-        setProdukty(response.dane);
+        setProdukty(produkt.dane);
       }
       catch(error){
         setEror(error instanceof Error ? error.message : "Nieznany bład")
@@ -45,10 +63,11 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
       
     }
     void zaladujProdukty();
+    void zaladujKategorie();
 
   },[]);
 
-
+    const [kategorie,setKategorie] =useState<CategoryApiItem[]>([])
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
     const [loading,setLoading] = useState(true)
     const [error,setEror] = useState<string | null>(null)
@@ -132,15 +151,29 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                     {/*ikonka do kategorii */}
                    
                   </Pressable>
+                {kategorie.map((item) => (
+  <Pressable
+    key={item.id}
+    onPress={() => router.push(`/catalog/category/${item.id}`)}
+    style={[
+      styles.categoryItem,
+      String(kategoriaId) === String(item.id) &&
+        styles.categoryItemActive,
+    ]}
+  >
+    <ThemedText
+      style={[
+        styles.categoryText,
+        String(kategoriaId) === String(item.id) &&
+          styles.categoryTextActive,
+      ]}
+    >
+      {item.nazwa}
+    </ThemedText>
+  </Pressable>
+))}
 
-              {Array.from(kategorieMap).map(([key,val],index)=> (
-                  <Pressable key={key} onPress={()=> router.push(`/catalog/category/${key}`)}  style={[styles.categoryItem , String(kategoriaId)=== String(key) && styles.categoryItemActive]}>
-                    <ThemedText style={[styles.categoryText, String(kategoriaId)=== String(key) && styles.categoryTextActive]}>{val}</ThemedText>
-                    {/*ikonka do kategorii */}
-                    <ThemedText></ThemedText>
-                  </Pressable>
-              ))}
-
+         
 
 </View>
 

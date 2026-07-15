@@ -90,7 +90,7 @@ export default function ProductCard({
       <Pressable
         style={styles.productLink}
         onPress={() =>
-          router.push(`../products/${item.id}`)
+          router.push(`/products/${item.id}`)
         }
       >
         {/* ZDJĘCIE PRODUKTU */}
@@ -155,7 +155,8 @@ export default function ProductCard({
       <View style={styles.productBottom}>
         <View>
           <Text style={styles.productPrice}>
-            99,99 zł
+            {/*dodac skreslona poprzednia cene */}
+          {item.cena_po_promocji !=null ? item.cena_po_promocji + "zł" : item.cena + "zł"}
           </Text>
 
           <View style={styles.ratingRow}>
