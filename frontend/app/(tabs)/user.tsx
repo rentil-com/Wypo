@@ -6,6 +6,8 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native
 import dane from "../dane.json";
 import { pobierzProdukty } from "@/services/products.service";
 import type { ApiItem } from "@/types/product";
+import type {CategoryApiItem} from "@/types/categories"
+import { pobierzKategorie } from "@/services/categories.service";
 import { useLocalSearchParams } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
 import ProductCard from "@/components/shared/Product/ProductCard";
@@ -24,16 +26,32 @@ export default function User() {
   const [lastResetDate,setLastResetDate] = useState<string | null>(null);
 
   const [katalog,setKatalog] = useState(dane)
-  
+
   const products = kategoria_id ? katalog.filter((product)=> String(product.kategoria_id)=== String(kategoria_id)) : katalog
   const [randomIndex,setRandomIndex] = useState(0)
 
+  const [kategorie,setKategorie] = useState<CategoryApiItem[]>([]);
   const [produkty,setProdukty] = useState<ApiItem[]>([]);
   const [loading,setLoading] = useState(true)
   const [error,setEror] = useState<string | null>(null)
 
 
     useEffect (()=> {
+    async function zaladujKategorie(){
+      try {
+        const response = await pobierzKategorie()
+
+        setKategorie(response)
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+  
+    }
+  
     async function zaladujProdukty() {
       try {
         const response = await pobierzProdukty()
@@ -48,7 +66,9 @@ export default function User() {
       }
       
     }
+     void zaladujKategorie();
     void zaladujProdukty();
+   
 
   },[]);
 
@@ -202,45 +222,13 @@ export default function User() {
           </View>
       <Text style={styles.categoryNameActive}>Promocje</Text>
         </Pressable>
-
-        {Array.from(kategorieMap).map(([key, val], index) => (
-          <Pressable  onPress={()=> router.push(`../catalog/category/${key}`)}
-            key={key}
-            style={[
-              styles.categoryCard
-            
-            ]}
-          >
-            <View
-              style={[
-                styles.categoryIconBox,
-          
-              ]}
-            >
-
-              {/* IKONKI DLA KATEGORII */}
-              <MaterialIcons
-                name={
-                  index === 0
-                    ? "shopping-bag"
-                    : index === 1
-                    ? "devices"
-                    : index === 2
-                    ? "build"
-                    : "sports-soccer"
-                }
-                size={32}
-                color= "#176BDE"
-              />
-            </View>
-
-            <Text
-              style={styles.categoryName}
-            >
-              {val}
-            </Text>
-          </Pressable>
-        ))}
+   <FlatList
+       data={kategorie}
+    keyExtractor={(elem)=> elem.id.toString()}
+    numColumns={4}
+    renderItem={({item})=> (     <View style={styles.categoryCard}>  <Text style={styles.categoryName}>{item.nazwa}</Text> </View>)}
+      
+      />
       </View>
 
       {/* BESTSELLERY HEADER */}
