@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "nazwa": "Laptop Dell Latitude 5420",
+    "opis": "Laptop biznesowy z procesorem Intel Core i5, 16 GB RAM i dyskiem SSD 512 GB.",
+    "kategoria_id": 2,
+    "zdjecie_url": "https://wypozyczalnia.calantris.com/laptop.jpg",
+    "status": "dostepny",
+    "data_dodania": "2026-07-06T05:29:22.266Z",
+    "cena": 120.0,
+    "cena_po_promocji": 99.0,
+    "promocja": true
+  },
+  {
+    "id": 2,
+    "nazwa": "Projektor Epson EB-X49",
+    "opis": "Projektor multimedialny do prezentacji, spotkań i zajęć szkoleniowych.",
+    "kategoria_id": 2,
+    "zdjecie_url": "https://wypozyczalnia.calantris.com/projektor.jpg",
+    "status": "dostepny",
+    "data_dodania": "2026-07-06T05:29:22.266Z",
+    "cena": 80.0,
+    "cena_po_promocji": 80.0,
+    "promocja": false
+  },
+  {
+    "id": 3,
+    "nazwa": "Wiertarka Bosch Professional",
+    "opis": "Wiertarka udarowa przeznaczona do wiercenia w drewnie, metalu i betonie.",
+    "kategoria_id": 3,
+    "zdjecie_url": "https://wypozyczalnia.calantris.com/wiertarka_bosch.jpg",
+    "status": "dostepny",
+    "data_dodania": "2026-07-06T05:29:22.266Z",
+    "cena": 45.0,
+    "cena_po_promocji": 35.0,
+    "promocja": true
+  },
+  {
+    "id": 4,
+    "nazwa": "Szlifierka kątowa Makita",
+    "opis": "Szlifierka kątowa do cięcia i szlifowania metalu oraz innych materiałów.",
+    "kategoria_id": 3,
+    "zdjecie_url": "https://wypozyczalnia.calantris.com/szlifierka_makita.jpg",
+    "status": "w_naprawie",
+    "data_dodania": "2026-07-06T05:29:22.266Z",
+    "cena": 40.0,
+    "cena_po_promocji": 40.0,
+    "promocja": false
+  },
+  {
+    "id": 5,
+    "nazwa": "Rower górski Kross Hexagon",
+    "opis": "Rower MTB do jazdy rekreacyjnej i terenowej, rozmiar ramy M.",
+    "kategoria_id": 4,
+    "zdjecie_url": "https://wypozyczalnia.calantris.com/rower_gorski.jpg",
+    "status": "dostepny",
+    "data_dodania": "2026-07-06T05:29:22.266Z",
+    "cena": 70.0,
+    "cena_po_promocji": 55.0,
+    "promocja": true
+  },
+  {
+    "id": 6,
+    "nazwa": "Namiot turystyczny 4-osobowy",
+    "opis": "Namiot rodzinny dla czterech osób, odporny na deszcz i łatwy w rozłożeniu.",
+    "kategoria_id": 4,
+    "zdjecie_url": "https://wypozyczalnia.calantris.com/namiot_turystyczny.jpg",
+    "status": "wypozyczony",
+    "data_dodania": "2026-07-06T05:29:22.266Z",
+    "cena": 60.0,
+    "cena_po_promocji": 60.0,
+    "promocja": false
+  }
+]
