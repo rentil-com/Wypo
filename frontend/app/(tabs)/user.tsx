@@ -4,11 +4,15 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import dane from "../dane.json";
+import { pobierzProdukty } from "@/services/products.service";
+import type { ApiItem } from "@/types/product";
 import { useLocalSearchParams } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 export default function User() {
+
+  
   const { kategoria_id } = useLocalSearchParams();
 
   {/* CZAS RESETU */}
@@ -20,12 +24,33 @@ export default function User() {
   const [lastResetDate,setLastResetDate] = useState<string | null>(null);
 
   const [katalog,setKatalog] = useState(dane)
+  
   const products = kategoria_id ? katalog.filter((product)=> String(product.kategoria_id)=== String(kategoria_id)) : katalog
   const [randomIndex,setRandomIndex] = useState(0)
 
+  const [produkty,setProdukty] = useState<ApiItem[]>([]);
+  const [loading,setLoading] = useState(true)
+  const [error,setEror] = useState<string | null>(null)
 
 
+    useEffect (()=> {
+    async function zaladujProdukty() {
+      try {
+        const response = await pobierzProdukty()
 
+        setProdukty(response.dane);
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+      
+    }
+    void zaladujProdukty();
+
+  },[]);
 
 
 
@@ -230,13 +255,13 @@ export default function User() {
 
       {/* KATALOG -> PRODUKTY/BESTSELLERY*/}
       <FlatList
-        data={products}
+        data={produkty}
         keyExtractor={(item) => item.id.toString()}
         numColumns={4}
         scrollEnabled={false}
         columnWrapperStyle={styles.productRow}
         contentContainerStyle={styles.productsList}
-        renderItem={({ item }) => ( <ProductCard item={item} />
+        renderItem={({ item }) => ( <ProductCard item={{...item,opis : item.opis ?? "", zdjecie_url : item.zdjecia_url["1"]}} />
         )}
       />
     </PageLayout>
