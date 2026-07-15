@@ -5,3 +5,9 @@ export async function pobierzKategorie() {
 
     return response as CategoryResponse
 }
+
+export async function pobierzKategoriePoId(id: number) {
+  const response = await apiGet(`/kategorie/${id}`);
+
+  return response as CategoryApiItem;
+}

@@ -8,10 +8,12 @@ import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 import { pobierzPojedynczyProdukt } from "@/services/singleproduct.service";
 import { SingleProductApiItem } from "@/types/singleproduct";
+import { CategoryApiItem } from "@/types/categories";
+import { pobierzKategoriePoId } from "@/services/categories.service";
 import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
-  type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie";
+  type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie" | "niedostepny";
 
   type StatusStyle = {
     label: string;
@@ -39,8 +41,14 @@ export default function ProductDetailedView() {
       textColor: "#92400E",
       icon: "build",
     },
+      niedostepny: {
+  label: "Niedostępny",
+  backgroundColor: "#FEE2E2",
+  textColor: "#991B1B",
+  icon: "cancel",
+},
   };
-
+  const [kategoria,setKategoria] = useState<CategoryApiItem>();
   const [pojedynczyProdukt,setPojedynczyProdukt] = useState<SingleProductApiItem>();
   const [loading,setLoading] = useState(true)
   const [error,setEror] = useState<string | null>(null)
@@ -57,11 +65,16 @@ export default function ProductDetailedView() {
   {/* SUGESTIE WYSZUKIWANIA */}
  
     useEffect (()=> {
+
+
       async function zaladujProdukty() {
         try {
-          const response = await pobierzPojedynczyProdukt(Number(id))
+          const produkt = await pobierzPojedynczyProdukt(Number(id))
   
-          setPojedynczyProdukt(response);
+          setPojedynczyProdukt(produkt);
+
+          const pobranaKategoria = await pobierzKategoriePoId(Number(produkt.kategoria_id))
+          setKategoria(pobranaKategoria)
         }
         catch(error){
           setEror(error instanceof Error ? error.message : "Nieznany bład")
@@ -71,22 +84,16 @@ export default function ProductDetailedView() {
         }
         
       }
+     
+
       void zaladujProdukty();
   
     },[]);
   
 
   {/* TYMCZASOWA GALERIA ZDJEC, NARAZIE MAM JEDNO ZDJECIE (POTEM BEDZIE WIELE) */}
-  const temp_photos_gallery = [
-    product?.zdjecie_url,
-    product?.zdjecie_url,
-    product?.zdjecie_url,
-    product?.zdjecie_url,
-    product?.zdjecie_url,
-    product?.zdjecie_url,
-  ];
-
-  if (!product) {
+    
+  if (!pojedynczyProdukt) {
     return (
       <View style={styles.screen}>
         <Text style={styles.errorText}>Nie znaleziono produktu.</Text>
@@ -98,7 +105,7 @@ export default function ProductDetailedView() {
   const przejdzDoNastepnegoZdjecia = () => {
     let nowy_index = indexaktualneZdjecie + 1;
 
-    if (nowy_index >= temp_photos_gallery.length) {
+    if (nowy_index >= zdjecia.length) {
       nowy_index = 0;
     }
 
@@ -109,7 +116,7 @@ export default function ProductDetailedView() {
     let nowy_index = indexaktualneZdjecie - 1;
 
     if (nowy_index < 0) {
-      nowy_index = temp_photos_gallery.length - 1;
+      nowy_index = zdjecia.length - 1;
     }
 
     setindexaktualneZdjecie(nowy_index);
@@ -127,13 +134,13 @@ export default function ProductDetailedView() {
   items={[
       {
         label:
-          kategorieMap.get(product.kategoria_id) ??
+          kategoria?.nazwa ??
           "Kategoria",
 
-        href: `/catalog/category/${product.kategoria_id}`,
+        href: `/catalog/category/${pojedynczyProdukt.kategoria_id}`,
       },
       {
-        label: product.nazwa,
+        label: pojedynczyProdukt.nazwa,
       },
     ]}
   />
@@ -211,25 +218,25 @@ export default function ProductDetailedView() {
                     styles.productStatusBadge,
                     {
                       backgroundColor:
-                        statusStyles[product.status as keyof typeof statusStyles].backgroundColor,
+                        statusStyles[pojedynczyProdukt.status as keyof typeof statusStyles].backgroundColor,
                     },
                   ]}
                 >
                   <MaterialIcons
-                    name={statusStyles[product.status as keyof typeof statusStyles].icon}
+                    name={statusStyles[pojedynczyProdukt.status as keyof typeof statusStyles].icon}
                     size={14}
-                    color={statusStyles[product.status as keyof typeof statusStyles].textColor}
+                    color={statusStyles[pojedynczyProdukt.status as keyof typeof statusStyles].textColor}
                   />
 
                   <Text
                     style={[
                       styles.productStatusText,
                       {
-                        color: statusStyles[product.status as keyof typeof statusStyles].textColor,
+                        color: statusStyles[pojedynczyProdukt.status as keyof typeof statusStyles].textColor,
                       },
                     ]}
                   >
-                    {statusStyles[product.status as keyof typeof statusStyles].label}
+                    {statusStyles[pojedynczyProdukt.status as keyof typeof statusStyles].label}
                   </Text>
                 </View>
 
@@ -241,13 +248,13 @@ export default function ProductDetailedView() {
 
                 {/* CENA PRODUKTU */}
                 <View style={styles.priceRow}>
-                  <Text style={styles.price}>{pojedynczyProdukt?.cena}</Text>
+                  <Text style={styles.price}>{pojedynczyProdukt?.cena_po_promocji !=null ? pojedynczyProdukt.cena_po_promocji : pojedynczyProdukt?.cena}</Text>
                   <Text style={styles.pricePeriod}>/ za okres</Text>
                 </View>
                 
                 {pojedynczyProdukt?.cena_po_promocji !=null && 
                 <View style={styles.oldPriceRow}>
-                  <Text style={styles.oldPrice}>{pojedynczyProdukt?.cena_po_promocji}</Text>
+                  <Text style={styles.oldPrice}>{pojedynczyProdukt?.cena}</Text>
                   <View style={styles.discountBadge}>
                     <Text style={styles.discountText}>-28%</Text>
                   </View>
