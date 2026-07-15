@@ -226,7 +226,10 @@ export default function User() {
        data={kategorie}
     keyExtractor={(elem)=> elem.id.toString()}
     numColumns={4}
-    renderItem={({item})=> (     <View style={styles.categoryCard}>  <Text style={styles.categoryName}>{item.nazwa}</Text> </View>)}
+    renderItem={({item})=> (     <Pressable style={styles.categoryCard}  onPress={()=> router.push(`/catalog/category/${item.id}}`)}>   <View style={styles.categoryIconBoxActive}> 
+  <Image source={{uri : item.zdjecie_url}} style={styles.categoryImage}/>
+          </View> 
+           <Text style={styles.categoryName}>{item.nazwa}</Text> </Pressable>)}
       
       />
       </View>
@@ -575,7 +578,10 @@ timerColon: {
   marginHorizontal: 10,
   paddingBottom: 6,
 },
-
+categoryImage :{
+  width : 32,
+  height : 32,
+}
 
 
 });
