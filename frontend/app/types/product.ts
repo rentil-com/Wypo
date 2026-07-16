@@ -34,6 +34,7 @@ export type ItemsSearchResult = {
 export type ItemsQueryParams = {
   strona? : number,
   kategoria? : number | null,
+  nazwa? : string | null,
   status? : string | null,
   cena_od? : number | null,
   cena_do?: number | null,

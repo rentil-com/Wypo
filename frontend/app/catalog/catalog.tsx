@@ -81,6 +81,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     strona: 1,
     kategoria: kategoriaId ? Number(kategoriaId) : null,
     status: null,
+    nazwa : searchQuery || null,
     cena_od: null,
     cena_do: null,
     promocja: false,

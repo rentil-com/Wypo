@@ -34,6 +34,9 @@ export  function buildSearchUrl(params : ItemsSearchParams) : string{
 
 export function buildParamsUrl(params : ItemsQueryParams) : string {
     const query = new URLSearchParams()
+    if(params.nazwa?.trim()){
+        query.append("nazwa",params.nazwa?.toString())
+    }
     if(params.kategoria != null){
         query.append("kategoria",params.kategoria?.toString())
     }
