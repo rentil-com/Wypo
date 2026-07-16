@@ -54,10 +54,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
       try {
         const produkt = await pobierzProdukty()
 
-        setProdukty(produkt.dane);
-
-        const pobranaKategoria = await pobierzKategoriePoId(Number(kategoriaId))
-        setKategoria(pobranaKategoria)        
+        setProdukty(produkt.dane);      
       }
       catch(error){
         setEror(error instanceof Error ? error.message : "Nieznany bład")
@@ -76,8 +73,6 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
     const [loading,setLoading] = useState(true)
     const [error,setEror] = useState<string | null>(null)
-    const [kategoria,setKategoria] = useState<CategoryApiItem>()
-    const [aktualnyIndeks,setaktualnyIndeks] = useState(0)
 
     const [tab,setTab] = useState(dane)
     const {search} = useLocalSearchParams();
