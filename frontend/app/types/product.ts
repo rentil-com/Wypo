@@ -20,3 +20,12 @@ export type ItemsResponse = {
 export type ItemsSearchParams = {
   q : string,
 }
+
+export type ItemsSearchResult = {
+  id: number;
+  nazwa_przedmiotu: string;
+  zdjecie_url: string | null;
+  cena: number;
+  cena_po_promocji: number | null;
+  czy_promocja: boolean;
+}

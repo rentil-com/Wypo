@@ -8,7 +8,7 @@ import {styles} from "./HeaderPanel.styles"
 import { CategoryApiItem } from "@/types/categories";
 import { pobierzKategorie } from "@/services/categories.service";
 import { pobierzProdukty, szukajProdukty } from "@/services/products.service";
-import { ApiItem } from "@/types/product";
+import { ApiItem, ItemsSearchResult } from "@/types/product";
 export default function HeaderPanel () { 
  
   
@@ -16,48 +16,43 @@ export default function HeaderPanel () {
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
   const [kategorie,setKategorie] = useState<CategoryApiItem[]>([])
+  const [suggestions,setSuggestions] = useState<ItemsSearchResult[]>([])
   const [loading,setLoading] = useState(true)
   const [error,setEror] = useState<string | null>(null)
 
 
-    const  znajdzOdpowiadajaceProdukty = async () => {
-    
-    try{
-          setLoading(true);
-          const response = await szukajProdukty({q : searchText.toString().trim()})
-          setProdukty(response.dane)
-    }
-    catch(error){
-              setEror(error instanceof Error ? error.message : "Nieznany bład")
-    }
-     finally {
-        setLoading(false)
-      }
-  
+ 
+useEffect(() => {
+  const query = searchText.trim();
+
+  if (query.length < 2) {
+    setSuggestions([]);
+    return;
   }
 
-  useEffect(()=> {
-    znajdzOdpowiadajaceProdukty()
-  },[searchText])
-  
+  const timeout = setTimeout(async () => {
+    try {
+      const response = await szukajProdukty({
+        q: query,
+      });
 
+      setSuggestions(response);
+    } catch (error) {
+      setSuggestions([]);
+
+      setEror(
+        error instanceof Error
+          ? error.message
+          : "Nieznany błąd"
+      );
+    }
+  }, 300);
+
+  return () => clearTimeout(timeout);
+}, [searchText]);
     
 
   useEffect(()=>{
- async function zaladujProdukty() {
-  try {
-    const res = await pobierzProdukty()
-    setProdukty(res.dane)
-  }
-  catch (error)  {
-    setEror(error instanceof Error ? error.message : "Nieznany błąd")
-  }
-  finally {
-    setLoading(false)
-  }
- }
-
-
  async function zaladujKategorie(){
       try {
         const response = await pobierzKategorie()
@@ -76,18 +71,27 @@ export default function HeaderPanel () {
 
 
   void zaladujKategorie()
-  void zaladujProdukty()
-
 }
 ,[])
 
 
-  const suggestions = produkty.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
 
-  const handleSearchSubmit =()=> {
-    router.push(`/catalog/catalog?search=${searchText}`)
+const handleSearchSubmit = () => {
+  const query = searchText.trim();
+
+  if (!query) {
+    return;
   }
 
+  setSuggestions([]);
+
+  router.push({
+    pathname: "/catalog/catalog",
+    params: {
+      search: query,
+    },
+  });
+};
    return ( 
    <View style={styles.header}>
     <Pressable onPress={()=> router.push("/(tabs)/user")}>
@@ -115,10 +119,10 @@ export default function HeaderPanel () {
           {/*SUGGESTIONS PANEL */}
         {suggestions.map((item)=>(
           <Pressable key={item.id} onPress={()=> router.push(`/products/${item.id}`)} style={styles.suggestionItem}>
-              <Image source={{uri : item.zdjecia_url["0"]}} style={styles.suggestionImage} />
+             {item.zdjecie_url && <Image source={{uri : item.zdjecie_url}} style={styles.suggestionImage} /> }
               <View style={styles.suggestionInfo}>
         <Text style={styles.suggestionName} numberOfLines={1}>
-          {item.nazwa}
+          {item.nazwa_przedmiotu}
         </Text>
 
         <Text style={styles.suggestionPrice}>

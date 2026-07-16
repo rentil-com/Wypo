@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT nazwa, zdjecia_url, cena, cena_po_promocji
+      SELECT id, nazwa, zdjecia_url, cena, cena_po_promocji
       FROM sprzety
       WHERE nazwa ILIKE $1
       ORDER BY
@@ -35,6 +35,7 @@ router.get("/", async (req, res) => {
     );
 
     const dane = result.rows.map((sprzet) => ({
+      id : sprzet.id,
       nazwa_przedmiotu: sprzet.nazwa,
       zdjecie_url: pobierzPierwszeZdjecieUrl(sprzet.zdjecia_url),
       cena: Number(sprzet.cena),

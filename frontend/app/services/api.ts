@@ -28,5 +28,5 @@ export  function buildSearchUrl(params : ItemsSearchParams) : string{
     const searchParams = new URLSearchParams()
     searchParams.append('q',params.q)
     
-    return `items/search?${searchParams.toString()}`
+   return `/items/search?${searchParams.toString()}`;
 }
