@@ -36,6 +36,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     async function zaladujKategorie(){
       try {
         const response = await pobierzKategorie()
+        
 
         setKategorie(response)
       }

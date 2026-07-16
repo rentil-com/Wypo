@@ -173,7 +173,10 @@ panelCategoryIcon: {
 
   marginRight: 12,
 },
-
+panelCategoryImage : {
+  width : 60,
+  height : 60,
+},
 panelCategoryIconActive: {
   backgroundColor: "#FFFFFF",
 },

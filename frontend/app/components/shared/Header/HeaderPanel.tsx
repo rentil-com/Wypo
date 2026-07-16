@@ -1,17 +1,42 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {  Image, Pressable, Text, TextInput, View } from "react-native";
 import dane from "../../../dane.json"
 import { kategorieMap } from "@/constants/categories";
 import {styles} from "./HeaderPanel.styles"
+import { CategoryApiItem } from "@/types/categories";
+import { pobierzKategorie } from "@/services/categories.service";
 export default function HeaderPanel () { 
  
   
 
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
+  const [kategorie,setKategorie] = useState<CategoryApiItem[]>([])
+  const [loading,setLoading] = useState(true)
+  const [error,setEror] = useState<string | null>(null)
 
+
+  useEffect(()=>{
+ async function zaladujKategorie(){
+      try {
+        const response = await pobierzKategorie()
+        
+
+        setKategorie(response)
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+  
+  }
+
+  void zaladujKategorie()
+},[])
 
 
   const suggestions = dane.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
@@ -98,26 +123,14 @@ export default function HeaderPanel () {
 
                 {/*kategorie z mapy */}
 
-        {Array.from(kategorieMap).map(([key,val],index)=>
-        <Pressable key={key} style={styles.panelCategoryItem} onPress={()=>router.push(`/catalog/category/${key}`)}>
+        {kategorie.map((item)=>  
+        <Pressable key={item.id} style={styles.panelCategoryItem} onPress={()=>router.push(`/catalog/category/${item.id}`)}>
           <View style={styles.panelCategoryIcon}> 
             {/*ikonki */}
-             <MaterialIcons
-          name={
-            index === 0
-              ? "shopping-bag"
-              : index === 1
-                ? "devices"
-                : index === 2
-                  ? "build"
-                  : "sports-soccer"
-          }
-          size={25}
-          color="#176BDE"
-        />
+           <Image source={{uri: item.zdjecie_url}} style={styles.panelCategoryImage} />
             </View>
             <View style={styles.categoryTextContainer}> 
-          <Text style={styles.panelCategoryName} >{val}</Text>
+          <Text style={styles.panelCategoryName} >{item.nazwa}</Text>
 
             <Text style={styles.categoryDescription}>
             Sprzęt dostępny na wynajem
