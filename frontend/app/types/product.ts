@@ -29,3 +29,16 @@ export type ItemsSearchResult = {
   cena_po_promocji: number | null;
   czy_promocja: boolean;
 }
+
+
+export type ItemsQueryParams = {
+  strona? : number,
+  kategoria? : number | null,
+  status? : string | null,
+  cena_od? : number | null,
+  cena_do?: number | null,
+  cena_min? : number | null,
+  cena_max? : number | null,
+  promocja? : boolean
+  tylko_promocje? : boolean
+}

@@ -68,7 +68,7 @@ export default function User() {
     }
      void zaladujKategorie();
     void zaladujProdukty();
-   
+
 
   },[]);
 
@@ -93,7 +93,7 @@ export default function User() {
 
 
   if (shouldResetToday && lastResetDate !== todayString) {
-    const new_random_index = Math.floor(Math.random() * dane.length);
+    const new_random_index = Math.floor(Math.random() * produkty.length);
     setRandomIndex(new_random_index);
     
     console.log("Reset oferty - nowy indeks:", new_random_index);
@@ -114,7 +114,7 @@ export default function User() {
   useEffect(()=> {
       calculate_time_left();
       const interval = setInterval(calculate_time_left,1000)
-      
+        
       return () => clearInterval(interval);
   },[lastResetDate])
   return (
@@ -168,7 +168,7 @@ export default function User() {
             <Text style={styles.offerTitle}>Wypożycz sprzęt taniej</Text>
 
             <Text style={styles.offerSubtitle} numberOfLines={2}>
-              {dane[randomIndex]?.nazwa ||
+              {produkty[randomIndex]?.nazwa ||
                 "Wybrany produkt dostępny już dziś"}
             </Text>
                     
@@ -176,17 +176,17 @@ export default function User() {
           {/* TEMP CENA */}
             <View style={styles.offerPriceRow}>
               {/*PROMOCJA 5% */}
-              <Text style={styles.offerPrice}>{Math.round(129 * 0.95)}zł</Text>
-              <Text style={styles.offerOldPrice}>179,99 zł</Text>
+              <Text style={styles.offerPrice}>{produkty?.[randomIndex]?.cena_po_promocji !=undefined && produkty?.[randomIndex]?.cena_po_promocji} </Text>
+              <Text style={styles.offerOldPrice}>{produkty?.[randomIndex]?.cena}</Text>
             </View>
 
-            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${dane[randomIndex]?.id}`)}>
+            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${produkty[randomIndex]?.id}`)}>
               <Text style={styles.offerButtonText}>Zobacz ofertę</Text>
             </Pressable>
           </View>
 
           <Image
-            source={{ uri: dane[randomIndex]?.zdjecie_url }}
+            source={{ uri: produkty[randomIndex]?.zdjecia_url["1"] }}
             style={styles.offerImage}
             resizeMode="contain"
           />

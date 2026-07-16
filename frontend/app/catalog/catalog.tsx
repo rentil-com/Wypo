@@ -15,7 +15,7 @@ import { kategorieMap } from "@/constants/categories";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
-
+import { ItemsQueryParams } from "@/types/product";
 
 
 
@@ -30,7 +30,14 @@ type CatalogViewProps = {
 
 export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : CatalogViewProps) {
   {/*kategorie-dostepne */}
-    
+    const [filters, setFilters] = useState<ItemsQueryParams>({
+      strona: 1,
+      kategoria: kategoriaId ? Number(kategoriaId) : null,
+      status: null,
+      cena_od: null,
+      cena_do: null,
+      promocja: !!(promocja || tylkoPromocje),
+    });
 
   useEffect (()=> {
     async function zaladujKategorie(){
@@ -52,7 +59,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
   
     async function zaladujProdukty() {
       try {
-        const produkt = await pobierzProdukty()
+        const produkt = await pobierzProdukty(filters)
 
         setProdukty(produkt.dane);      
       }
@@ -67,8 +74,26 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     void zaladujProdukty();
     void zaladujKategorie();
 
-  },[kategoriaId]);
+  },[filters]);
   
+  const clearFilters =()=> {
+  setFilters({
+    strona: 1,
+    kategoria: kategoriaId ? Number(kategoriaId) : null,
+    status: null,
+    cena_od: null,
+    cena_do: null,
+    promocja: false,
+  });
+
+  if (kategoriaId) {
+    router.replace(`/catalog/category/${kategoriaId}`);
+    return;
+  }
+
+  router.replace("/catalog/catalog");
+  }
+    
 
     const [kategorie,setKategorie] =useState<CategoryApiItem[]>([])
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
@@ -80,22 +105,16 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
 
 
     const searchQuery = String(search ?? "").toLowerCase();
-    const promocjeAktywne = tylkoPromocje || promocja;
-    const tab_filtered = produkty.filter((item)=> {
-       const filterSearch = item.nazwa.toLowerCase().includes(searchQuery);
-       const filterCategory = !kategoriaId || String(item.kategoria_id) === String(kategoriaId);
-       const filterPromotion = !promocjeAktywne  || item.cena_po_promocji != null && item.cena_po_promocji < item.cena
-
-       return filterSearch && filterCategory && filterPromotion
-      })
+    const promocjeAktywne = filters.promocja == true
+    const tab_filtered = produkty
     
 
   const handleSwitchPromotion =()=> {
-    if(kategoriaId){
-          return router.push(promocja ? `/catalog/category/${kategoriaId}` :  `/catalog/category/${kategoriaId}?promocja=true`)
-    }
-
-     router.push(tylkoPromocje ? "/catalog/catalog" : "/catalog/promotions")
+    const nowy_stan = !filters.promocja
+     setFilters({...filters,promocja : nowy_stan})
+    router.setParams({
+    promocja: nowy_stan ? "true" : undefined,
+  });
   }
  
   return (
@@ -192,15 +211,19 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                       style={styles.filterInput}
                       placeholder="od 0 zł"
                       placeholderTextColor="#91A0B8"
+                      value={filters.cena_od?.toString() ?? "" }
+                      onChangeText={(val)=> setFilters({...filters,cena_od : Number(val)})}
                     />
                   </View>
 
                   <View style={styles.filterGroup}>
                     <ThemedText style={styles.filterLabel}>Cena do</ThemedText>
                     <TextInput
+                    value={filters.cena_do?.toString() ?? ""}
                       style={styles.filterInput}
                       placeholder="do 5000 zł"
                       placeholderTextColor="#91A0B8"
+                      onChangeText={(val)=> setFilters({...filters,cena_do : Number(val)})}
                     />
                   </View>
 
@@ -248,7 +271,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                       <ThemedText style={styles.filterActionTextPrimary}>Więcej filtrów</ThemedText>
                     </Pressable>
 
-                    <Pressable style={styles.filterActionButton}>
+                    <Pressable style={styles.filterActionButton} onPress={()=> clearFilters()}>
                       <ThemedText style={styles.filterActionIconMuted}>↻</ThemedText>
                       <ThemedText style={styles.filterActionText}>Wyczyść filtry</ThemedText>
                     </Pressable>
