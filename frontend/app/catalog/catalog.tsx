@@ -54,6 +54,9 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
         const produkt = await pobierzProdukty()
 
         setProdukty(produkt.dane);
+
+        const pobranaKategoria = await pobierzKategoriePoId(Number(kategoriaId))
+        setKategoria(pobranaKategoria)        
       }
       catch(error){
         setEror(error instanceof Error ? error.message : "Nieznany bład")
@@ -72,17 +75,18 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
     const [loading,setLoading] = useState(true)
     const [error,setEror] = useState<string | null>(null)
-
+    const [kategoria,setKategoria] = useState<CategoryApiItem>()
+    const [aktualnyIndeks,setaktualnyIndeks] = useState(0)
 
     const [tab,setTab] = useState(dane)
     const {query} = useLocalSearchParams();
  
     const searchQuery = String(query ?? "").toLowerCase();
     const promocjeAktywne = tylkoPromocje || promocja;
-    const tab_filtered = tab.filter((item)=> {
+    const tab_filtered = produkty.filter((item)=> {
        const filterSearch = item.nazwa.toLowerCase().includes(searchQuery);
        const filterCategory = !kategoriaId || String(item.kategoria_id) === String(kategoriaId);
-       const filterPromotion = !promocjeAktywne || item.promocja === true
+       const filterPromotion = !promocjeAktywne 
 
        return filterSearch && filterCategory && filterPromotion
       })

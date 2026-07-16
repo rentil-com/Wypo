@@ -7,10 +7,12 @@ import { kategorieMap } from "@/constants/categories";
 import {styles} from "./HeaderPanel.styles"
 import { CategoryApiItem } from "@/types/categories";
 import { pobierzKategorie } from "@/services/categories.service";
+import { pobierzProdukty } from "@/services/products.service";
+import { ApiItem } from "@/types/product";
 export default function HeaderPanel () { 
  
   
-
+  const [produkty,setProdukty] = useState<ApiItem[]>([])
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
   const [kategorie,setKategorie] = useState<CategoryApiItem[]>([])
@@ -19,6 +21,20 @@ export default function HeaderPanel () {
 
 
   useEffect(()=>{
+ async function zaladujProdukty() {
+  try {
+    const res = await pobierzProdukty()
+    setProdukty(res.dane)
+  }
+  catch (error)  {
+    setEror(error instanceof Error ? error.message : "Nieznany błąd")
+  }
+  finally {
+    setLoading(false)
+  }
+ }
+
+
  async function zaladujKategorie(){
       try {
         const response = await pobierzKategorie()
@@ -36,10 +52,11 @@ export default function HeaderPanel () {
   }
 
   void zaladujKategorie()
+  void zaladujProdukty()
 },[])
 
 
-  const suggestions = dane.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
+  const suggestions = produkty.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
 
   const handleSearchSubmit =()=> {
     const query = searchText.trim()
@@ -74,7 +91,7 @@ export default function HeaderPanel () {
           {/*SUGGESTIONS PANEL */}
         {suggestions.map((item)=>(
           <Pressable key={item.id} onPress={()=> router.push(`/products/${item.id}`)} style={styles.suggestionItem}>
-              <Image source={{uri : item.zdjecie_url}} style={styles.suggestionImage} />
+              <Image source={{uri : item.zdjecia_url["0"]}} style={styles.suggestionImage} />
               <View style={styles.suggestionInfo}>
         <Text style={styles.suggestionName} numberOfLines={1}>
           {item.nazwa}
