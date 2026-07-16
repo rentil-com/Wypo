@@ -68,13 +68,13 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     void zaladujKategorie();
 
   },[kategoriaId]);
+  
 
     const [kategorie,setKategorie] =useState<CategoryApiItem[]>([])
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
     const [loading,setLoading] = useState(true)
     const [error,setEror] = useState<string | null>(null)
 
-    const [tab,setTab] = useState(dane)
     const {search} = useLocalSearchParams();
  
 
@@ -84,7 +84,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     const tab_filtered = produkty.filter((item)=> {
        const filterSearch = item.nazwa.toLowerCase().includes(searchQuery);
        const filterCategory = !kategoriaId || String(item.kategoria_id) === String(kategoriaId);
-       const filterPromotion = !promocjeAktywne 
+       const filterPromotion = !promocjeAktywne  || item.cena_po_promocji != null && item.cena_po_promocji < item.cena
 
        return filterSearch && filterCategory && filterPromotion
       })

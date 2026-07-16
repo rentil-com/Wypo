@@ -35,7 +35,7 @@ router.get("/", async (req, res) => {
     );
 
     const dane = result.rows.map((sprzet) => ({
-      id : sprzet.id,
+      id : Number(sprzet.id),
       nazwa_przedmiotu: sprzet.nazwa,
       zdjecie_url: pobierzPierwszeZdjecieUrl(sprzet.zdjecia_url),
       cena: Number(sprzet.cena),
