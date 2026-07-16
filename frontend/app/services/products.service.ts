@@ -7,7 +7,7 @@ export async function pobierzProdukty() {
     return response as ItemsResponse
 }
 
-export async function szukajProdukty( params : ItemsSearchParams){
+export async function szukajProdukty( params : ItemsSearchParams) {
    const url = buildSearchUrl(params);
    const response = await apiGet(url)
    

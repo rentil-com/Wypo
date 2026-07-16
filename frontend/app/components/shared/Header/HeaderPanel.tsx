@@ -20,6 +20,29 @@ export default function HeaderPanel () {
   const [error,setEror] = useState<string | null>(null)
 
 
+    const  znajdzOdpowiadajaceProdukty = async () => {
+    
+    try{
+          setLoading(true);
+          const response = await szukajProdukty({q : searchText.toString().trim()})
+          setProdukty(response.dane)
+    }
+    catch(error){
+              setEror(error instanceof Error ? error.message : "Nieznany bład")
+    }
+     finally {
+        setLoading(false)
+      }
+  
+  }
+
+  useEffect(()=> {
+    znajdzOdpowiadajaceProdukty()
+  },[searchText])
+  
+
+    
+
   useEffect(()=>{
  async function zaladujProdukty() {
   try {
@@ -51,24 +74,18 @@ export default function HeaderPanel () {
   
   }
 
-  async function znajdzProduktyPoNazwie(){
-    try {
-      const response = await szukajProdukty(searchText.toLowerCase().trim())
-      
-    }
-  }
 
   void zaladujKategorie()
   void zaladujProdukty()
-},[])
+
+}
+,[])
 
 
   const suggestions = produkty.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
 
   const handleSearchSubmit =()=> {
-    const query = searchText.trim()
-
-    router.push({pathname : "/catalog/catalog", params : {query : searchText} })
+    router.push(`/catalog/catalog?search=${searchText}`)
   }
 
    return ( 

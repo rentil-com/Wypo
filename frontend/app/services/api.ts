@@ -24,7 +24,7 @@ export async function apiGet(path : string) {
 
 
 
-export  function buildSearchUrl(params : ItemsSearchParams) {
+export  function buildSearchUrl(params : ItemsSearchParams) : string{
     const searchParams = new URLSearchParams()
     searchParams.append('q',params.q)
     

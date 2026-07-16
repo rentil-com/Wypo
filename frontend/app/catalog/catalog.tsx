@@ -49,6 +49,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
   
     }
 
+  
     async function zaladujProdukty() {
       try {
         const produkt = await pobierzProdukty()
@@ -79,11 +80,11 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     const [aktualnyIndeks,setaktualnyIndeks] = useState(0)
 
     const [tab,setTab] = useState(dane)
-    const {query} = useLocalSearchParams();
+    const {search} = useLocalSearchParams();
  
 
 
-    const searchQuery = String(query ?? "").toLowerCase();
+    const searchQuery = String(search ?? "").toLowerCase();
     const promocjeAktywne = tylkoPromocje || promocja;
     const tab_filtered = produkty.filter((item)=> {
        const filterSearch = item.nazwa.toLowerCase().includes(searchQuery);
