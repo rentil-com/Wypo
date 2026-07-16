@@ -69,7 +69,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     void zaladujProdukty();
     void zaladujKategorie();
 
-  },[]);
+  },[kategoriaId]);
 
     const [kategorie,setKategorie] =useState<CategoryApiItem[]>([])
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
@@ -81,6 +81,8 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     const [tab,setTab] = useState(dane)
     const {query} = useLocalSearchParams();
  
+
+
     const searchQuery = String(query ?? "").toLowerCase();
     const promocjeAktywne = tylkoPromocje || promocja;
     const tab_filtered = produkty.filter((item)=> {
@@ -265,7 +267,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
        {error !="" && <Text>{error}</Text>}
 
   <FlatList
-    data={produkty}
+    data={tab_filtered}
     keyExtractor={(elem)=> elem.id.toString()}
     numColumns={4}
     columnWrapperStyle={styles.productsRow}

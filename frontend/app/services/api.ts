@@ -1,3 +1,5 @@
+import { ItemsSearchParams } from "@/types/product";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL
 
 export async function apiGet(path : string) {
@@ -18,4 +20,13 @@ export async function apiGet(path : string) {
     }
 
     return data
+}
+
+
+
+export  function buildSearchUrl(params : ItemsSearchParams) {
+    const searchParams = new URLSearchParams()
+    searchParams.append('q',params.q)
+    
+    return `items/search?${searchParams.toString()}`
 }

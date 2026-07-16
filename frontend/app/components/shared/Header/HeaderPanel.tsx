@@ -7,7 +7,7 @@ import { kategorieMap } from "@/constants/categories";
 import {styles} from "./HeaderPanel.styles"
 import { CategoryApiItem } from "@/types/categories";
 import { pobierzKategorie } from "@/services/categories.service";
-import { pobierzProdukty } from "@/services/products.service";
+import { pobierzProdukty, szukajProdukty } from "@/services/products.service";
 import { ApiItem } from "@/types/product";
 export default function HeaderPanel () { 
  
@@ -49,6 +49,13 @@ export default function HeaderPanel () {
         setLoading(false)
       }
   
+  }
+
+  async function znajdzProduktyPoNazwie(){
+    try {
+      const response = await szukajProdukty(searchText.toLowerCase().trim())
+      
+    }
   }
 
   void zaladujKategorie()

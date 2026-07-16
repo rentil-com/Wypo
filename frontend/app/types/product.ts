@@ -16,3 +16,7 @@ export type ItemsResponse = {
   liczbaStron: number;
   dane: ApiItem[];
 };
+
+export type ItemsSearchParams = {
+  q : string,
+}
