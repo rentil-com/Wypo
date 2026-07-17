@@ -8,11 +8,97 @@ export async function apiGet(path : string) {
     }
 
 
-    const response = await fetch(`${API_URL}${path}`)
+    const response = await fetch(`${API_URL}${path}`,{
+        credentials: "include",
+    })
     
     const data = await response.json()
 
 
+    if(!response.ok){
+        throw new Error(
+            data.error || "Nie udało sie pobrac danych"  
+        );
+    }
+
+    return data;
+}
+
+export async function apiPost(path : string, body : object) {
+    if(!API_URL){
+        throw new Error("Brak adresu API")
+    }
+
+    const response = await fetch(`${API_URL}${path}`,{
+        method : "POST",
+        credentials: "include",
+        headers : { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data =await response.json()
+
+    
+    if(!response.ok){
+        throw new Error(
+            data.error || "Nie udało sie pobrac danych"  
+        );
+    }
+
+    return data;
+
+}
+
+export async function  apiPatch(path : string , body : object) {
+    if(!API_URL){
+        throw new Error("Brak adresu API")
+    }
+
+    const response = await fetch(`${API_URL}${path}`,{
+        method : "PATCH",
+        credentials: "include",
+        headers : { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data =await response.json()
+
+    
+    if(!response.ok){
+        throw new Error(
+            data.error || "Nie udało sie pobrac danych"  
+        );
+    }
+
+    return data;
+
+}
+
+export async function apiDelete(path : string,body? : object ) {
+     if(!API_URL){
+        throw new Error("Brak adresu API")
+    }
+
+    const response = await fetch(`${API_URL}${path}`,{
+        method : "DELETE",
+        credentials: "include",
+        headers : { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        },
+        body: body ?  JSON.stringify(body) : undefined
+      
+    });
+
+    const data =await response.json()
+
+    
     if(!response.ok){
         throw new Error(
             data.error || "Nie udało sie pobrac danych"  
