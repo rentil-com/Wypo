@@ -94,7 +94,8 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
 
   router.replace("/catalog/catalog");
   }
-    
+
+  
 
     const [kategorie,setKategorie] =useState<CategoryApiItem[]>([])
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
@@ -116,6 +117,23 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     router.setParams({
     promocja: nowy_stan ? "true" : undefined,
   });
+  }
+  
+  const handlePriceChange =(value : string)=> {
+ 
+    
+    const regex_cyfr = /^[0-9]*$/
+    if(value !="" && !regex_cyfr.test(value)){
+      alert("Jedynie cyfry") 
+    }
+   
+    if(Number.isFinite(Number(value))){ 
+    setFilters({...filters, cena_od: value === "" ? null : Number(value)})
+    router.setParams({cena_od : value === "" ? undefined :value })
+    }
+    else{
+      return null
+    }
   }
  
   return (
@@ -213,7 +231,9 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                       placeholder="od 0 zł"
                       placeholderTextColor="#91A0B8"
                       value={filters.cena_od?.toString() ?? "" }
-                      onChangeText={(val)=> setFilters({...filters,cena_od : Number(val)})}
+                      onChangeText={(val)=> handlePriceChange(val)}
+                      keyboardType="numeric"
+                      
                     />
                   </View>
 
