@@ -51,3 +51,9 @@ export type AccountDetails =  {
   dwuetapowe: boolean;
   data_utworzenia: string;
 }
+
+export type AuthStatus =
+  | "loading"
+  | "anonymous"
+  | "awaiting_2fa"
+  | "authenticated";
