@@ -135,6 +135,21 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
       return null
     }
   }
+
+  const handlePriceChange_Cena_Do = (value : string) => {
+       const regex_cyfr = /^[0-9]*$/
+    if(value !="" && !regex_cyfr.test(value)){
+      alert("Jedynie cyfry") 
+    }
+   
+    if(Number.isFinite(Number(value))){ 
+    setFilters({...filters, cena_do: value === "" ? null : Number(value)})
+    router.setParams({cena_do : value === "" ? undefined :value })
+    }
+    else{
+      return null
+    }
+  }
  
   return (
    <PageLayout wide>
@@ -244,7 +259,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                       style={styles.filterInput}
                       placeholder="do 5000 zł"
                       placeholderTextColor="#91A0B8"
-                      onChangeText={(val)=> setFilters({...filters,cena_do : Number(val)})}
+                      onChangeText={(val)=> handlePriceChange_Cena_Do(val)}
                     />
                   </View>
 
