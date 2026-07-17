@@ -7,12 +7,22 @@ import  dane from "../dane.json"
 import { useState,useEffect } from "react";
 import { pobierzProdukty } from "@/services/products.service";
 import type { ApiItem } from "@/types/product";
+<<<<<<< HEAD
+=======
+import { pobierzKategorie } from "@/services/categories.service";
+import { pobierzKategoriePoId } from "@/services/categories.service";
+import { CategoryApiItem } from "@/types/categories";
+>>>>>>> feature/frontend-items
 import { router } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
+<<<<<<< HEAD
 
+=======
+import { ItemsQueryParams } from "@/types/product";
+>>>>>>> feature/frontend-items
 
 
 
@@ -27,14 +37,30 @@ type CatalogViewProps = {
 
 export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : CatalogViewProps) {
   {/*kategorie-dostepne */}
-    
+    const [filters, setFilters] = useState<ItemsQueryParams>({
+      strona: 1,
+      kategoria: kategoriaId ? Number(kategoriaId) : null,
+      status: null,
+      cena_od: null,
+      cena_do: null,
+      promocja: !!(promocja || tylkoPromocje),
+    });
 
   useEffect (()=> {
+<<<<<<< HEAD
     async function zaladujProdukty() {
       try {
         const response = await pobierzProdukty()
 
         setProdukty(response.dane);
+=======
+    async function zaladujKategorie(){
+      try {
+        const response = await pobierzKategorie()
+        
+
+        setKategorie(response)
+>>>>>>> feature/frontend-items
       }
       catch(error){
         setEror(error instanceof Error ? error.message : "Nieznany bład")
@@ -42,6 +68,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
       finally {
         setLoading(false)
       }
+<<<<<<< HEAD
       
     }
     void zaladujProdukty();
@@ -52,28 +79,104 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
     const [produkty,setProdukty] = useState<ApiItem[]>([]);
     const [loading,setLoading] = useState(true)
     const [error,setEror] = useState<string | null>(null)
+=======
+  
+    }
+>>>>>>> feature/frontend-items
 
+  
+    async function zaladujProdukty() {
+      try {
+        const produkt = await pobierzProdukty(filters)
 
-    const [tab,setTab] = useState(dane)
-    const {query} = useLocalSearchParams();
+        setProdukty(produkt.dane);      
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+      
+    }
+    void zaladujProdukty();
+    void zaladujKategorie();
+
+  },[filters]);
+  
+  const clearFilters =()=> {
+  setFilters({
+    strona: 1,
+    kategoria: kategoriaId ? Number(kategoriaId) : null,
+    status: null,
+    nazwa : searchQuery || null,
+    cena_od: null,
+    cena_do: null,
+    promocja: false,
+  });
+
+  if (kategoriaId) {
+    router.replace(`/catalog/category/${kategoriaId}`);
+    return;
+  }
+
+  router.replace("/catalog/catalog");
+  }
+
+  
+
+    const [kategorie,setKategorie] =useState<CategoryApiItem[]>([])
+    const [produkty,setProdukty] = useState<ApiItem[]>([]);
+    const [loading,setLoading] = useState(true)
+    const [error,setEror] = useState<string | null>(null)
+
+    const {search} = useLocalSearchParams();
  
-    const searchQuery = String(query ?? "").toLowerCase();
-    const promocjeAktywne = tylkoPromocje || promocja;
-    const tab_filtered = tab.filter((item)=> {
-       const filterSearch = item.nazwa.toLowerCase().includes(searchQuery);
-       const filterCategory = !kategoriaId || String(item.kategoria_id) === String(kategoriaId);
-       const filterPromotion = !promocjeAktywne || item.promocja === true
 
-       return filterSearch && filterCategory && filterPromotion
-      })
+
+    const searchQuery = String(search ?? "").toLowerCase();
+    const promocjeAktywne = filters.promocja == true
+    const tab_filtered = produkty
     
 
   const handleSwitchPromotion =()=> {
-    if(kategoriaId){
-          return router.push(promocja ? `/catalog/category/${kategoriaId}` :  `/catalog/category/${kategoriaId}?promocja=true`)
+    const nowy_stan = !filters.promocja
+     setFilters({...filters,promocja : nowy_stan})
+    router.setParams({
+    promocja: nowy_stan ? "true" : undefined,
+  });
+  }
+  
+  const handlePriceChange =(value : string)=> {
+ 
+    
+    const regex_cyfr = /^[0-9]*$/
+    if(value !="" && !regex_cyfr.test(value)){
+      alert("Jedynie cyfry") 
     }
+   
+    if(Number.isFinite(Number(value))){ 
+    setFilters({...filters, cena_od: value === "" ? null : Number(value)})
+    router.setParams({cena_od : value === "" ? undefined :value })
+    }
+    else{
+      return null
+    }
+  }
 
-     router.push(tylkoPromocje ? "/catalog/catalog" : "/catalog/promotions")
+  const handlePriceChange_Cena_Do = (value : string) => {
+       const regex_cyfr = /^[0-9]*$/
+    if(value !="" && !regex_cyfr.test(value)){
+      alert("Jedynie cyfry") 
+    }
+   
+    if(Number.isFinite(Number(value))){ 
+    setFilters({...filters, cena_do: value === "" ? null : Number(value)})
+    router.setParams({cena_do : value === "" ? undefined :value })
+    }
+    else{
+      return null
+    }
   }
  
   return (
@@ -132,15 +235,29 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                     {/*ikonka do kategorii */}
                    
                   </Pressable>
+                {kategorie.map((item) => (
+  <Pressable
+    key={item.id}
+    onPress={() => router.push(`/catalog/category/${item.id}`)}
+    style={[
+      styles.categoryItem,
+      String(kategoriaId) === String(item.id) &&
+        styles.categoryItemActive,
+    ]}
+  >
+    <ThemedText
+      style={[
+        styles.categoryText,
+        String(kategoriaId) === String(item.id) &&
+          styles.categoryTextActive,
+      ]}
+    >
+      {item.nazwa}
+    </ThemedText>
+  </Pressable>
+))}
 
-              {Array.from(kategorieMap).map(([key,val],index)=> (
-                  <Pressable key={key} onPress={()=> router.push(`/catalog/category/${key}`)}  style={[styles.categoryItem , String(kategoriaId)=== String(key) && styles.categoryItemActive]}>
-                    <ThemedText style={[styles.categoryText, String(kategoriaId)=== String(key) && styles.categoryTextActive]}>{val}</ThemedText>
-                    {/*ikonka do kategorii */}
-                    <ThemedText></ThemedText>
-                  </Pressable>
-              ))}
-
+         
 
 </View>
 
@@ -156,15 +273,21 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                       style={styles.filterInput}
                       placeholder="od 0 zł"
                       placeholderTextColor="#91A0B8"
+                      value={filters.cena_od?.toString() ?? "" }
+                      onChangeText={(val)=> handlePriceChange(val)}
+                      keyboardType="numeric"
+                      
                     />
                   </View>
 
                   <View style={styles.filterGroup}>
                     <ThemedText style={styles.filterLabel}>Cena do</ThemedText>
                     <TextInput
+                    value={filters.cena_do?.toString() ?? ""}
                       style={styles.filterInput}
                       placeholder="do 5000 zł"
                       placeholderTextColor="#91A0B8"
+                      onChangeText={(val)=> handlePriceChange_Cena_Do(val)}
                     />
                   </View>
 
@@ -212,7 +335,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                       <ThemedText style={styles.filterActionTextPrimary}>Więcej filtrów</ThemedText>
                     </Pressable>
 
-                    <Pressable style={styles.filterActionButton}>
+                    <Pressable style={styles.filterActionButton} onPress={()=> clearFilters()}>
                       <ThemedText style={styles.filterActionIconMuted}>↻</ThemedText>
                       <ThemedText style={styles.filterActionText}>Wyczyść filtry</ThemedText>
                     </Pressable>

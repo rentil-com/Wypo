@@ -4,11 +4,17 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import dane from "../dane.json";
+import { pobierzProdukty } from "@/services/products.service";
+import type { ApiItem } from "@/types/product";
+import type {CategoryApiItem} from "@/types/categories"
+import { pobierzKategorie } from "@/services/categories.service";
 import { useLocalSearchParams } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
 export default function User() {
+
+  
   const { kategoria_id } = useLocalSearchParams();
 
   {/* CZAS RESETU */}
@@ -20,12 +26,51 @@ export default function User() {
   const [lastResetDate,setLastResetDate] = useState<string | null>(null);
 
   const [katalog,setKatalog] = useState(dane)
+
   const products = kategoria_id ? katalog.filter((product)=> String(product.kategoria_id)=== String(kategoria_id)) : katalog
   const [randomIndex,setRandomIndex] = useState(0)
 
+  const [kategorie,setKategorie] = useState<CategoryApiItem[]>([]);
+  const [produkty,setProdukty] = useState<ApiItem[]>([]);
+  const [loading,setLoading] = useState(true)
+  const [error,setEror] = useState<string | null>(null)
 
 
+    useEffect (()=> {
+    async function zaladujKategorie(){
+      try {
+        const response = await pobierzKategorie()
 
+        setKategorie(response)
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+  
+    }
+  
+    async function zaladujProdukty() {
+      try {
+        const response = await pobierzProdukty()
+
+        setProdukty(response.dane);
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+      
+    }
+     void zaladujKategorie();
+    void zaladujProdukty();
+
+
+  },[]);
 
 
 
@@ -48,7 +93,7 @@ export default function User() {
 
 
   if (shouldResetToday && lastResetDate !== todayString) {
-    const new_random_index = Math.floor(Math.random() * dane.length);
+    const new_random_index = Math.floor(Math.random() * produkty.length);
     setRandomIndex(new_random_index);
     
     console.log("Reset oferty - nowy indeks:", new_random_index);
@@ -69,7 +114,7 @@ export default function User() {
   useEffect(()=> {
       calculate_time_left();
       const interval = setInterval(calculate_time_left,1000)
-      
+        
       return () => clearInterval(interval);
   },[lastResetDate])
   return (
@@ -123,7 +168,7 @@ export default function User() {
             <Text style={styles.offerTitle}>Wypożycz sprzęt taniej</Text>
 
             <Text style={styles.offerSubtitle} numberOfLines={2}>
-              {dane[randomIndex]?.nazwa ||
+              {produkty[randomIndex]?.nazwa ||
                 "Wybrany produkt dostępny już dziś"}
             </Text>
                     
@@ -131,17 +176,17 @@ export default function User() {
           {/* TEMP CENA */}
             <View style={styles.offerPriceRow}>
               {/*PROMOCJA 5% */}
-              <Text style={styles.offerPrice}>{Math.round(129 * 0.95)}zł</Text>
-              <Text style={styles.offerOldPrice}>179,99 zł</Text>
+              <Text style={styles.offerPrice}>{produkty?.[randomIndex]?.cena_po_promocji !=undefined && produkty?.[randomIndex]?.cena_po_promocji} </Text>
+              <Text style={styles.offerOldPrice}>{produkty?.[randomIndex]?.cena}</Text>
             </View>
 
-            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${dane[randomIndex]?.id}`)}>
+            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${produkty[randomIndex]?.id}`)}>
               <Text style={styles.offerButtonText}>Zobacz ofertę</Text>
             </Pressable>
           </View>
 
           <Image
-            source={{ uri: dane[randomIndex]?.zdjecie_url }}
+            source={{ uri: produkty[randomIndex]?.zdjecia_url["1"] }}
             style={styles.offerImage}
             resizeMode="contain"
           />
@@ -177,45 +222,16 @@ export default function User() {
           </View>
       <Text style={styles.categoryNameActive}>Promocje</Text>
         </Pressable>
-
-        {Array.from(kategorieMap).map(([key, val], index) => (
-          <Pressable  onPress={()=> router.push(`../catalog/category/${key}`)}
-            key={key}
-            style={[
-              styles.categoryCard
-            
-            ]}
-          >
-            <View
-              style={[
-                styles.categoryIconBox,
-          
-              ]}
-            >
-
-              {/* IKONKI DLA KATEGORII */}
-              <MaterialIcons
-                name={
-                  index === 0
-                    ? "shopping-bag"
-                    : index === 1
-                    ? "devices"
-                    : index === 2
-                    ? "build"
-                    : "sports-soccer"
-                }
-                size={32}
-                color= "#176BDE"
-              />
-            </View>
-
-            <Text
-              style={styles.categoryName}
-            >
-              {val}
-            </Text>
-          </Pressable>
-        ))}
+   <FlatList
+       data={kategorie}
+    keyExtractor={(elem)=> elem.id.toString()}
+    numColumns={4}
+    renderItem={({item})=> (     <Pressable style={styles.categoryCard}  onPress={()=> router.push(`/catalog/category/${item.id}`)}>   <View style={styles.categoryIconBoxActive}> 
+  <Image source={{uri : item.zdjecie_url}} style={styles.categoryImage}/>
+          </View> 
+           <Text style={styles.categoryName}>{item.nazwa}</Text> </Pressable>)}
+      
+      />
       </View>
 
       {/* BESTSELLERY HEADER */}
@@ -230,13 +246,13 @@ export default function User() {
 
       {/* KATALOG -> PRODUKTY/BESTSELLERY*/}
       <FlatList
-        data={products}
+        data={produkty}
         keyExtractor={(item) => item.id.toString()}
         numColumns={4}
         scrollEnabled={false}
         columnWrapperStyle={styles.productRow}
         contentContainerStyle={styles.productsList}
-        renderItem={({ item }) => ( <ProductCard item={item} />
+        renderItem={({ item }) => ( <ProductCard item={{...item,opis : item.opis ?? "", zdjecie_url : item.zdjecia_url["1"]}} />
         )}
       />
     </PageLayout>
@@ -562,7 +578,10 @@ timerColon: {
   marginHorizontal: 10,
   paddingBottom: 6,
 },
-
+categoryImage :{
+  width : 32,
+  height : 32,
+}
 
 
 });

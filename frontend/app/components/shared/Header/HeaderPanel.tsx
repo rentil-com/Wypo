@@ -1,27 +1,97 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {  Image, Pressable, Text, TextInput, View } from "react-native";
 import dane from "../../../dane.json"
 import { kategorieMap } from "@/constants/categories";
 import {styles} from "./HeaderPanel.styles"
+import { CategoryApiItem } from "@/types/categories";
+import { pobierzKategorie } from "@/services/categories.service";
+import { pobierzProdukty, szukajProdukty } from "@/services/products.service";
+import { ApiItem, ItemsSearchResult } from "@/types/product";
 export default function HeaderPanel () { 
  
   
-
+  const [produkty,setProdukty] = useState<ApiItem[]>([])
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
+  const [kategorie,setKategorie] = useState<CategoryApiItem[]>([])
+  const [suggestions,setSuggestions] = useState<ItemsSearchResult[]>([])
+  const [loading,setLoading] = useState(true)
+  const [error,setEror] = useState<string | null>(null)
 
 
+ 
+useEffect(() => {
+  const query = searchText.trim();
 
-  const suggestions = dane.filter((item)=> item.nazwa.toLowerCase().includes(searchText.trim().toLowerCase()))
-
-  const handleSearchSubmit =()=> {
-    const query = searchText.trim()
-
-    router.push({pathname : "/catalog/catalog", params : {query : searchText} })
+  if (query.length < 2) {
+    setSuggestions([]);
+    return;
   }
 
+  const timeout = setTimeout(async () => {
+    try {
+      const response = await szukajProdukty({
+        q: query,
+      });
+
+      setSuggestions(response);
+    } catch (error) {
+      setSuggestions([]);
+
+      setEror(
+        error instanceof Error
+          ? error.message
+          : "Nieznany błąd"
+      );
+    }
+  }, 300);
+
+  return () => clearTimeout(timeout);
+}, [searchText]);
+    
+
+  useEffect(()=>{
+ async function zaladujKategorie(){
+      try {
+        const response = await pobierzKategorie()
+        
+
+        setKategorie(response)
+      }
+      catch(error){
+        setEror(error instanceof Error ? error.message : "Nieznany bład")
+      }
+      finally {
+        setLoading(false)
+      }
+  
+  }
+
+
+  void zaladujKategorie()
+}
+,[])
+
+
+
+const handleSearchSubmit = () => {
+  const query = searchText.trim();
+
+  if (!query) {
+    return;
+  }
+
+  setSuggestions([]);
+
+  router.push({
+    pathname: "/catalog/catalog",
+    params: {
+      search: query,
+    },
+  });
+};
    return ( 
    <View style={styles.header}>
     <Pressable onPress={()=> router.push("/(tabs)/user")}>
@@ -49,10 +119,10 @@ export default function HeaderPanel () {
           {/*SUGGESTIONS PANEL */}
         {suggestions.map((item)=>(
           <Pressable key={item.id} onPress={()=> router.push(`/products/${item.id}`)} style={styles.suggestionItem}>
-              <Image source={{uri : item.zdjecie_url}} style={styles.suggestionImage} />
+             {item.zdjecie_url && <Image source={{uri : item.zdjecie_url}} style={styles.suggestionImage} /> }
               <View style={styles.suggestionInfo}>
         <Text style={styles.suggestionName} numberOfLines={1}>
-          {item.nazwa}
+          {item.nazwa_przedmiotu}
         </Text>
 
         <Text style={styles.suggestionPrice}>
@@ -98,26 +168,14 @@ export default function HeaderPanel () {
 
                 {/*kategorie z mapy */}
 
-        {Array.from(kategorieMap).map(([key,val],index)=>
-        <Pressable key={key} style={styles.panelCategoryItem} onPress={()=>router.push(`/catalog/category/${key}`)}>
+        {kategorie.map((item)=>  
+        <Pressable key={item.id} style={styles.panelCategoryItem} onPress={()=>router.push(`/catalog/category/${item.id}`)}>
           <View style={styles.panelCategoryIcon}> 
             {/*ikonki */}
-             <MaterialIcons
-          name={
-            index === 0
-              ? "shopping-bag"
-              : index === 1
-                ? "devices"
-                : index === 2
-                  ? "build"
-                  : "sports-soccer"
-          }
-          size={25}
-          color="#176BDE"
-        />
+           <Image source={{uri: item.zdjecie_url}} style={styles.panelCategoryImage} />
             </View>
             <View style={styles.categoryTextContainer}> 
-          <Text style={styles.panelCategoryName} >{val}</Text>
+          <Text style={styles.panelCategoryName} >{item.nazwa}</Text>
 
             <Text style={styles.categoryDescription}>
             Sprzęt dostępny na wynajem
