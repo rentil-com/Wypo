@@ -1,9 +1,6 @@
-<<<<<<< HEAD
-=======
-import { ItemsQueryParams, ItemsSearchParams } from "@/types/product";
+import type { ItemsQueryParams, ItemsSearchParams } from "@/types/product";
 
->>>>>>> feature/frontend-items
-const API_URL = process.env.EXPO_PUBLIC_API_URL
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export async function apiGet(path : string) {
     if(!API_URL){
@@ -22,23 +19,18 @@ export async function apiGet(path : string) {
         );
     }
 
-    return data
-<<<<<<< HEAD
-=======
+    return data;
 }
 
-
-
-export  function buildSearchUrl(params : ItemsSearchParams) : string{
-    const searchParams = new URLSearchParams()
-    searchParams.append('q',params.q)
+export function buildSearchUrl(params: ItemsSearchParams): string {
+    const searchParams = new URLSearchParams();
+    searchParams.append("q", params.q);
     
-   return `/items/search?${searchParams.toString()}`;
+    return `/items/search?${searchParams.toString()}`;
 }
 
-
-export function buildParamsUrl(params : ItemsQueryParams) : string {
-    const query = new URLSearchParams()
+export function buildParamsUrl(params: ItemsQueryParams): string {
+    const query = new URLSearchParams();
     if(params.nazwa?.trim()){
         query.append("nazwa",params.nazwa?.toString())
     }
@@ -66,5 +58,4 @@ export function buildParamsUrl(params : ItemsQueryParams) : string {
 
     const queryString = query.toString();
     return queryString ? `/items?${queryString}` : "/items";
->>>>>>> feature/frontend-items
 }

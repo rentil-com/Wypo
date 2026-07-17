@@ -1,183 +1,163 @@
-import { Tabs, useLocalSearchParams } from "expo-router";
-import { View ,Text, FlatList,Image, StyleSheet,Pressable,TextInput} from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Stack } from 'expo-router';
 import { ThemedText } from "@/components/themed-text";
-import  dane from "../dane.json"
-import { useState,useEffect } from "react";
+import { useEffect, useState } from "react";
 import { pobierzProdukty } from "@/services/products.service";
-import type { ApiItem } from "@/types/product";
-<<<<<<< HEAD
-=======
 import { pobierzKategorie } from "@/services/categories.service";
-import { pobierzKategoriePoId } from "@/services/categories.service";
-import { CategoryApiItem } from "@/types/categories";
->>>>>>> feature/frontend-items
-import { router } from "expo-router";
-import { kategorieMap } from "@/constants/categories";
+import type { CategoryApiItem } from "@/types/categories";
+import type { ApiItem, ItemsQueryParams } from "@/types/product";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import ProductCard from "@/components/shared/Product/ProductCard";
 import PageLayout from "@/components/shared/Layout/PageLayout";
-<<<<<<< HEAD
 
-=======
-import { ItemsQueryParams } from "@/types/product";
->>>>>>> feature/frontend-items
-
-
-
-
-{/*props */}
 type CatalogViewProps = {
   kategoriaId?: string;
-  tylkoPromocje? : boolean;
-  promocja? : boolean;
-  };
+  tylkoPromocje?: boolean;
+  promocja?: boolean;
+};
 
+export default function TabsLayout({
+  kategoriaId,
+  tylkoPromocje,
+  promocja,
+}: CatalogViewProps) {
+  const { search } = useLocalSearchParams<{ search?: string }>();
+  const searchQuery = search?.trim() ?? "";
 
-export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : CatalogViewProps) {
-  {/*kategorie-dostepne */}
-    const [filters, setFilters] = useState<ItemsQueryParams>({
+  const [filters, setFilters] = useState<ItemsQueryParams>({
+    strona: 1,
+    kategoria: kategoriaId ? Number(kategoriaId) : null,
+    status: null,
+    cena_od: null,
+    cena_do: null,
+    promocja: Boolean(promocja || tylkoPromocje),
+  });
+  const [kategorie, setKategorie] = useState<CategoryApiItem[]>([]);
+  const [produkty, setProdukty] = useState<ApiItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function zaladujKategorie() {
+      try {
+        const response = await pobierzKategorie();
+        if (!cancelled) {
+          setKategorie(response);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setError(error instanceof Error ? error.message : "Nieznany błąd");
+        }
+      }
+    }
+
+    void zaladujKategorie();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function zaladujProdukty() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await pobierzProdukty({
+          ...filters,
+          nazwa: searchQuery || null,
+        });
+
+        if (!cancelled) {
+          setProdukty(response.dane);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setError(error instanceof Error ? error.message : "Nieznany błąd");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void zaladujProdukty();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [filters, searchQuery]);
+
+  const clearFilters = () => {
+    setFilters({
       strona: 1,
       kategoria: kategoriaId ? Number(kategoriaId) : null,
       status: null,
       cena_od: null,
       cena_do: null,
-      promocja: !!(promocja || tylkoPromocje),
+      promocja: false,
     });
 
-  useEffect (()=> {
-<<<<<<< HEAD
-    async function zaladujProdukty() {
-      try {
-        const response = await pobierzProdukty()
-
-        setProdukty(response.dane);
-=======
-    async function zaladujKategorie(){
-      try {
-        const response = await pobierzKategorie()
-        
-
-        setKategorie(response)
->>>>>>> feature/frontend-items
-      }
-      catch(error){
-        setEror(error instanceof Error ? error.message : "Nieznany bład")
-      }
-      finally {
-        setLoading(false)
-      }
-<<<<<<< HEAD
-      
+    if (kategoriaId) {
+      router.replace(`/catalog/category/${kategoriaId}`);
+      return;
     }
-    void zaladujProdukty();
 
-  },[]);
+    router.replace("/catalog/catalog");
+  };
 
+  const promocjeAktywne = filters.promocja === true;
 
-    const [produkty,setProdukty] = useState<ApiItem[]>([]);
-    const [loading,setLoading] = useState(true)
-    const [error,setEror] = useState<string | null>(null)
-=======
-  
-    }
->>>>>>> feature/frontend-items
-
-  
-    async function zaladujProdukty() {
-      try {
-        const produkt = await pobierzProdukty(filters)
-
-        setProdukty(produkt.dane);      
-      }
-      catch(error){
-        setEror(error instanceof Error ? error.message : "Nieznany bład")
-      }
-      finally {
-        setLoading(false)
-      }
-      
-    }
-    void zaladujProdukty();
-    void zaladujKategorie();
-
-  },[filters]);
-  
-  const clearFilters =()=> {
-  setFilters({
-    strona: 1,
-    kategoria: kategoriaId ? Number(kategoriaId) : null,
-    status: null,
-    nazwa : searchQuery || null,
-    cena_od: null,
-    cena_do: null,
-    promocja: false,
-  });
-
-  if (kategoriaId) {
-    router.replace(`/catalog/category/${kategoriaId}`);
-    return;
-  }
-
-  router.replace("/catalog/catalog");
-  }
-
-  
-
-    const [kategorie,setKategorie] =useState<CategoryApiItem[]>([])
-    const [produkty,setProdukty] = useState<ApiItem[]>([]);
-    const [loading,setLoading] = useState(true)
-    const [error,setEror] = useState<string | null>(null)
-
-    const {search} = useLocalSearchParams();
- 
-
-
-    const searchQuery = String(search ?? "").toLowerCase();
-    const promocjeAktywne = filters.promocja == true
-    const tab_filtered = produkty
-    
-
-  const handleSwitchPromotion =()=> {
-    const nowy_stan = !filters.promocja
-     setFilters({...filters,promocja : nowy_stan})
+  const handleSwitchPromotion = () => {
+    const nowyStan = !filters.promocja;
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      promocja: nowyStan,
+    }));
     router.setParams({
-    promocja: nowy_stan ? "true" : undefined,
-  });
-  }
-  
-  const handlePriceChange =(value : string)=> {
- 
-    
-    const regex_cyfr = /^[0-9]*$/
-    if(value !="" && !regex_cyfr.test(value)){
-      alert("Jedynie cyfry") 
-    }
-   
-    if(Number.isFinite(Number(value))){ 
-    setFilters({...filters, cena_od: value === "" ? null : Number(value)})
-    router.setParams({cena_od : value === "" ? undefined :value })
-    }
-    else{
-      return null
-    }
-  }
+      promocja: nowyStan ? "true" : undefined,
+    });
+  };
 
-  const handlePriceChange_Cena_Do = (value : string) => {
-       const regex_cyfr = /^[0-9]*$/
-    if(value !="" && !regex_cyfr.test(value)){
-      alert("Jedynie cyfry") 
+  const handlePriceChange = (value: string) => {
+    if (!/^[0-9]*$/.test(value)) {
+      alert("Jedynie cyfry");
+      return;
     }
-   
-    if(Number.isFinite(Number(value))){ 
-    setFilters({...filters, cena_do: value === "" ? null : Number(value)})
-    router.setParams({cena_do : value === "" ? undefined :value })
+
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      cena_od: value === "" ? null : Number(value),
+    }));
+    router.setParams({ cena_od: value === "" ? undefined : value });
+  };
+
+  const handlePriceChangeCenaDo = (value: string) => {
+    if (!/^[0-9]*$/.test(value)) {
+      alert("Jedynie cyfry");
+      return;
     }
-    else{
-      return null
-    }
-  }
+
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      cena_do: value === "" ? null : Number(value),
+    }));
+    router.setParams({ cena_do: value === "" ? undefined : value });
+  };
  
   return (
    <PageLayout wide>
@@ -287,7 +267,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
                       style={styles.filterInput}
                       placeholder="do 5000 zł"
                       placeholderTextColor="#91A0B8"
-                      onChangeText={(val)=> handlePriceChange_Cena_Do(val)}
+                      onChangeText={handlePriceChangeCenaDo}
                     />
                   </View>
 
@@ -347,7 +327,7 @@ export default function TabsLayout({kategoriaId,tylkoPromocje, promocja} : Catal
              {/* LISTA PRODUKTÓW */}
 
        {loading && <Text>Ładowanie .....</Text>}
-       {error !="" && <Text>{error}</Text>}
+       {error && <Text>{error}</Text>}
 
   <FlatList
     data={produkty}

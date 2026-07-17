@@ -15,14 +15,11 @@ export type ItemsResponse = {
   total: number;
   liczbaStron: number;
   dane: ApiItem[];
-<<<<<<< HEAD
-};
-=======
 };
 
 export type ItemsSearchParams = {
-  q : string,
-}
+  q: string;
+};
 
 export type ItemsSearchResult = {
   id: number;
@@ -31,19 +28,18 @@ export type ItemsSearchResult = {
   cena: number;
   cena_po_promocji: number | null;
   czy_promocja: boolean;
-}
+};
 
 
 export type ItemsQueryParams = {
-  strona? : number,
-  kategoria? : number | null,
-  nazwa? : string | null,
-  status? : string | null,
-  cena_od? : number | null,
-  cena_do?: number | null,
-  cena_min? : number | null,
-  cena_max? : number | null,
-  promocja? : boolean
-  tylko_promocje? : boolean
-}
->>>>>>> feature/frontend-items
+  strona?: number;
+  kategoria?: number | null;
+  nazwa?: string | null;
+  status?: string | null;
+  cena_od?: number | null;
+  cena_do?: number | null;
+  cena_min?: number | null;
+  cena_max?: number | null;
+  promocja?: boolean;
+  tylko_promocje?: boolean;
+};
