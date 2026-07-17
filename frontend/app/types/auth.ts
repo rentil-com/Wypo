@@ -33,3 +33,9 @@ export type AuthResponse =
 export type LogoutResponse = {
     message : string
 }
+
+
+export type Confirm2FABody = {
+    wyzwanie: string;
+    kod: string;
+}
