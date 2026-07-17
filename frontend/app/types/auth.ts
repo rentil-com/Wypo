@@ -39,3 +39,15 @@ export type Confirm2FABody = {
     wyzwanie: string;
     kod: string;
 }
+
+
+
+export type AccountDetails =  {
+  id: number;
+  imie: string;
+  nazwisko: string;
+  email: string;
+  rola: UserRole;
+  dwuetapowe: boolean;
+  data_utworzenia: string;
+}

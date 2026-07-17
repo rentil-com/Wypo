@@ -1,5 +1,6 @@
-import { apiPost } from "./api";
-import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse } from "@/types/auth";
+import { apiPost, apiGet } from "./api";
+
+import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails } from "@/types/auth";
 
 
 export async function login(email : string, password : string) {
@@ -21,6 +22,8 @@ export async function login(email : string, password : string) {
 
 export async function logout() {
     const response = await apiPost("/auth/logout",{})
+
+    return response as LogoutResponse
 }
 
 
@@ -36,4 +39,12 @@ export async function confirm2FA(wyzwanie : string, kod : string) {
     const response = await apiPost("/auth/2fa",body)
 
     return response as LoginSuccessResponse
+}
+
+
+
+export async function getCurrentUser() {
+  const response = await apiGet("/account/details");
+
+  return response as AccountDetails;
 }
