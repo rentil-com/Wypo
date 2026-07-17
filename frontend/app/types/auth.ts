@@ -28,3 +28,8 @@ export type Login2FAResponse = {
 export type AuthResponse =
   | LoginSuccessResponse
   | Login2FAResponse;
+
+
+export type LogoutResponse = {
+    message : string
+}

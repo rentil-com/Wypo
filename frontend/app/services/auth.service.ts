@@ -1,5 +1,5 @@
 import { apiPost } from "./api";
-import { LoginBody,AuthResponse } from "@/types/auth";
+import { LoginBody,AuthResponse, LogoutResponse } from "@/types/auth";
 
 
 export async function login(email : string, password : string) {
@@ -16,4 +16,9 @@ export async function login(email : string, password : string) {
 
 
     return response as AuthResponse
+}
+
+
+export async function logout() {
+    const response = await apiPost("/auth/logout",{})
 }
