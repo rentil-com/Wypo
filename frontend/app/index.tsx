@@ -1,7 +1,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -17,31 +17,34 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from "./components/themed-text";
 import { ThemedView } from "./components/themed-view";
-
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginScreen() {
+  const {signIn, status, error : authError} = useAuth()
+
+
   const [errors, setErrors] = useState("");
 
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null); // ref = przewijanie formularza
   const [adresEmail, setadresEmail] = useState(""); // email = adres e-mail
   const [haslo, setHaslo] = useState(""); // pass = haslo
-  const testLogin = "admin"; // login testowy
-  const testHaslo = "admin"; // haslo testowe
 
-  const sprawdzDane = () => {
-    console.log(adresEmail, haslo);
+
+  useEffect(()=> {
+    if(status === "authenticated"){
+      router.push("/(tabs)/user")
+    }
+
+  },[status])
+
+  const sprawdzHaslo = async () => {
+   setErrors("");
+    if (!adresEmail.trim() || !haslo) {
+    setErrors("Podaj adres e-mail i hasło");
+    return;
   }
-
-
-  const sprawdzHaslo = () => {
-    if (adresEmail === testLogin && haslo === testHaslo) {
-      router.replace("/(tabs)/user");
-    }
-    if (adresEmail !== testLogin || haslo !== testHaslo) {
-      setErrors("Login lub haslo jest niepoprawne");
-    }
-    
+  await signIn(adresEmail,haslo)
   }
 
   const scrollToLoginForm = (offset: number) => {
