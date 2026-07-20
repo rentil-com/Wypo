@@ -25,7 +25,7 @@ export function ustawCookieSesji(res, tokenSesji) {
   res.cookie(SESSION_COOKIE_NAME, tokenSesji, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "prod",
-    sameSite: "lax",
+    sameSite: "none",
     maxAge: SESSION_MAX_AGE
   });
 }
@@ -34,7 +34,7 @@ export function wyczyscCookieSesji(res) {
   res.clearCookie(SESSION_COOKIE_NAME, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "prod",
-    sameSite: "lax"
+    sameSite: "none"
   });
 }
 
