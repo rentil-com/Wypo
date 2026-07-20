@@ -99,8 +99,8 @@ const handleSearchSubmit = () => {
 const wylogujSie = async ()=>{ 
   await signOut()
 }
-const szczegolyKonta = async ()=> {
-  await getCurrentUser()
+const szczegolyKonta = ()=> {
+  router.push("/(tabs)/account")
 }
 
 useEffect(()=>{ 

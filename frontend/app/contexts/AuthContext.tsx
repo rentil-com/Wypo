@@ -68,8 +68,16 @@ const [error,setError] = useState<string |  null>(null)
             setStatus("awaiting_2fa")
         }
         else {
-            setUser(response.user)
-            setStatus("authenticated")
+          
+         const account = await getCurrentUser();
+
+      setUser({
+        id: account.id,
+        email: account.email,
+        rola: account.rola,
+      });
+  setStatus("authenticated");
+
         }
     }
     catch(error) {
