@@ -6,12 +6,15 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from "./components/themed-view";
 import { ThemedText } from "./components/themed-text";
 import { Header } from "@react-navigation/elements";
+import { register } from "./services/auth.service";
 
 export default function Rejestracja() {
     const [imie,setImie] =  useState('')
     const [nazwisko,setNazwisko] = useState('')
     const [adres,setAdres] = useState('')
     const [haslo,setHaslo] = useState('')
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
 
     const walidacja_adresu_email =()=>{
@@ -20,7 +23,7 @@ export default function Rejestracja() {
    
         if(adres !=""){
 
-        if(!emailRegex.test(adres)){
+        if(!emailRegex.test(adres_dowalidacji)){
                 alert( 'Podaj poprawny adres email');
                 return false
         }
@@ -46,7 +49,6 @@ export default function Rejestracja() {
     else{
        if(!passwordRegex.test(haslo)){
         return false;
-        alert("Haslo jest niepoprawne")
         
        }
        else {
@@ -56,12 +58,30 @@ export default function Rejestracja() {
         return true
     }
 
-    const zakladanieKonta =()=> {
-        if(walidacja_adresu_email() === true && walidacja_hasla() === true){
-            alert('Pomyslnie zalozenie konta')
-            router.replace("/(tabs)/user")
+    const zakladanieKonta = async ()=> {
+        if(loading){
+            return
         }
+        setError(null)
+        setLoading(true)
+        const poprawnyEmail = walidacja_adresu_email();
+        const poprawneHaslo = walidacja_hasla();
 
+        if (!poprawnyEmail || !poprawneHaslo) {
+            return;
+        }
+        setLoading(true)
+
+        try {
+            await register(imie,nazwisko,adres,haslo)
+            router.push({pathname : "/rejestracja_kod", params : {email : adres.trim().toLowerCase()}})
+        }
+        catch(error){
+            setError(error instanceof Error ? error.message : "Nieznany blad")
+        }
+        finally {
+            setLoading(false)
+        }
        
     }
   return (
@@ -108,7 +128,7 @@ export default function Rejestracja() {
              <TextInput secureTextEntry={true} value={haslo} onChangeText={val=> setHaslo(val)} style={styles.inputs} ></TextInput>
 
 
-       <TouchableOpacity style={styles.createButton} onPress={zakladanieKonta}>
+       <TouchableOpacity style={styles.createButton} onPress={zakladanieKonta} >
     <Text style={styles.createButtonText}>ZAŁÓŻ KONTO</Text>
 </TouchableOpacity>
         </View>

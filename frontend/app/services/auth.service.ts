@@ -69,18 +69,19 @@ export async function register(imie : string, nazwisko : string, email : string,
 
 export async function registerConfirm(email: string, kod : string) {
     const poprawnyEmail = email.trim().toLowerCase();
+    const poprawnyKod = kod.trim();
 
     if (!poprawnyEmail ) {
         throw new Error("Email jest wymagany");
     }
 
-   if(!/^[0-9]{6}$/.test(kod) || kod.length !=6){
+   if(!/^[0-9]{6}$/.test(poprawnyKod)){
     throw new Error("Kod musi sie skladac tylko z 6 cyfr")
    }
 
     const body : AccountCreateConfirm  = {
         email : poprawnyEmail,
-        kod : kod,
+        kod : poprawnyKod,
     }
   
 
