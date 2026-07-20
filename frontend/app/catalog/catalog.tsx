@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { Picker } from '@react-native-picker/picker';
 import { MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/themed-text";
 import { useEffect, useState } from "react";
@@ -44,7 +45,7 @@ export default function TabsLayout({
   const [produkty, setProdukty] = useState<ApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [wybraneSortowanie,setwybraneSortowanie] = useState("")
   useEffect(() => {
     let cancelled = false;
 
@@ -158,7 +159,24 @@ export default function TabsLayout({
     }));
     router.setParams({ cena_do: value === "" ? undefined : value });
   };
+
+  const getFinalPrice = (product : ApiItem) => {
+    return product.cena_po_promocji ?? product.cena
+  }
  
+  const handleSort = (value : string) => {
+    setwybraneSortowanie(value)
+    if(value === "asc"){ 
+      const ascending = [...produkty].sort((a,b)=> getFinalPrice(a) - getFinalPrice(b))
+      setProdukty(ascending)
+    }
+    else {
+      if(value === "desc"){
+              const descending = [...produkty].sort((a,b)=> getFinalPrice(b) - getFinalPrice(a))
+              setProdukty(descending)
+      }
+    }
+  }
   return (
    <PageLayout wide>
         {/* GŁÓWNA ZAWARTOŚĆ */}
@@ -270,32 +288,13 @@ export default function TabsLayout({
                       onChangeText={handlePriceChangeCenaDo}
                     />
                   </View>
-
-                  <View style={styles.filterGroup}>
-                    <ThemedText style={styles.filterLabel}>Cena min</ThemedText>
-
-                    <Pressable style={styles.filterSelect}>
-                      <ThemedText style={styles.filterValue}>min. 1 dzień</ThemedText>
-                      <ThemedText style={styles.filterChevron}>⌄</ThemedText>
-                    </Pressable>
-                  </View>
-
-                  <View style={styles.filterGroup}>
-                    <ThemedText style={styles.filterLabel}>Cena max</ThemedText>
-
-                    <Pressable style={styles.filterSelect}>
-                      <ThemedText style={styles.filterValue}>max. 30 dni</ThemedText>
-                      <ThemedText style={styles.filterChevron}>⌄</ThemedText>
-                    </Pressable>
-                  </View>
-
                   <View style={styles.filterGroup}>
                     <ThemedText style={styles.filterLabel}>Sortuj</ThemedText>
-
-                    <Pressable style={styles.filterSelect}>
-                      <ThemedText style={styles.filterValue}>Cena rosnąco</ThemedText>
-                      <ThemedText style={styles.filterChevron}>⌄</ThemedText>
-                    </Pressable>
+                  <Picker selectedValue={wybraneSortowanie?.toString() ?? ""} onValueChange={(val)=> handleSort(val)}
+                  >
+                    <Picker.Item label="Rosnaco" value="asc" />
+                    <Picker.Item label="Malejaco" value="desc" />
+                  </Picker>
                   </View>
 
                   <Pressable style={styles.promotionFilter} onPress={()=> handleSwitchPromotion()}>
