@@ -174,7 +174,7 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <Link href="/rejestracja" dismissTo style={mobileStyles.mobileLink} onPress={()=> router.push("./rejestracja.tsx")}>
+                <Link href="/rejestracja" dismissTo style={mobileStyles.mobileLink} onPress={()=> router.push("/rejestracja")}>
                   <Text style={mobileStyles.mobileLinkText}>
                     Nie masz jeszcze konta?{" "}
                     <Text style={mobileStyles.mobileLinkTextBlue}>Zarejestruj się</Text>
