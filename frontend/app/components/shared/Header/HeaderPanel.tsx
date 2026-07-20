@@ -10,6 +10,7 @@ import { pobierzKategorie } from "@/services/categories.service";
 import { pobierzProdukty, szukajProdukty } from "@/services/products.service";
 import { ApiItem, ItemsSearchResult } from "@/types/product";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentUser } from "@/services/auth.service";
 export default function HeaderPanel () { 
  
     const {signOut, status, error : authError} = useAuth()
@@ -98,12 +99,18 @@ const handleSearchSubmit = () => {
 const wylogujSie = async ()=>{ 
   await signOut()
 }
+const szczegolyKonta = async ()=> {
+  await getCurrentUser()
+}
 
 useEffect(()=>{ 
   if(status === "anonymous"){
     router.push("/")
   }
-})
+},[status])
+
+
+
    return ( 
    <View style={styles.header}>
     <Pressable onPress={()=> router.push("/(tabs)/user")}>
@@ -239,13 +246,13 @@ useEffect(()=>{
             <Text style={styles.headerActionText}>Koszyk</Text>
           </Pressable>
 
-          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/account")}>
+          <Pressable style={styles.headerAction} onPress={()=> szczegolyKonta()}>
             <MaterialIcons name="person-outline" size={25} color="#111827" />
             <Text style={styles.headerActionText}>Konto</Text>
           </Pressable>
 
            <Pressable style={styles.headerAction} onPress={()=> wylogujSie()}>
-            <MaterialIcons name="person-outline" size={25} color="#111827" />
+           <MaterialIcons name="logout" size={25} color="black" />
             <Text style={styles.headerActionText}>Wyloguj sie</Text>
           </Pressable>
 

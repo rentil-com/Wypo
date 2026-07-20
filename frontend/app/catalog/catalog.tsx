@@ -290,10 +290,10 @@ export default function TabsLayout({
                   </View>
                   <View style={styles.filterGroup}>
                     <ThemedText style={styles.filterLabel}>Sortuj</ThemedText>
-                  <Picker selectedValue={wybraneSortowanie?.toString() ?? ""} onValueChange={(val)=> handleSort(val)}
+                  <Picker selectedValue={wybraneSortowanie?.toString() ?? ""} onValueChange={(val)=> handleSort(val)} style={styles.filterInput}
                   >
-                    <Picker.Item label="Rosnaco" value="asc" />
-                    <Picker.Item label="Malejaco" value="desc" />
+                    <Picker.Item label="Rosnaco" value="asc"      />
+                    <Picker.Item label="Malejaco" value="desc"      />
                   </Picker>
                   </View>
 
