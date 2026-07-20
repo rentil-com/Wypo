@@ -68,6 +68,7 @@ if (!account) {
 
   return (
     <View>
+      <Text>TWOJE DANE</Text>
       <Text>
         {account.imie} {account.nazwisko}
       </Text>
