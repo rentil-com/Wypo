@@ -141,10 +141,22 @@ async function edytujKonto(req, res) {
 
     const result = await pool.query(
       `
-      UPDATE uzytkownicy
-      SET ${pola.join(", ")}
-      WHERE id = $${params.length}
-      RETURNING id, imie, nazwisko, email, rola, dwuetapowe, data_utworzenia;
+      WITH zaktualizowane_konto AS (
+        UPDATE uzytkownicy
+        SET ${pola.join(", ")}
+        WHERE id = $${params.length}
+        RETURNING id, imie, nazwisko, email, rola, dwuetapowe, data_utworzenia
+      ),
+      uniewazniony_klucz AS (
+        DELETE FROM klucze_api
+        WHERE uzytkownik_id = $${params.length}
+          AND EXISTS (
+            SELECT 1
+            FROM zaktualizowane_konto
+            WHERE rola <> 'admin'
+          )
+      )
+      SELECT * FROM zaktualizowane_konto;
       `,
       params
     );

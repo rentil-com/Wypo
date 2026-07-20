@@ -111,6 +111,10 @@ router.post("/", async (req, res) => {
       [reset.uzytkownik_id]
     );
     await client.query(
+      "DELETE FROM klucze_api WHERE uzytkownik_id = $1",
+      [reset.uzytkownik_id]
+    );
+    await client.query(
       "DELETE FROM sesje WHERE uzytkownik_id = $1",
       [reset.uzytkownik_id]
     );
