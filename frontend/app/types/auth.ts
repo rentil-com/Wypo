@@ -89,7 +89,10 @@ export type AccountEditBody = {
   imie? : string,
   nazwisko? : string
 }
-
+export type AccountEmailChange = {
+  new_email : string, 
+  password : string
+}
 export type AccountEmailChangeResponse = {
   message: string;
   challenge: string;
@@ -97,6 +100,10 @@ export type AccountEmailChangeResponse = {
   max_attempts: number;
 }
 
+export type EmailChangeConfirm = {
+  wyzwanie : string,
+  kod : string
+}
 
 export type EmailChangeConfirmResponse = {
   message: string;

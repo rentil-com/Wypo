@@ -1,6 +1,6 @@
 import { apiPost, apiGet ,apiPatch} from "./api";
 
-import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse, AccountEditBody } from "@/types/auth";
+import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse, AccountEditBody, AccountEmailChange, AccountEmailChangeResponse, EmailChangeConfirm, EmailChangeConfirmResponse } from "@/types/auth";
 
 
 export async function login(email : string, password : string) {
@@ -90,15 +90,46 @@ export async function registerConfirm(email: string, kod : string) {
       return response as AccountCreateSuccessResponse   
 }
 
-export async function UpdateAccount(id : number, imie : string | null, nazwisko : string | null) {
+export async function updateAccount(id : number, imie : string | null, nazwisko : string | null) {
     const poprawneImie = imie?.trim()
     const poprawneNazwisko = nazwisko?.trim()
     const body : AccountEditBody = {
         imie : poprawneImie,
         nazwisko : poprawneNazwisko
     }
-    const response = await apiPatch(`account/edit/${id}`,body)
+    const response = await apiPatch(`/account/edit/${id}`,body)
 
     return response as AccountDetails
+}
+
+export async function  startEmailChange(new_email : string, password : string) {
+    const poprawnyEmail = new_email.trim()
+
+    const body : AccountEmailChange = {
+        new_email : poprawnyEmail,
+        password : password
+    }
+    const response = await apiPost(`/account/email-change`,body)
+
+    return response as AccountEmailChangeResponse
+}
+
+
+export async function emailChangeConfirm(wyzwanie: string, kod : string) {
+    const poprawnyKod = kod.trim()
+
+    if(!/^[0-9]{6}$/.test(poprawnyKod)){
+    throw new Error("Kod musi sie skladac tylko z 6 cyfr")
+   }
+
+   const body : EmailChangeConfirm = {
+    wyzwanie : wyzwanie,
+    kod : poprawnyKod
+   }
+
+   const response = await apiPost("/account/email-change/confirm",body)
+
+   return response as EmailChangeConfirmResponse
+    
 }
 
