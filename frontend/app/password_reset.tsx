@@ -29,16 +29,16 @@ export default function Start_Reset_Hasła() {
     const wyslijKod = async ()=> {
         const poprawnyEmail = email.trim().toLowerCase()
         if(!poprawnyEmail){
-            setError("Nie moze byc pusty")
+            setError("Podaj adres e-mail.")
             return;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if(!emailRegex.test(poprawnyEmail)){
-            setError("Nie zgadza sie z poprawnym formatem e-mail.")
+            setError("Podaj poprawny adres e-mail.")
             return;
         }
 
-        setError("")
+        setError(null)
         setLoading(true)
 
         try {
@@ -50,7 +50,7 @@ export default function Start_Reset_Hasła() {
             }})
         }
         catch(error){
-            setError(error instanceof Error ? error.message : "Nieznany blad")
+            setError(error instanceof Error ? error.message : "Wystąpił nieznany błąd.")
         }
         finally {
             setLoading(false)
@@ -90,7 +90,7 @@ export default function Start_Reset_Hasła() {
 
                             <View style={styles.heading}>
                                 <View style={styles.headingIcon}>
-                                    <Ionicons name="mail-outline" size={28} color="#2563EB" />
+                                    <Ionicons name="key-outline" size={28} color="#2563EB" />
                                 </View>
                                 <Text style={[
                                     styles.title,
@@ -99,7 +99,7 @@ export default function Start_Reset_Hasła() {
                                     Zresetuj hasło
                                 </Text>
                                 <Text style={styles.subtitle}>
-                                    Podaj adres email, a wyslemi ci kod do zresetowania hasła.
+                                    Podaj adres e-mail przypisany do konta. Wyślemy na niego kod potrzebny do ustawienia nowego hasła.
                                 </Text>
                             {error && (
                                 <View style={styles.errorMessageWrapper}>
@@ -128,7 +128,7 @@ export default function Start_Reset_Hasła() {
                                     />
                                 </View>
                                 <Text style={styles.helperText}>
-                                    Kod do zresetowania hasłą wyslemy na adres e-mail.
+                                    Jeśli konto istnieje, otrzymasz wiadomość z kodem weryfikacyjnym.
                                 </Text>
                      
 
@@ -149,7 +149,7 @@ export default function Start_Reset_Hasła() {
                                     ) : (
                                         <>
                                             <Ionicons name="paper-plane-outline" size={19} color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Wyślij kod</Text>
+                                            <Text style={styles.sendButtonText}>Wyślij kod resetujący</Text>
                                         </>
                                     )}
                                 </TouchableOpacity>
