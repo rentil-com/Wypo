@@ -1,6 +1,8 @@
-import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
+    ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -12,13 +14,12 @@ import {
     View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from "expo-router/build/hooks";
 import { startEmailChange } from "@/services/auth.service";
 
 
 export default function Zmiana_Maila() {
     const { width } = useWindowDimensions();
-    const {email} = useLocalSearchParams<{email: string}>()
+    const {email = ""} = useLocalSearchParams<{email?: string}>()
     const [nowyEMail,setNowyEmail] = useState("")
     const [haslo,setHaslo] = useState("")
     const [loading, setLoading] = useState(false);
@@ -29,11 +30,18 @@ export default function Zmiana_Maila() {
 
 
     const wyslijKod = async ()=> {
-        setError("")
-        const poprawnyEmail = nowyEMail.trim()
+        if (loading) return;
+
+        setError(null)
+        const poprawnyEmail = nowyEMail.trim().toLowerCase()
 
         if(!poprawnyEmail || !haslo){
-            setError("Email  oraz haslo nie moze byc puste")
+            setError("Nowy e-mail oraz hasło nie mogą być puste.")
+            return;
+        }
+
+        if (poprawnyEmail === email.trim().toLowerCase()) {
+            setError("Nowy adres e-mail musi być inny od obecnego.")
             return;
         }
         setLoading(true)
@@ -69,21 +77,108 @@ export default function Zmiana_Maila() {
                         keyboardShouldPersistTaps="handled"
                         automaticallyAdjustKeyboardInsets
                     >
-                            <Text>Stary email {email}</Text>
+                        <View style={[
+                            styles.card,
+                            isMobile && styles.mobileCard,
+                        ]}>
+                            <TouchableOpacity
+                                style={styles.backButton}
+                                onPress={() => router.back()}
+                                activeOpacity={0.75}
+                            >
+                                <Ionicons name="arrow-back-outline" size={18} color="#2563EB" />
+                                <Text style={styles.backButtonText} onPress={()=> router.push("/account")}>Wróć do konta</Text>
+                            </TouchableOpacity>
+
+                            <View style={styles.heading}>
+                                <View style={styles.headingIcon}>
+                                    <Ionicons name="mail-outline" size={28} color="#2563EB" />
+                                </View>
+                                <Text style={[
+                                    styles.title,
+                                    isMobile && styles.mobileTitle,
+                                ]}>
+                                    Zmień adres e-mail
+                                </Text>
+                                <Text style={styles.subtitle}>
+                                    Podaj nowy adres i potwierdź zmianę aktualnym hasłem.
+                                </Text>
+                                <View style={styles.emailWrapper}>
+                                    <Text style={styles.emailCaption}>Obecny adres</Text>
+                                    <Text style={styles.emailText}>{email || "Brak adresu"}</Text>
+                                </View>
+                            </View>
+
+                            {error && (
+                                <View style={styles.errorMessageWrapper}>
+                                    <Ionicons name="alert-circle-outline" size={20} color="#DC2626" />
+                                    <Text style={styles.errorMessagesText}>{error}</Text>
+                                </View>
+                            )}
+
+                            <View style={styles.form}>
                           
 
 
-                           <Text>Nowy email</Text>
-                           <TextInput value={nowyEMail} onChangeText={val => setNowyEmail(val)} />
+                                <Text style={styles.label}>Nowy adres e-mail</Text>
+                                <View style={styles.inputWrapper}>
+                                    <Ionicons name="mail-outline" size={20} color="#7B88A4" />
+                                    <TextInput
+                                        value={nowyEMail}
+                                        onChangeText={setNowyEmail}
+                                        style={styles.input}
+                                        placeholder="np. jan@example.com"
+                                        placeholderTextColor="#94A3B8"
+                                        autoCapitalize="none"
+                                        autoCorrect={false}
+                                        keyboardType="email-address"
+                                        editable={!loading}
+                                    />
+                                </View>
 
 
-                            <Text>Hasło</Text>
-                            <TextInput secureTextEntry={true} value={haslo} onChangeText={val => setHaslo(val)} />
+                                <Text style={styles.label}>Aktualne hasło</Text>
+                                <View style={styles.inputWrapper}>
+                                    <Ionicons name="lock-closed-outline" size={20} color="#7B88A4" />
+                                    <TextInput
+                                        secureTextEntry
+                                        value={haslo}
+                                        onChangeText={setHaslo}
+                                        style={styles.input}
+                                        placeholder="Wprowadź aktualne hasło"
+                                        placeholderTextColor="#94A3B8"
+                                        editable={!loading}
+                                    />
+                                </View>
+
+                                <Text style={styles.helperText}>
+                                    Kod potwierdzający wyślemy na nowy adres e-mail.
+                                </Text>
                      
 
-                                    <Text style={styles.sendButtonText} onPress={()=> wyslijKod()} disabled={loading}>
-                                        WYŚLIJ KOD
-                                    </Text>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.sendButton,
+                                        loading && styles.sendButtonDisabled,
+                                    ]}
+                                    onPress={() => void wyslijKod()}
+                                    disabled={loading}
+                                    activeOpacity={0.85}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <ActivityIndicator size="small" color="#FFFFFF" />
+                                            <Text style={styles.sendButtonText}>Wysyłanie...</Text>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Ionicons name="paper-plane-outline" size={19} color="#FFFFFF" />
+                                            <Text style={styles.sendButtonText}>Wyślij kod</Text>
+                                        </>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                              
                        
                     </ScrollView>
@@ -121,13 +216,12 @@ const styles = StyleSheet.create({
     },
     card: {
         width: "100%",
-        maxWidth: 720,
-        minHeight: 470,
+        maxWidth: 680,
         justifyContent: "center",
         backgroundColor: "#FFFFFF",
         borderRadius: 34,
-        paddingHorizontal: 72,
-        paddingVertical: 58,
+        paddingHorizontal: 64,
+        paddingVertical: 48,
         shadowColor: "#0F172A",
         shadowOffset: { width: 0, height: 24 },
         shadowOpacity: 0.1,
@@ -135,15 +229,35 @@ const styles = StyleSheet.create({
         elevation: 20,
     },
     mobileCard: {
-        minHeight: 0,
         borderRadius: 24,
         paddingHorizontal: 22,
-        paddingVertical: 34,
+        paddingVertical: 28,
+    },
+    backButton: {
+        alignSelf: "flex-start",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        marginBottom: 24,
+    },
+    backButtonText: {
+        color: "#2563EB",
+        fontSize: 14,
+        fontWeight: "700",
     },
     heading: {
         width: "100%",
         alignItems: "center",
         marginBottom: 30,
+    },
+    headingIcon: {
+        width: 58,
+        height: 58,
+        borderRadius: 18,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#EEF6FF",
+        marginBottom: 16,
     },
     title: {
         fontSize: 36,
@@ -172,6 +286,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#EEF6FF",
         paddingHorizontal: 16,
         paddingVertical: 9,
+        alignItems: "center",
+    },
+    emailCaption: {
+        color: "#7B88A4",
+        fontSize: 11,
+        fontWeight: "700",
+        marginBottom: 2,
     },
     emailText: {
         fontSize: 15,
@@ -183,7 +304,9 @@ const styles = StyleSheet.create({
     errorMessageWrapper: {
         width: "100%",
         minHeight: 52,
-        justifyContent: "center",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
         backgroundColor: "#FEF2F2",
         borderRadius: 15,
         borderWidth: 1,
@@ -198,11 +321,11 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     errorMessagesText: {
+        flex: 1,
         color: "#991B1B",
         fontSize: 14,
         lineHeight: 20,
         fontWeight: "700",
-        textAlign: "center",
     },
     form: {
         width: "100%",
@@ -217,27 +340,42 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginLeft: 2,
     },
-    input: {
+    inputWrapper: {
         width: "100%",
-        height: 62,
+        height: 58,
+        flexDirection: "row",
+        alignItems: "center",
         borderWidth: 1,
         borderColor: "#DDE5F0",
         borderRadius: 16,
-        paddingHorizontal: 20,
+        paddingHorizontal: 18,
         backgroundColor: "#FFFFFF",
+        marginBottom: 20,
+    },
+    input: {
+        flex: 1,
+        height: "100%",
+        paddingHorizontal: 12,
         color: "#0F172A",
-        fontSize: 18,
-        fontWeight: "600",
+        fontSize: 16,
+        fontWeight: "500",
+        outlineWidth: 0,
+    },
+    helperText: {
+        color: "#7B88A4",
+        fontSize: 13,
+        lineHeight: 19,
         textAlign: "center",
-        letterSpacing: 3,
-        outlineStyle: "none" as any,
+        marginTop: -4,
     },
     sendButton: {
         width: "100%",
         height: 62,
         borderRadius: 16,
+        flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
+        gap: 9,
         backgroundColor: "#2563EB",
         marginTop: 20,
         shadowColor: "#2563EB",
@@ -245,6 +383,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 18,
         elevation: 11,
+    },
+    sendButtonDisabled: {
+        opacity: 0.7,
     },
     sendButtonText: {
         color: "#FFFFFF",
