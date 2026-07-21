@@ -1,0 +1,19 @@
+$kind: http-request
+name: Dodanie kategorii wymaga administratora
+url: "{{base_url}}/kategorie/dodaj"
+method: POST
+headers:
+  Authorization: Bearer invalid_test_token
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 403", function () {
+        pm.response.to.have.status(403);
+      });
+
+      pm.test("Odpowiedź informuje o braku uprawnień", function () {
+        pm.expect(pm.response.json().error).to.include("Brak uprawnien");
+      });
+    language: text/javascript
+order: 9000
+

@@ -1,0 +1,29 @@
+$kind: http-request
+name: Wyszukiwanie ogranicza liczbę wyników
+url: "{{base_url}}/items/search?q=a"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Maksymalnie 5 wyników", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.be.an("array");
+        pm.expect(body.length).to.be.at.most(5);
+      });
+
+      pm.test("Wyniki mają pola wyszukiwarki", function () {
+        pm.response.json().forEach(function (item) {
+          pm.expect(item).to.have.property("nazwa_przedmiotu");
+          pm.expect(item).to.have.property("zdjecie_url");
+          pm.expect(item).to.have.property("cena");
+          pm.expect(item).to.have.property("cena_po_promocji");
+          pm.expect(item).to.have.property("czy_promocja");
+        });
+      });
+    language: text/javascript
+order: 6000
+

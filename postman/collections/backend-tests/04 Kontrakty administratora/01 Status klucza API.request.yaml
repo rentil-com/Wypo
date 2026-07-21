@@ -1,0 +1,24 @@
+$kind: http-request
+name: Ważny klucz API zwraca swój status
+url: "{{base_url}}/auth/api-key"
+method: GET
+headers:
+  Authorization: "Bearer {{api_key}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Klucz jest aktywny i może być regenerowany", function () {
+        const body = pm.response.json();
+        pm.expect(body.active).to.eql(true);
+        pm.expect(body.can_generate).to.eql(true);
+        pm.expect(body).to.have.property("created_at");
+        pm.expect(body).to.have.property("last_used_at");
+        pm.expect(body).not.to.have.property("api_key");
+      });
+    language: text/javascript
+order: 1000
+

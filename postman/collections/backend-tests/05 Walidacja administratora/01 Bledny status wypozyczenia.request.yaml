@@ -1,0 +1,19 @@
+$kind: http-request
+name: Błędny filtr statusu wypożyczenia jest odrzucany
+url: "{{base_url}}/wypozyczenia/wnioski?status=niepoprawny"
+method: GET
+headers:
+  Authorization: "Bearer {{api_key}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Odpowiedź zawiera błąd statusu", function () {
+        pm.expect(pm.response.json().error).to.include("status");
+      });
+    language: text/javascript
+order: 1000
+

@@ -1,0 +1,19 @@
+$kind: http-request
+name: Błędny filtr liczby gwiazdek jest odrzucany
+url: "{{base_url}}/recenzje?gwiazdki=6"
+method: GET
+headers:
+  Authorization: "Bearer {{api_key}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Odpowiedź zawiera błąd gwiazdek", function () {
+        pm.expect(pm.response.json().error).to.include("gwiazdek");
+      });
+    language: text/javascript
+order: 2000
+
