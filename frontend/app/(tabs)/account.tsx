@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getCurrentUser } from "@/services/auth.service";
+import { getCurrentUser, updateAccount } from "@/services/auth.service";
 import type { AccountDetails } from "@/types/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import HeaderPanel from "@/components/shared/Header/HeaderPanel";
@@ -28,7 +28,11 @@ export default function AccountScreen() {
   const [error, setError] =
     useState<string | null>(null);
   const [edytowanie,setEdytowanie] = useState(false)
+  const [imie,setImie] = useState("")
+  const [nazwisko,setNazwisko] =  useState("")
   const [nowyEmail,setNowyEmail] = useState("")
+  const [id,setId] = useState(0)
+  const [email,setEmail] = useState("")
 
   useEffect(() => {
      if (status !== "authenticated") {
@@ -39,6 +43,11 @@ export default function AccountScreen() {
 
         const response = await getCurrentUser();
         setAccount(response);
+        setImie(response?.imie.toString())
+        setNazwisko(response?.nazwisko.toString())
+        setEmail(response.email)
+        setId(response.id)
+        
         
       } catch (error) {
         setError(
@@ -53,6 +62,37 @@ export default function AccountScreen() {
 
     void loadAccount();
   }, [status]);
+
+  const zapisDanych = async ()=> {
+    setError("")
+   
+    if(!imie || !nazwisko){
+      setError("Imie i nazwisko nie moga byc puste")
+      return;
+    }
+     setLoading(true)
+    try {
+   await updateAccount(id,imie, nazwisko)
+   setImie(imie)
+   setNazwisko(nazwisko)
+   setEdytowanie(false)
+    }
+    catch(error) {
+      setError(error instanceof Error ?  error.message : "Nieznany blad")
+    }
+    finally{
+      setLoading(false)
+    }
+  }
+
+  const annulujZapisDanych = async ()=> {
+    if(!account) return;
+    setEdytowanie(false)
+    setImie(account.imie)
+    setNazwisko(account.nazwisko)
+    setEmail(account.email)
+    setError(null)
+  }
 
 
 if (status === "loading") {
@@ -235,7 +275,12 @@ if (!account) {
               </View>
             
               
-              
+                <Pressable onPress={()=> zapisDanych()}>
+                  <Text>Zapisz</Text>
+                </Pressable>
+                <Pressable onPress={()=> annulujZapisDanych()}>
+                  <Text>Annuluj</Text>
+                </Pressable>
                 <Text  onPress={()=> setEdytowanie(!edytowanie)} >EDYTUJ KONTO</Text>
              
 
@@ -254,18 +299,37 @@ if (!account) {
               <Text style={styles.sectionEyebrow}>TWOJE DANE</Text>
               <Text style={styles.sectionTitle}>Informacje o koncie</Text>
             </View>
+             <View style={styles.detailCard}>
+                <View style={styles.detailIcon}>
+                  <Ionicons name="mail-outline" size={22} color="#2563EB" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Imie</Text>
+                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={imie} onChangeText={ val => setImie(val)} />
+                </View>
+              </View>
+               <View style={styles.detailCard}>
+                <View style={styles.detailIcon}>
+                  <Ionicons name="mail-outline" size={22} color="#2563EB" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Nazwisko</Text>
+                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={nazwisko} onChangeText={val => setNazwisko(val)}  />
+                </View>
+              </View>
 
             <View style={[
               styles.detailsGrid,
               isMobile && styles.mobileDetailsGrid,
             ]}>
+              
               <View style={styles.detailCard}>
                 <View style={styles.detailIcon}>
                   <Ionicons name="mail-outline" size={22} color="#2563EB" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Adres e-mail</Text>
-                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={account.email} onChangeText={(val)=> setNowyEmail(val)} />
+                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={email} onChangeText={(val)=> setNowyEmail(val)} />
                 </View>
               </View>
 
@@ -281,6 +345,7 @@ if (!account) {
                 </View>
               </View>
             </View>
+            
 
             <View style={[
               styles.securityCard,
