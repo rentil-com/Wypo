@@ -86,7 +86,11 @@ export default function Rejestracja() {
         try {
             const response =await register(imie,nazwisko,adres,haslo)
 
-            router.push({pathname : "/rejestracja_kod", params : {email : adres.trim().toLowerCase()}})
+            router.push({pathname : "/rejestracja_kod", params : {email : adres.trim().toLowerCase(),
+                message : response.message,
+                expires_in : response.expires_in,
+                max_attempts : response.max_attempts
+            }})
         }
         catch(error){
             setError(error instanceof Error ? error.message : "Nieznany blad")

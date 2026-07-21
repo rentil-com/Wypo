@@ -16,12 +16,13 @@ import { ThemedView } from "./components/themed-view";
 import { ThemedText } from "./components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { registerConfirm } from "./services/auth.service";
-
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Rejestracja() {
     const { width } = useWindowDimensions();
     const [kod,setKod] = useState("")
     const {email} = useLocalSearchParams<{email: string}>()
+    const {message = "",expires_in = "", max_attempts = ""} = useLocalSearchParams<{message? : string,expires_in? : string, max_attempts? : string}>()
       const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -76,7 +77,7 @@ export default function Rejestracja() {
                                     Wpisz kod z e-maila
                                 </ThemedText>
                                 <Text style={styles.subtitle}>
-                                    Kod weryfikacyjny wysłaliśmy na adres:
+                                    {message}
                                 </Text>
                                 <View style={styles.emailWrapper}>
                                     <Text style={styles.emailText}>
@@ -106,6 +107,16 @@ export default function Rejestracja() {
                                     autoCapitalize="none"
                                     keyboardType="number-pad"
                                 />
+                                  <View style={styles.securityHint}>
+                                    <Ionicons name="time-outline" size={16} color="#7B88A4" />
+                                    <Text style={styles.securityHintText}>
+                                        Kod jest ważny tylko przez {expires_in} s.
+                                    </Text>
+                                     <Text style={styles.securityHintText}>
+                                        Masz tylko {max_attempts} prób.
+                                    </Text>
+                                    
+                                </View>
 
                                 <TouchableOpacity
                                     style={styles.sendButton}
@@ -283,6 +294,18 @@ const styles = StyleSheet.create({
         fontSize: 17,
         lineHeight: 22,
         fontWeight: "700",
+    },
+    securityHint: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        marginTop: 13,
+    },
+    securityHintText: {
+        color: "#7B88A4",
+        fontSize: 12,
+        lineHeight: 17,
     },
 })
 
