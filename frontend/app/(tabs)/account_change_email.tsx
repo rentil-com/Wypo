@@ -50,7 +50,9 @@ export default function Zmiana_Maila() {
            setHaslo("")
            router.push({pathname: "/(tabs)/account_kod", params : {
             challenge : response.challenge,
-            email : poprawnyEmail
+            email : poprawnyEmail,
+            expires_in : response.expires_in,
+            max_attempts : response.max_attempts
            }})
         }
         catch(error){

@@ -23,9 +23,12 @@ import { emailChangeConfirm } from "@/services/auth.service";
 export default function Zmiana_Maila_Kod() {
     const { width } = useWindowDimensions();
     const [kod,setKod] = useState("")
-    const {email = "", challenge = ""} = useLocalSearchParams<{
+    const {email = "", challenge = "", expires_in = "", max_attempts = "" } = useLocalSearchParams<{
         email?: string;
         challenge?: string;
+        expires_in? : string
+        max_attempts? : string
+    
     }>()
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -93,7 +96,7 @@ export default function Zmiana_Maila_Kod() {
                                 activeOpacity={0.75}
                             >
                                 <Ionicons name="arrow-back-outline" size={18} color="#2563EB" />
-                                <Text style={styles.backButtonText}>Zmień adres</Text>
+                                <Text style={styles.backButtonText} onPress={()=> router.push("/(tabs)/account_change_email")}>Zmień adres</Text>
                             </TouchableOpacity>
 
                             <View style={styles.heading}>
@@ -148,8 +151,12 @@ export default function Zmiana_Maila_Kod() {
                                 <View style={styles.securityHint}>
                                     <Ionicons name="time-outline" size={16} color="#7B88A4" />
                                     <Text style={styles.securityHintText}>
-                                        Kod jest ważny tylko przez ograniczony czas. 
+                                        Kod jest ważny tylko przez {expires_in} s.
                                     </Text>
+                                     <Text style={styles.securityHintText}>
+                                        Masz tylko {max_attempts} prób.
+                                    </Text>
+                                    
                                 </View>
 
                                 <TouchableOpacity

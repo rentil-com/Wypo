@@ -84,7 +84,8 @@ export default function Rejestracja() {
         setLoading(true)
 
         try {
-            await register(imie,nazwisko,adres,haslo)
+            const response =await register(imie,nazwisko,adres,haslo)
+
             router.push({pathname : "/rejestracja_kod", params : {email : adres.trim().toLowerCase()}})
         }
         catch(error){
