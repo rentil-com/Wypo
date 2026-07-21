@@ -1,6 +1,8 @@
-import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
+    ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -14,7 +16,6 @@ import {
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from "expo-router/build/hooks";
 import { emailChangeConfirm } from "@/services/auth.service";
 
 
@@ -22,8 +23,10 @@ import { emailChangeConfirm } from "@/services/auth.service";
 export default function Zmiana_Maila_Kod() {
     const { width } = useWindowDimensions();
     const [kod,setKod] = useState("")
-    const {email} = useLocalSearchParams<{email: string}>()
-    const {challenge} = useLocalSearchParams<{challenge : string}>()
+    const {email = "", challenge = ""} = useLocalSearchParams<{
+        email?: string;
+        challenge?: string;
+    }>()
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -31,15 +34,25 @@ export default function Zmiana_Maila_Kod() {
     if(loading){
         return;
     }
-    setError("")
+    setError(null)
+    const kodPoprawny = kod.trim()
+
+    if (!challenge) {
+        setError("Brak aktywnej zmiany adresu e-mail.")
+        return;
+    }
+
+    if (!/^\d{6}$/.test(kodPoprawny)) {
+        setError("Kod musi składać się z 6 cyfr.")
+        return;
+    }
+
     setLoading(true)
-    
     try {
-        setLoading(true)
-        const kodPoprawny = kod.trim()
         await emailChangeConfirm(challenge,kodPoprawny)
-        alert("Udalo sie zmienic adres email")
-        router.push("/account")
+        
+        alert("Adres e-mail został zmieniony.")
+        router.replace("/(tabs)/account")
     }
     catch(error) {
         setError(error instanceof Error ? error.message : "Nieznany bład")
@@ -74,25 +87,42 @@ export default function Zmiana_Maila_Kod() {
                                 isMobile && styles.mobileCard,
                             ]}
                         >
+                            <TouchableOpacity
+                                style={styles.backButton}
+                                onPress={() => router.back()}
+                                activeOpacity={0.75}
+                            >
+                                <Ionicons name="arrow-back-outline" size={18} color="#2563EB" />
+                                <Text style={styles.backButtonText}>Zmień adres</Text>
+                            </TouchableOpacity>
+
                             <View style={styles.heading}>
+                                <View style={styles.stepBadge}>
+                                    <Text style={styles.stepBadgeText}>KROK 2 Z 2</Text>
+                                </View>
+                                <View style={styles.verificationIcon}>
+                                    <Ionicons name="shield-checkmark-outline" size={30} color="#2563EB" />
+                                </View>
                                 <ThemedText type="title" style={[
                                     styles.title,
                                     isMobile && styles.mobileTitle,
                                 ]}>
-                                    Wpisz kod z e-maila
+                                    Potwierdź zmianę
                                 </ThemedText>
                                 <Text style={styles.subtitle}>
-                                    Kod weryfikacyjny wysłaliśmy na adres:
+                                    Wpisz kod wysłany na nowy adres e-mail:
                                 </Text>
                                 <View style={styles.emailWrapper}>
+                                    <Ionicons name="mail-outline" size={17} color="#2563EB" />
                                     <Text style={styles.emailText}>
-                                        {email ?? ""}
+                                        {email || "Brak adresu"}
                                     </Text>
                                 </View>
                             </View>
 
                             {error && (
                                 <View style={styles.errorMessageWrapper}>
+                                    <Ionicons name="alert-circle-outline" size={20} color="#DC2626" />
                                     <Text style={styles.errorMessagesText}>
                                         {error}
                                     </Text>
@@ -105,22 +135,43 @@ export default function Zmiana_Maila_Kod() {
                                 </ThemedText>
                                 <TextInput
                                     value={kod}
-                                    onChangeText={(val)=> setKod(val)}
+                                    onChangeText={setKod}
                                     style={styles.input}
-                                    placeholder="Wprowadź kod"
+                                    placeholder="000000"
                                     placeholderTextColor="#94A3B8"
                                     autoCapitalize="none"
                                     keyboardType="number-pad"
+                                    maxLength={6}
+                                    editable={!loading}
                                 />
 
+                                <View style={styles.securityHint}>
+                                    <Ionicons name="time-outline" size={16} color="#7B88A4" />
+                                    <Text style={styles.securityHintText}>
+                                        Kod jest ważny tylko przez ograniczony czas. 
+                                    </Text>
+                                </View>
+
                                 <TouchableOpacity
-                                    style={styles.sendButton}
-                                    onPress={()=> sprawdzKod()}
+                                    style={[
+                                        styles.sendButton,
+                                        loading && styles.sendButtonDisabled,
+                                    ]}
+                                    onPress={() => void sprawdzKod()}
+                                    disabled={loading}
                                     activeOpacity={0.85}
                                 >
-                                    <Text style={styles.sendButtonText}>
-                                        WYŚLIJ KOD
-                                    </Text>
+                                    {loading ? (
+                                        <>
+                                            <ActivityIndicator size="small" color="#FFFFFF" />
+                                            <Text style={styles.sendButtonText}>Sprawdzanie...</Text>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+                                            <Text style={styles.sendButtonText}>Potwierdź e-mail</Text>
+                                        </>
+                                    )}
                                 </TouchableOpacity>
                             </View>
                         </ThemedView>
@@ -159,8 +210,8 @@ const styles = StyleSheet.create({
     },
     card: {
         width: "100%",
-        maxWidth: 720,
-        minHeight: 470,
+        maxWidth: 680,
+        minHeight: 520,
         justifyContent: "center",
         backgroundColor: "#FFFFFF",
         borderRadius: 34,
@@ -176,12 +227,48 @@ const styles = StyleSheet.create({
         minHeight: 0,
         borderRadius: 24,
         paddingHorizontal: 22,
-        paddingVertical: 34,
+        paddingVertical: 30,
+    },
+    backButton: {
+        alignSelf: "flex-start",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        marginBottom: 18,
+    },
+    backButtonText: {
+        color: "#2563EB",
+        fontSize: 14,
+        fontWeight: "700",
     },
     heading: {
         width: "100%",
         alignItems: "center",
         marginBottom: 30,
+    },
+    stepBadge: {
+        borderRadius: 999,
+        backgroundColor: "#EFF6FF",
+        paddingHorizontal: 11,
+        paddingVertical: 5,
+        marginBottom: 13,
+    },
+    stepBadgeText: {
+        color: "#2563EB",
+        fontSize: 10,
+        fontWeight: "800",
+        letterSpacing: 0.8,
+    },
+    verificationIcon: {
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#EEF6FF",
+        borderWidth: 1,
+        borderColor: "#DBEAFE",
+        marginBottom: 17,
     },
     title: {
         fontSize: 36,
@@ -206,6 +293,9 @@ const styles = StyleSheet.create({
     },
     emailWrapper: {
         maxWidth: "100%",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 7,
         borderRadius: 12,
         backgroundColor: "#EEF6FF",
         paddingHorizontal: 16,
@@ -221,7 +311,9 @@ const styles = StyleSheet.create({
     errorMessageWrapper: {
         width: "100%",
         minHeight: 52,
-        justifyContent: "center",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
         backgroundColor: "#FEF2F2",
         borderRadius: 15,
         borderWidth: 1,
@@ -236,11 +328,11 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     errorMessagesText: {
+        flex: 1,
         color: "#991B1B",
         fontSize: 14,
         lineHeight: 20,
         fontWeight: "700",
-        textAlign: "center",
     },
     form: {
         width: "100%",
@@ -257,25 +349,39 @@ const styles = StyleSheet.create({
     },
     input: {
         width: "100%",
-        height: 62,
+        height: 68,
         borderWidth: 1,
-        borderColor: "#DDE5F0",
+        borderColor: "#BFDBFE",
         borderRadius: 16,
         paddingHorizontal: 20,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#F8FBFF",
         color: "#0F172A",
-        fontSize: 18,
-        fontWeight: "600",
+        fontSize: 24,
+        fontWeight: "800",
         textAlign: "center",
-        letterSpacing: 3,
-        outlineStyle: "none" as any,
+        letterSpacing: 10,
+        outlineWidth: 0,
+    },
+    securityHint: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        marginTop: 13,
+    },
+    securityHintText: {
+        color: "#7B88A4",
+        fontSize: 12,
+        lineHeight: 17,
     },
     sendButton: {
         width: "100%",
         height: 62,
         borderRadius: 16,
+        flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
+        gap: 9,
         backgroundColor: "#2563EB",
         marginTop: 20,
         shadowColor: "#2563EB",
@@ -283,6 +389,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 18,
         elevation: 11,
+    },
+    sendButtonDisabled: {
+        opacity: 0.7,
     },
     sendButtonText: {
         color: "#FFFFFF",

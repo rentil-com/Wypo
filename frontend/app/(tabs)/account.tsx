@@ -365,7 +365,22 @@ if (!account) {
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Adres e-mail</Text>
                   <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={email} />
-                  <Text onPress={()=> router.push({pathname: "/(tabs)/account_change_email", params : {email : email.trim().toLowerCase()}})}>Zmien swoj adres email</Text>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.emailChangeButton,
+                      pressed && styles.emailChangeButtonPressed,
+                    ]}
+                    onPress={() => router.push({
+                      pathname: "/(tabs)/account_change_email",
+                      params: { email: email.trim().toLowerCase() },
+                    })}
+                  >
+                    <Ionicons name="create-outline" size={16} color="#1D4ED8" />
+                    <Text style={styles.emailChangeButtonText}>
+                      Zmień adres e-mail
+                    </Text>
+                    <Ionicons name="chevron-forward-outline" size={15} color="#1D4ED8" />
+                  </Pressable>
                 </View>
               </View>
 
@@ -851,6 +866,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     outlineWidth: 0,
+  },
+  emailChangeButton: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 9,
+    borderRadius: 10,
+    backgroundColor: "#EEF6FF",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  emailChangeButtonPressed: {
+    opacity: 0.7,
+  },
+  emailChangeButtonText: {
+    color: "#1D4ED8",
+    fontSize: 12,
+    fontWeight: "800",
   },
   roleValue: {
     textTransform: "capitalize",
