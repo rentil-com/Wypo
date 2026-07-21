@@ -42,7 +42,7 @@ export default function Zmiana_Maila_Kod() {
         setError(null)
         const poprawnyKod = kod.trim()
         if (!challenge) {
-            setError("Brak aktywnej zmiany adresu e-mail.")
+            setError("Brak aktywnego resetowania hasła.")
             return;
         }
 
@@ -52,11 +52,11 @@ export default function Zmiana_Maila_Kod() {
         }
         const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
         if(!passwordRegex.test(hasło)){
-            setError("Hasło jest niezgodnie z wytycznimi")
+            setError("Hasło nie spełnia wymaganych zasad bezpieczeństwa.")
             return;
         }
         if(potwierdzenieHasła !== hasło){
-            setError("Obydwa hasła musza byc takie same")
+            setError("Oba hasła muszą być takie same.")
             return;
         }
 
@@ -71,7 +71,7 @@ export default function Zmiana_Maila_Kod() {
             
         }
         catch(error){
-            setError(error instanceof Error ? error.message : "Nieznany blad")
+            setError(error instanceof Error ? error.message : "Wystąpił nieznany błąd.")
         }
         finally {
             setLoading(false)
@@ -109,7 +109,7 @@ export default function Zmiana_Maila_Kod() {
                                 activeOpacity={0.75}
                             >
                                 <Ionicons name="arrow-back-outline" size={18} color="#2563EB" />
-                                <Text style={styles.backButtonText}>Wróć</Text>
+                                <Text style={styles.backButtonText}>Wróć do podania e-maila</Text>
                             </TouchableOpacity>
 
                             <View style={styles.heading}>
@@ -117,16 +117,16 @@ export default function Zmiana_Maila_Kod() {
                                     <Text style={styles.stepBadgeText}>KROK 2 Z 2</Text>
                                 </View>
                                 <View style={styles.verificationIcon}>
-                                    <Ionicons name="shield-checkmark-outline" size={30} color="#2563EB" />
+                                    <Ionicons name="key-outline" size={30} color="#2563EB" />
                                 </View>
                                 <ThemedText type="title" style={[
                                     styles.title,
                                     isMobile && styles.mobileTitle,
                                 ]}>
-                                    Potwierdź kod
+                                    Ustaw nowe hasło
                                 </ThemedText>
                                 <Text style={styles.subtitle}>
-                                    Wpisz kod wysłany na nowy adres e-mail:
+                                    Wpisz kod resetowania wysłany na adres:
                                 </Text>
                                 <View style={styles.emailWrapper}>
                                     <Ionicons name="mail-outline" size={17} color="#2563EB" />
@@ -153,23 +153,23 @@ export default function Zmiana_Maila_Kod() {
                                     value={hasło}
                                     secureTextEntry={true}
                                     onChangeText={val => setHasło(val)}
-                                    style={styles.input}
-                                    placeholder="nowe hasło"
+                                    style={[styles.input, styles.passwordInput]}
+                                    placeholder="Wprowadź nowe hasło"
                                     placeholderTextColor="#94A3B8"
                                        editable={!loading}
                                     autoCapitalize="none"
                                    
                                 />
-                                   <ThemedText style={styles.label}>
-                                  Potwierdź hasło
+                                <ThemedText style={styles.label}>
+                                    Powtórz nowe hasło
                                 </ThemedText>
                                 <TextInput
                                     value={potwierdzenieHasła}
                                     secureTextEntry={true}
                                     onChangeText={val => setpotwierdzenieHasła(val)}
                                     editable={!loading}
-                                    style={styles.input}
-                                    placeholder="potwierdz hasło"
+                                    style={[styles.input, styles.passwordInput]}
+                                    placeholder="Powtórz nowe hasło"
                                     placeholderTextColor="#94A3B8"
                                     autoCapitalize="none"
                                    
@@ -192,10 +192,10 @@ export default function Zmiana_Maila_Kod() {
                                 <View style={styles.securityHint}>
                                     <Ionicons name="time-outline" size={16} color="#7B88A4" />
                                     <Text style={styles.securityHintText}>
-                                        Kod jest ważny tylko przez {expires_in} s.
+                                        Kod wygaśnie za {expires_in} s.
                                     </Text>
                                      <Text style={styles.securityHintText}>
-                                        Masz tylko {max_attempts} prób.
+                                        Maksymalna liczba prób: {max_attempts}.
                                     </Text>
                                     
                                 </View>
@@ -212,12 +212,12 @@ export default function Zmiana_Maila_Kod() {
                                     {loading ? (
                                         <>
                                             <ActivityIndicator size="small" color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Sprawdzanie...</Text>
+                                            <Text style={styles.sendButtonText}>Zapisywanie...</Text>
                                         </>
                                     ) : (
                                         <>
                                             <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}> Ustaw nowe hasło</Text>
+                                            <Text style={styles.sendButtonText}>Zapisz nowe hasło</Text>
                                         </>
                                     )}
                                 </TouchableOpacity>
@@ -409,6 +409,12 @@ const styles = StyleSheet.create({
         textAlign: "center",
         letterSpacing: 10,
         outlineWidth: 0,
+    },
+    passwordInput: {
+        fontSize: 16,
+        fontWeight: "500",
+        textAlign: "left",
+        letterSpacing: 0,
     },
     securityHint: {
         flexDirection: "row",
