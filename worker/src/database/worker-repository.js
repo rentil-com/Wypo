@@ -128,18 +128,47 @@ export class WorkerRepository {
     return mapPromotionRun(result.rows[0]);
   }
 
-  async deactivateActivePromotionRuns() {
+  async getActivePromotionRuns() {
+    const result = await this.pool.query(
+      `
+      SELECT *
+      FROM worker_promotion_runs
+      WHERE status = 'success'
+        AND deactivated_at IS NULL
+      ORDER BY created_at, id;
+      `
+    );
+
+    return result.rows.map(mapPromotionRun);
+  }
+
+  async deactivatePromotionRun(id) {
     const result = await this.pool.query(
       `
       UPDATE worker_promotion_runs
       SET deactivated_at = CURRENT_TIMESTAMP
-      WHERE status = 'success'
+      WHERE id = $1
+        AND status = 'success'
         AND deactivated_at IS NULL
       RETURNING id;
+      `,
+      [id]
+    );
+
+    return result.rowCount > 0;
+  }
+
+  async getSuccessfullyPromotedItemIds() {
+    const result = await this.pool.query(
+      `
+      SELECT DISTINCT item_id
+      FROM worker_promotion_runs
+      WHERE status = 'success'
+        AND item_id IS NOT NULL;
       `
     );
 
-    return result.rows.map((row) => Number(row.id));
+    return result.rows.map((row) => Number(row.item_id));
   }
 
   async getRecentPromotionRuns(limit) {

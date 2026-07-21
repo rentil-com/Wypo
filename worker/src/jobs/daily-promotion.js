@@ -23,6 +23,29 @@ function getErrorMessage(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
+function priceInCents(value) {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ""
+  ) {
+    return null;
+  }
+
+  const price = Number(value);
+  return Number.isFinite(price) ? Math.round(price * 100) : null;
+}
+
+function hasExpectedPromotionalPrice(item, expectedPrice) {
+  const expectedPriceInCents = priceInCents(expectedPrice);
+  const currentPriceInCents = priceInCents(item?.cena_po_promocji);
+
+  return (
+    expectedPriceInCents !== null &&
+    expectedPriceInCents === currentPriceInCents
+  );
+}
+
 async function saveErrorHistory({
   historyRepository,
   selectedItem,
@@ -60,18 +83,55 @@ async function deactivateExistingPromotions({
   historyRepository,
   logger
 }) {
-  const promotionalItems = await client.getPromotionalItems();
+  if (!historyRepository) {
+    return;
+  }
 
-  for (const item of promotionalItems) {
-    await client.clearPromotionalPrice(item.id);
+  const activePromotionRuns =
+    await historyRepository.getActivePromotionRuns();
+
+  for (const run of activePromotionRuns) {
+    if (run.itemId === null) {
+      await historyRepository.deactivatePromotionRun(run.id);
+      logger.warn(
+        `[daily-promotion] Pominieto dezaktywacje wpisu id=${run.id}, poniewaz nie ma identyfikatora przedmiotu.`
+      );
+      continue;
+    }
+
+    const currentItem = await client.getItem(run.itemId);
+
+    if (!hasExpectedPromotionalPrice(currentItem, run.promotionalPrice)) {
+      await historyRepository.deactivatePromotionRun(run.id);
+      logger.warn(
+        `[daily-promotion] Promocja przedmiotu id=${run.itemId} zostala zmieniona poza workerem (oczekiwana cena=${JSON.stringify(run.promotionalPrice)}, aktualna=${JSON.stringify(currentItem?.cena_po_promocji ?? null)}). Worker jej nie zmienil.`
+      );
+      continue;
+    }
+
+    await client.clearPromotionalPrice(run.itemId);
+    await historyRepository.deactivatePromotionRun(run.id);
     logger.info(
-      `[daily-promotion] Dezaktywowano stara promocje: id=${item.id}, nazwa=${JSON.stringify(item.nazwa ?? "")}`
+      `[daily-promotion] Dezaktywowano promocje workera: id=${run.itemId}, nazwa=${JSON.stringify(run.itemName ?? "")}`
     );
   }
+}
 
-  if (historyRepository) {
-    await historyRepository.deactivateActivePromotionRuns();
-  }
+async function getEligibleItems(items, historyRepository) {
+  const successfullyPromotedItemIds = historyRepository
+    ? await historyRepository.getSuccessfullyPromotedItemIds()
+    : [];
+  const promotedItemIds = new Set(
+    successfullyPromotedItemIds.map((itemId) => String(itemId))
+  );
+
+  return items.filter(
+    (item) =>
+      item?.id !== null &&
+      item?.id !== undefined &&
+      item.cena_po_promocji == null &&
+      !promotedItemIds.has(String(item.id))
+  );
 }
 
 export async function runDailyPromotion({
@@ -106,14 +166,16 @@ export async function runDailyPromotion({
     });
 
     const items = await client.getAvailableItems();
+    const eligibleItems = await getEligibleItems(items, historyRepository);
 
-    if (items.length === 0) {
+    if (eligibleItems.length === 0) {
       logger.warn(
-        "[daily-promotion] Brak dostepnych przedmiotow. Promocja nie zostala ustawiona."
+        "[daily-promotion] Brak przedmiotow kwalifikujacych sie do promocji. Promocja nie zostala ustawiona."
       );
       outcome = { status: "skipped" };
     } else {
-      selectedItem = items[Math.floor(random() * items.length)];
+      selectedItem =
+        eligibleItems[Math.floor(random() * eligibleItems.length)];
 
       logger.info(
         `[daily-promotion] Wybrany przedmiot: id=${selectedItem.id}, nazwa=${JSON.stringify(selectedItem.nazwa ?? "")}`

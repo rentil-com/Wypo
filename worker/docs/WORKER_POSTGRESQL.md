@@ -174,8 +174,8 @@ Każde wykonanie `daily-promotion` zapisuje w tabeli `worker_promotion_runs`:
 - datę i czas wykonania,
 - datę i czas dezaktywacji udanej promocji.
 
-Brak dostępnych przedmiotów jest zapisywany ze statusem `skipped`. Błąd backendu, ceny lub inny błąd wykonania jest zapisywany ze statusem `error`.
-Przed ustawieniem następnej promocji worker pobiera wszystkie aktualne promocje przez `GET /items?promocja=true` i dla każdej wysyła `PATCH /items/edit/:id` z `cena_po_promocji: null`. Dopiero po poprawnym wyłączeniu starych promocji ustawia jedną nową. Poprzednie wpisy `success` otrzymują wtedy wartość `deactivated_at`.
+Brak przedmiotów kwalifikujących się do promocji jest zapisywany ze statusem `skipped`. Błąd backendu, ceny lub inny błąd wykonania jest zapisywany ze statusem `error`.
+Przed ustawieniem następnej promocji worker odczytuje z historii własne aktywne wpisy `success`. Dla każdego z nich pobiera aktualny stan przedmiotu i usuwa cenę promocyjną tylko wtedy, gdy jest ona równa cenie zapisanej wcześniej przez worker. Jeżeli przedmiot lub jego cena promocyjna zostały zmienione poza workerem, worker nie modyfikuje przedmiotu i zapisuje ostrzeżenie w logu. Przedmiot występujący w dowolnym wcześniejszym wpisie `success` jest wykluczony z kolejnych losowań. Worker nie wybiera również przedmiotów, które mają już ustawioną inną cenę promocyjną.
 
 Wyświetlenie domyślnej liczby ostatnich wykonań (`HISTORY_DEFAULT_LIMIT`):
 
@@ -212,8 +212,9 @@ npm run dev
 ## Przebieg promocji
 
 1. Worker pobiera z PostgreSQL zakres rabatu.
-2. Pobiera wszystkie aktywne promocje przez `GET /items?promocja=true`.
-3. Dla każdego promowanego przedmiotu wysyła `PATCH /items/edit/:id` z body:
+2. Pobiera z historii własne aktywne wpisy `success`.
+3. Dla każdego takiego wpisu pobiera aktualny przedmiot przez `GET /items/:id` i porównuje jego cenę promocyjną z ceną zapisaną w historii.
+4. Jeżeli ceny są równe, wysyła `PATCH /items/edit/:id` z body:
 
 ```json
 {
@@ -221,11 +222,13 @@ npm run dev
 }
 ```
 
-4. Oznacza poprzednie udane wpisy historii czasem `deactivated_at`.
-5. Pobiera wszystkie strony dostępnych przedmiotów przez `GET /items`.
-6. Losuje jeden przedmiot i rabat z zapisanego zakresu, domyślnie 10-20%.
-7. Zaokrągla cenę promocyjną do dwóch miejsc po przecinku.
-8. Wysyła `PATCH /items/edit/:id` z nową ceną:
+5. Jeżeli cena została zmieniona poza workerem, pozostawia ją bez zmian i zapisuje ostrzeżenie w logu.
+6. Oznacza obsłużone aktywne wpisy historii czasem `deactivated_at`.
+7. Pobiera wszystkie strony dostępnych przedmiotów przez `GET /items`.
+8. Wyklucza przedmioty promowane wcześniej przez worker oraz przedmioty z już ustawioną promocją.
+9. Losuje jeden z pozostałych przedmiotów i rabat z zapisanego zakresu, domyślnie 10-20%.
+10. Zaokrągla cenę promocyjną do dwóch miejsc po przecinku.
+11. Wysyła `PATCH /items/edit/:id` z nową ceną:
 
 ```json
 {
@@ -233,7 +236,7 @@ npm run dev
 }
 ```
 
-9. Loguje wybrany przedmiot, starą cenę, rabat, nową cenę i ewentualny błąd.
-10. Zapisuje wynik wykonania w tabeli `worker_promotion_runs`.
+12. Loguje wybrany przedmiot, starą cenę, rabat, nową cenę i ewentualny błąd.
+13. Zapisuje wynik wykonania w tabeli `worker_promotion_runs`.
 
 Worker obsługuje brak przedmiotów, brak lub nieprawidłową cenę, timeout backendu, odpowiedzi HTTP inne niż 2xx, błędne ustawienia, błąd PostgreSQL oraz brak wymaganych zmiennych środowiskowych.

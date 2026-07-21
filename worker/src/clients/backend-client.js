@@ -119,8 +119,16 @@ export class BackendClient {
     return items.filter((item) => item?.status === "dostepny");
   }
 
-  getPromotionalItems() {
-    return this.getItems({ promocja: "true" });
+  async getItem(itemId) {
+    try {
+      return await this.request(`/items/${encodeURIComponent(itemId)}`);
+    } catch (error) {
+      if (error instanceof BackendClientError && error.status === 404) {
+        return null;
+      }
+
+      throw error;
+    }
   }
 
   updatePromotionalPrice(itemId, promotionalPrice) {
