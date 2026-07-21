@@ -85,7 +85,7 @@ export default function AccountScreen() {
     }
   }
 
-  const annulujZapisDanych = async ()=> {
+  const anulujZapisDanych = ()=> {
     if(!account) return;
     setEdytowanie(false)
     setImie(account.imie)
@@ -267,7 +267,7 @@ if (!account) {
                   styles.name,
                   isMobile && styles.mobileName,
                 ]}>
-                  {account.imie} {account.nazwisko}
+                  {imie} {nazwisko}
                 </Text>
                 <Text style={styles.email} numberOfLines={1}>
                   {account.email}
@@ -275,13 +275,43 @@ if (!account) {
               </View>
             
               
-                <Pressable onPress={()=> zapisDanych()}>
-                  <Text>Zapisz</Text>
-                </Pressable>
-                <Pressable onPress={()=> annulujZapisDanych()}>
-                  <Text>Annuluj</Text>
-                </Pressable>
-                <Text  onPress={()=> setEdytowanie(!edytowanie)} >EDYTUJ KONTO</Text>
+              <View style={[
+                styles.profileActions,
+                isMobile && styles.mobileProfileActions,
+              ]}>
+                {edytowanie ? (
+                  <>
+                    <Pressable
+                      style={[styles.actionButton, styles.saveButton]}
+                      onPress={() => void zapisDanych()}
+                    >
+                      <Ionicons name="checkmark-outline" size={17} color="#FFFFFF" />
+                      <Text style={[styles.actionButtonText, styles.saveButtonText]}>
+                        Zapisz
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.actionButton, styles.cancelButton]}
+                      onPress={anulujZapisDanych}
+                    >
+                      <Ionicons name="close-outline" size={18} color="#475569" />
+                      <Text style={[styles.actionButtonText, styles.cancelButtonText]}>
+                        Anuluj
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <Pressable
+                    style={[styles.actionButton, styles.editButton]}
+                    onPress={() => setEdytowanie(true)}
+                  >
+                    <Ionicons name="create-outline" size={17} color="#1D4ED8" />
+                    <Text style={[styles.actionButtonText, styles.editButtonText]}>
+                      Edytuj konto
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
              
 
               <View style={[
@@ -299,24 +329,29 @@ if (!account) {
               <Text style={styles.sectionEyebrow}>TWOJE DANE</Text>
               <Text style={styles.sectionTitle}>Informacje o koncie</Text>
             </View>
-             <View style={styles.detailCard}>
+            <View style={[
+              styles.detailsGrid,
+              isMobile && styles.mobileDetailsGrid,
+            ]}>
+              <View style={styles.detailCard}>
                 <View style={styles.detailIcon}>
-                  <Ionicons name="mail-outline" size={22} color="#2563EB" />
+                  <Ionicons name="person-outline" size={22} color="#2563EB" />
                 </View>
                 <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Imie</Text>
-                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={imie} onChangeText={ val => setImie(val)} />
+                  <Text style={styles.detailLabel}>Imię</Text>
+                  <TextInput style={[styles.detailValue, edytowanie && styles.editableDetailValue]} numberOfLines={1} editable={edytowanie} value={imie} onChangeText={val => setImie(val)} />
                 </View>
               </View>
-               <View style={styles.detailCard}>
+              <View style={styles.detailCard}>
                 <View style={styles.detailIcon}>
-                  <Ionicons name="mail-outline" size={22} color="#2563EB" />
+                  <Ionicons name="id-card-outline" size={22} color="#2563EB" />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Nazwisko</Text>
-                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={nazwisko} onChangeText={val => setNazwisko(val)}  />
+                  <TextInput style={[styles.detailValue, edytowanie && styles.editableDetailValue]} numberOfLines={1} editable={edytowanie} value={nazwisko} onChangeText={val => setNazwisko(val)} />
                 </View>
               </View>
+            </View>
 
             <View style={[
               styles.detailsGrid,
@@ -651,6 +686,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 14,
   },
+  profileActions: {
+    flexDirection: "row",
+    gap: 8,
+    marginLeft: 16,
+  },
+  mobileProfileActions: {
+    marginLeft: 0,
+    marginTop: 14,
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  editButton: {
+    backgroundColor: "#EFF6FF",
+  },
+  editButtonText: {
+    color: "#1D4ED8",
+  },
+  saveButton: {
+    backgroundColor: "#2563EB",
+  },
+  saveButtonText: {
+    color: "#FFFFFF",
+  },
+  cancelButton: {
+    backgroundColor: "#F1F5F9",
+  },
+  cancelButtonText: {
+    color: "#475569",
+  },
   name: {
     color: "#071536",
     fontSize: 27,
@@ -767,6 +841,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 21,
     fontWeight: "700",
+  },
+  editableDetailValue: {
+    backgroundColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    outlineStyle: "none",
   },
   roleValue: {
     textTransform: "capitalize",
