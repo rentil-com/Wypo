@@ -1,0 +1,25 @@
+$kind: http-request
+name: Login
+url: "{{base_url}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{admin_email}}",
+      "password": "{{admin_password}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 202) {
+        const body = pm.response.json();
+        if (body.challenge) {
+          pm.environment.set("login_challenge", body.challenge);
+        }
+      }
+    language: text/javascript
+order: 1000
+

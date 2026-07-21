@@ -1,0 +1,35 @@
+$kind: http-request
+name: Dodaj sprzęt (JSON)
+url: "{{base_url}}/items/dodaj"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+    enabled: true
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+body:
+  type: json
+  content: |-
+    {
+      "nazwa": "Wiertarka",
+      "opis": "Wiertarka udarowa",
+      "kategoria_id": {{category_id}},
+      "zdjecia_url": {
+        "1": "https://example.com/wiertarka.jpg",
+        "2": "https://example.com/wiertarka-2.jpg"
+      },
+      "specyfikacje": [
+        {
+          "nazwa_specyfikacji": "Moc",
+          "opis_specyfikacji": "900 W",
+          "emotka_specyfikacji": "bolt.fill"
+        }
+      ],
+      "cena": "49.99",
+      "cena_po_promocji": "39.99",
+      "status": "dostepny"
+    }
+order: 4000
+

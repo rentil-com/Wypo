@@ -1,0 +1,17 @@
+$kind: http-request
+name: Dodaj recenzję
+url: "{{base_url}}/recenzje/dodaj"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sprzet_id": {{item_id}},
+      "wypozyczenie_id": {{rental_id}},
+      "gwiazdki": 5,
+      "tresc": "Sprzęt działał bardzo dobrze."
+    }
+order: 1000
+

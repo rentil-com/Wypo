@@ -1,0 +1,6 @@
+$kind: http-request
+name: Zwróć sprzęt (POST)
+url: "{{base_url}}/wypozyczenia/zwrot/{{rental_id}}"
+method: POST
+order: 9000
+

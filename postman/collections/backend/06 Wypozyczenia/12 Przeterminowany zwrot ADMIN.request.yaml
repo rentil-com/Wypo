@@ -1,0 +1,19 @@
+$kind: http-request
+name: Wyślij informację o przeterminowanym zwrocie (admin)
+url: "{{base_url}}/wypozyczenia/przeterminowany-zwrot/{{rental_id}}"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+    enabled: true
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+body:
+  type: json
+  content: |-
+    {
+      "kontakt": "kontakt@example.com"
+    }
+order: 12000
+

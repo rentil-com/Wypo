@@ -1,0 +1,6 @@
+$kind: http-request
+name: Szczegóły sprzętu
+url: "{{base_url}}/items/{{item_id}}"
+method: GET
+order: 3000
+

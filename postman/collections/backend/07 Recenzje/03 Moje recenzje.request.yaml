@@ -1,0 +1,6 @@
+$kind: http-request
+name: Moje recenzje
+url: "{{base_url}}/recenzje/moje?strona={{page}}"
+method: GET
+order: 3000
+

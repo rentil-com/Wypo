@@ -1,0 +1,10 @@
+$kind: http-request
+name: Lista recenzji (admin)
+url: "{{base_url}}/recenzje?strona={{page}}&uzytkownik_id={{account_id}}&sprzet_id={{item_id}}&status=aktywna&gwiazdki=5"
+method: GET
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+order: 4000
+

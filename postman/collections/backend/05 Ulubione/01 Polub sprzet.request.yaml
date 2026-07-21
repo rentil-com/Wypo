@@ -1,0 +1,6 @@
+$kind: http-request
+name: Polub sprzęt
+url: "{{base_url}}/ulubione/polub/{{item_id}}"
+method: POST
+order: 1000
+

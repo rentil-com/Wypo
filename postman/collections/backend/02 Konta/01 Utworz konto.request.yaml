@@ -1,0 +1,17 @@
+$kind: http-request
+name: Utwórz konto
+url: "{{base_url}}/account/create"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "imie": "Jan",
+      "nazwisko": "Kowalski",
+      "email": "{{new_user_email}}",
+      "password": "{{new_user_password}}"
+    }
+order: 1000
+

@@ -1,0 +1,20 @@
+$kind: http-request
+name: Edytuj kategorię (PUT, JSON)
+url: "{{base_url}}/kategorie/edit/{{category_id}}"
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+    enabled: true
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+body:
+  type: json
+  content: |-
+    {
+      "nazwa": "Nowa nazwa kategorii",
+      "zdjecie_url": "https://example.com/nowa-kategoria.jpg"
+    }
+order: 7000
+

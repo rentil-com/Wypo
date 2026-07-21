@@ -1,0 +1,15 @@
+$kind: http-request
+name: Potwierdź zmianę e-mail
+url: "{{base_url}}/account/email-change/confirm"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "challenge": "{{email_change_challenge}}",
+      "code": "{{verification_code}}"
+    }
+order: 3000
+

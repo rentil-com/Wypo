@@ -1,0 +1,10 @@
+$kind: http-request
+name: Status klucza API
+url: "{{base_url}}/auth/api-key"
+method: GET
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+order: 9000
+

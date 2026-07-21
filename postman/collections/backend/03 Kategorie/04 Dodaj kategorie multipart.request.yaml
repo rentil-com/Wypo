@@ -1,0 +1,20 @@
+$kind: http-request
+name: Dodaj kategorię (multipart)
+url: "{{base_url}}/kategorie/dodaj"
+method: POST
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+body:
+  type: formdata
+  content:
+    - key: nazwa
+      value: Elektronarzędzia
+    - key: zdjecie
+      type: file
+      src: "{{image_path}}"
+    - key: zdjecie_url
+      value: https://example.com/kategoria.jpg
+order: 4000
+

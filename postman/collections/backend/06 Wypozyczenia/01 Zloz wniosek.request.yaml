@@ -1,0 +1,16 @@
+$kind: http-request
+name: Złóż wniosek o wypożyczenie
+url: "{{base_url}}/wypozyczenia/wypozycz"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sprzet_id": {{item_id}},
+      "data_od": "2026-08-01T10:00:00.000Z",
+      "data_do": "2026-08-03T10:00:00.000Z"
+    }
+order: 1000
+

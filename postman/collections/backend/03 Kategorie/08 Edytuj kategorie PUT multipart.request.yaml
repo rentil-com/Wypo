@@ -1,0 +1,18 @@
+$kind: http-request
+name: Edytuj kategorię (PUT, multipart)
+url: "{{base_url}}/kategorie/edit/{{category_id}}"
+method: PUT
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+body:
+  type: formdata
+  content:
+    - key: nazwa
+      value: Nowa nazwa kategorii
+    - key: zdjecie
+      type: file
+      src: "{{image_path}}"
+order: 8000
+

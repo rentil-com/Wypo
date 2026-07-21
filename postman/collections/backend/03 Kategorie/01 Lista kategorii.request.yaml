@@ -1,0 +1,6 @@
+$kind: http-request
+name: Lista kategorii
+url: "{{base_url}}/kategorie?nazwa=Elektronarzędzia"
+method: GET
+order: 1000
+

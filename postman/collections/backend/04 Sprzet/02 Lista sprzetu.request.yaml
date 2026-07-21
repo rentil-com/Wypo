@@ -1,0 +1,6 @@
+$kind: http-request
+name: Lista sprzętu
+url: "{{base_url}}/items?strona={{page}}&kategoria={{category_id}}&status=dostepny&nazwa=wiertarka&cena_od=10&cena_do=100&promocja=true"
+method: GET
+order: 2000
+

@@ -1,0 +1,10 @@
+$kind: http-request
+name: Odkryj recenzję (PATCH, admin)
+url: "{{base_url}}/recenzje/odkryj/{{review_id}}"
+method: PATCH
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+order: 8000
+

@@ -1,0 +1,10 @@
+$kind: http-request
+name: Lista usuwalnych kategorii (admin)
+url: "{{base_url}}/kategorie/usun"
+method: GET
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+order: 9000
+

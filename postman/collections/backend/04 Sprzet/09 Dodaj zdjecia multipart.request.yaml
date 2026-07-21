@@ -1,0 +1,21 @@
+$kind: http-request
+name: Dodaj zdjęcia sprzętu (multipart)
+url: "{{base_url}}/items/add_photos/{{item_id}}"
+method: POST
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+body:
+  type: formdata
+  content:
+    - key: zdjecia_url
+      value: '["https://example.com/url1.jpg","https://example.com/url2.jpg"]'
+    - key: zdjecie
+      type: file
+      src: "{{image_path}}"
+    - key: zdjecia
+      type: file
+      src: "{{image_path}}"
+order: 9000
+

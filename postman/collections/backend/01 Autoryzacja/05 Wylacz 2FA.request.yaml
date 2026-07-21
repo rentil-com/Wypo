@@ -1,0 +1,6 @@
+$kind: http-request
+name: Wyłącz 2FA
+url: "{{base_url}}/auth/2fa/disable"
+method: POST
+order: 5000
+

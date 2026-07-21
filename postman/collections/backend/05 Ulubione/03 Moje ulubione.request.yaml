@@ -1,0 +1,6 @@
+$kind: http-request
+name: Moje ulubione
+url: "{{base_url}}/ulubione"
+method: GET
+order: 3000
+

@@ -1,0 +1,6 @@
+$kind: http-request
+name: Recenzje sprzętu
+url: "{{base_url}}/recenzje/sprzet/{{item_id}}?strona={{page}}"
+method: GET
+order: 2000
+

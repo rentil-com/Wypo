@@ -1,0 +1,15 @@
+$kind: http-request
+name: Potwierdź rejestrację
+url: "{{base_url}}/auth/register-confirm"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{new_user_email}}",
+      "code": "{{verification_code}}"
+    }
+order: 2000
+

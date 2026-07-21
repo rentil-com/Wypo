@@ -1,0 +1,5 @@
+$kind: http-request
+name: New Request
+url: "{{base_url}}/auth/api-key"
+method: GET
+order: 1784622990625

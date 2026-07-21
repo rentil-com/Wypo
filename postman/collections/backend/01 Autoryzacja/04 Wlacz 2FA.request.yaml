@@ -1,0 +1,6 @@
+$kind: http-request
+name: Włącz 2FA
+url: "{{base_url}}/auth/2fa/enable"
+method: POST
+order: 4000
+

@@ -1,0 +1,6 @@
+$kind: http-request
+name: Szczegóły kategorii
+url: "{{base_url}}/kategorie/{{category_id}}"
+method: GET
+order: 2000
+

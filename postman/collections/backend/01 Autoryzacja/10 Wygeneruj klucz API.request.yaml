@@ -1,0 +1,20 @@
+$kind: http-request
+name: Wygeneruj lub zregeneruj klucz API
+url: "{{base_url}}/auth/api-key"
+method: POST
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 201 || pm.response.code === 200) {
+        const body = pm.response.json();
+        if (body.api_key) {
+          pm.environment.set("api_key", body.api_key);
+        }
+      }
+    language: text/javascript
+order: 10000
+

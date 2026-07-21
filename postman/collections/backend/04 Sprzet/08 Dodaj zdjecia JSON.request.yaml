@@ -1,0 +1,22 @@
+$kind: http-request
+name: Dodaj zdjęcia sprzętu (JSON)
+url: "{{base_url}}/items/add_photos/{{item_id}}"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+    enabled: true
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+body:
+  type: json
+  content: |-
+    {
+      "zdjecia_url": [
+        "https://example.com/url1.jpg",
+        "https://example.com/url2.jpg"
+      ]
+    }
+order: 8000
+

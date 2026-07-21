@@ -1,0 +1,6 @@
+$kind: http-request
+name: Usuń recenzję
+url: "{{base_url}}/recenzje/usun/{{review_id}}"
+method: DELETE
+order: 10000
+

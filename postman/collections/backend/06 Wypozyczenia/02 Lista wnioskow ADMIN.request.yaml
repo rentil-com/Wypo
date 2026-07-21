@@ -1,0 +1,10 @@
+$kind: http-request
+name: Lista wniosków (admin)
+url: "{{base_url}}/wypozyczenia/wnioski?strona={{page}}&uzytkownik_id={{account_id}}&sprzet_id={{item_id}}&status=oczekujacy&data=2026-08-01"
+method: GET
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    enabled: false
+order: 2000
+

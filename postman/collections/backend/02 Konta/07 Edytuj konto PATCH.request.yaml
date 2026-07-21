@@ -1,0 +1,18 @@
+$kind: http-request
+name: Edytuj konto (PATCH)
+url: "{{base_url}}/account/edit/{{account_id}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "imie": "Jan",
+      "nazwisko": "Nowak",
+      "email": "{{new_email}}",
+      "password": "{{new_user_password}}",
+      "rola": "uzytkownik"
+    }
+order: 7000
+
