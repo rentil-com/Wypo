@@ -243,7 +243,7 @@ export default function LoginScreen() {
             <Text style={styles.rememberText}>Zapamiętaj mnie</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={()=> router.push("/password_reset")}>
           <Text style={styles.forgotPassword}>
                       Nie pamiętasz hasła?
           </Text>
