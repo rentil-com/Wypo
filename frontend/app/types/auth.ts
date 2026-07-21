@@ -83,3 +83,22 @@ export type AccountCreateSuccessResponse = {
   message : string,
   user : AccountDetails
 }
+
+
+export type AccountEditBody = {
+  imie? : string,
+  nazwisko? : string
+}
+
+export type AccountEmailChangeResponse = {
+  message: string;
+  challenge: string;
+  expires_in: number;
+  max_attempts: number;
+}
+
+
+export type EmailChangeConfirmResponse = {
+  message: string;
+  email: string;
+};

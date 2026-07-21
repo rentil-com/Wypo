@@ -1,6 +1,6 @@
-import { apiPost, apiGet } from "./api";
+import { apiPost, apiGet ,apiPatch} from "./api";
 
-import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse } from "@/types/auth";
+import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse, AccountEditBody } from "@/types/auth";
 
 
 export async function login(email : string, password : string) {
@@ -89,3 +89,16 @@ export async function registerConfirm(email: string, kod : string) {
     const response = await apiPost("/auth/register-confirm",body) 
       return response as AccountCreateSuccessResponse   
 }
+
+export async function UpdateAccount(id : number, imie : string | null, nazwisko : string | null) {
+    const poprawneImie = imie?.trim()
+    const poprawneNazwisko = nazwisko?.trim()
+    const body : AccountEditBody = {
+        imie : poprawneImie,
+        nazwisko : poprawneNazwisko
+    }
+    const response = await apiPatch(`account/edit/${id}`,body)
+
+    return response as AccountDetails
+}
+

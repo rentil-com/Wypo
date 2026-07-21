@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -26,6 +27,8 @@ export default function AccountScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] =
     useState<string | null>(null);
+  const [edytowanie,setEdytowanie] = useState(false)
+  const [nowyEmail,setNowyEmail] = useState("")
 
   useEffect(() => {
      if (status !== "authenticated") {
@@ -230,6 +233,11 @@ if (!account) {
                   {account.email}
                 </Text>
               </View>
+            
+              
+              
+                <Text  onPress={()=> setEdytowanie(!edytowanie)} >EDYTUJ KONTO</Text>
+             
 
               <View style={[
                 styles.accountBadge,
@@ -257,9 +265,7 @@ if (!account) {
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Adres e-mail</Text>
-                  <Text style={styles.detailValue} numberOfLines={1}>
-                    {account.email}
-                  </Text>
+                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={account.email} onChangeText={(val)=> setNowyEmail(val)} />
                 </View>
               </View>
 
