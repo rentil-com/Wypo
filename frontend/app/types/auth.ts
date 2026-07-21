@@ -117,8 +117,8 @@ export type PasswordResetBody = {
 export type PasswordReset = {
   message : string,
   challenge : string,
-  expires_in : string,
-  max_attempts : string
+  expires_in : number,
+  max_attempts : number
 }
 
 export type PasswordResetConfirm = {
