@@ -364,7 +364,8 @@ if (!account) {
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Adres e-mail</Text>
-                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={email} onChangeText={(val)=> setNowyEmail(val)} />
+                  <TextInput  style={styles.detailValue} numberOfLines={1} editable={edytowanie} value={email} />
+                  <Text onPress={()=> router.push({pathname: "/(tabs)/account_change_email", params : {email : email.trim().toLowerCase()}})}>Zmien swoj adres email</Text>
                 </View>
               </View>
 
@@ -849,7 +850,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    outlineStyle: "none",
+    outlineWidth: 0,
   },
   roleValue: {
     textTransform: "capitalize",
