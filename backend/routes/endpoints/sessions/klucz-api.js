@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
 
     return res.status(200).json({
       active: Boolean(klucz),
-      can_generate: !req.uzytkownik.dwuetapowe,
+      can_generate: true,
       created_at: klucz?.data_utworzenia || null,
       last_used_at: klucz?.data_ostatniego_uzycia || null
     });
@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
     await client.query("BEGIN");
     const kontoResult = await client.query(
       `
-      SELECT rola, dwuetapowe
+      SELECT rola
       FROM uzytkownicy
       WHERE id = $1
       FOR UPDATE
@@ -56,13 +56,6 @@ router.post("/", async (req, res) => {
     if (konto.rola !== "admin") {
       await client.query("ROLLBACK");
       return res.status(403).json({ error: "Brak uprawnien." });
-    }
-
-    if (konto.dwuetapowe) {
-      await client.query("ROLLBACK");
-      return res.status(409).json({
-        error: "Klucz API mozna wygenerowac tylko na koncie bez 2FA."
-      });
     }
 
     const kluczApi = generujKluczApi();

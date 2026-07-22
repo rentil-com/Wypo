@@ -1,0 +1,26 @@
+$kind: http-request
+name: Nieznane ustawienie workera jest odrzucane
+url: "{{base_url}}/worker/settings"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Authorization: "Bearer {{api_key}}"
+body:
+  type: json
+  content: |-
+    {
+      "backend_api_key": "sekret"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Odpowiedz odrzuca nieznane ustawienie", function () {
+        pm.expect(pm.response.json().error).to.include("Nieznane ustawienia");
+      });
+    language: text/javascript
+order: 7000
+

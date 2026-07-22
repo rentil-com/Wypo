@@ -135,13 +135,13 @@ ujawniania jego wartości:
 
 ### `POST /auth/api-key`
 
-Wymaga zalogowanego administratora i wyłączonego 2FA. Generuje pierwszy klucz
-albo zastępuje poprzedni. Konto może mieć tylko jeden aktywny klucz.
+Wymaga zalogowanego administratora. Generuje pierwszy klucz albo zastępuje
+poprzedni. Konto może mieć tylko jeden aktywny klucz.
 
 Jawna wartość w polu `api_key` jest zwracana tylko raz. Backend przechowuje
 wyłącznie hash klucza. Regeneracja natychmiast unieważnia poprzedni klucz.
 
-Próba wygenerowania klucza na koncie z włączonym 2FA zwraca `409`.
+Klucz można wygenerować również na koncie z włączonym 2FA.
 
 ### `DELETE /auth/api-key`
 
@@ -1258,3 +1258,57 @@ Możliwe błędy:
 * `404` - nie znaleziono zasobu
 * `409` - konflikt, np. zajęty sprzęt, zasób powiązany z innymi rekordami albo duplikat recenzji
 * `500` - błąd serwera
+
+## Zarzadzanie workerem
+
+Backend laczy sie z wewnetrznym API workera przez `WORKER_API_URL` i uzywa
+sekretu `WORKER_API_KEY`. Klucz workera nie jest przyjmowany od klienta ani
+zwracany w odpowiedzi. Wszystkie ponizsze endpointy wymagaja zalogowanego konta
+z rola `admin`; mozna uzyc sesji albo administracyjnego klucza API backendu.
+`WORKER_API_URL` jest opcjonalne. Jezeli zmienna nie jest ustawiona albo jest
+pusta, router `/worker` nie zostaje zamontowany i wszystkie ponizsze endpointy
+sa wylaczone. W takim trybie `WORKER_API_KEY` oraz
+`WORKER_API_REQUEST_TIMEOUT_MS` nie sa wymagane.
+
+### `GET /worker/settings`
+
+Zwraca aktualne ustawienia harmonogramu i promocji:
+
+```json
+{
+  "settings": {
+    "cron_daily_promotion": "0 3 * * *",
+    "timezone": "Europe/Warsaw",
+    "discount_min_percent": 10,
+    "discount_max_percent": 20
+  }
+}
+```
+
+### `PATCH /worker/settings`
+
+Czesciowo zmienia jedno lub kilka ustawien. Wymaga
+`Content-Type: application/json`. Dozwolone pola to `cron_daily_promotion`,
+`timezone`, `discount_min_percent` i `discount_max_percent`. Worker waliduje caly
+wynikowy zestaw i od razu przeladowuje harmonogram po zmianie crona lub strefy.
+
+```json
+{
+  "cron_daily_promotion": "0 4 * * *",
+  "discount_min_percent": 15,
+  "discount_max_percent": 25
+}
+```
+
+Nieprawidlowe ustawienia zwracaja `400`, zly typ zawartosci `415`, a zbyt duze
+body `413`.
+
+### `POST /worker/runpromotion`
+
+Recznie uruchamia zadanie promocji i czeka na jego wynik. Odpowiedz ma status
+`success` albo `skipped`. Gdy zadanie juz trwa, endpoint zwraca `409` ze statusem
+`already_running`.
+
+Problemy z polaczeniem backendu do workera zwracaja `502`, a przekroczenie
+`WORKER_API_REQUEST_TIMEOUT_MS` zwraca `504`. Bledy wewnetrznego uwierzytelnienia
+workera nie sa ujawniane klientowi.

@@ -1,0 +1,22 @@
+$kind: http-request
+name: Edytuj ustawienia workera (ADMIN)
+url: "{{base_url}}/worker/settings"
+method: PATCH
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "cron_daily_promotion": "0 4 * * *",
+      "timezone": "Europe/Warsaw",
+      "discount_min_percent": 10,
+      "discount_max_percent": 20
+    }
+order: 2000
+

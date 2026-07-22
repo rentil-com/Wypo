@@ -1,0 +1,10 @@
+$kind: http-request
+name: Uruchom promocje workera (ADMIN)
+url: "{{base_url}}/worker/runpromotion"
+method: POST
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 3000
+
