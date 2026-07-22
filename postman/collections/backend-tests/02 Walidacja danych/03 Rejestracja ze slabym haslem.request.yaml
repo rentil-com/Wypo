@@ -1,0 +1,28 @@
+$kind: http-request
+name: Rejestracja ze słabym hasłem jest odrzucana
+url: "{{base_url}}/account/create"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "imie": "Jan",
+      "nazwisko": "Testowy",
+      "email": "test+{{$guid}}@example.com",
+      "password": "slabe"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Komunikat opisuje wymagania hasła", function () {
+        pm.expect(pm.response.json().error).to.include("minimum 8 znakow");
+      });
+    language: text/javascript
+order: 3000
+

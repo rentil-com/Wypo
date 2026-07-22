@@ -1,0 +1,24 @@
+$kind: http-request
+name: Edytuj wypożyczenie (PATCH, admin)
+url: "{{base_url}}/wypozyczenia/edytuj/{{rental_id}}"
+method: PATCH
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "sprzet_id": {{item_id}},
+      "uzytkownik_id": {{account_id}},
+      "data_od": "2026-08-01T10:00:00.000Z",
+      "data_do": "2026-08-03T10:00:00.000Z",
+      "status": "aktywny",
+      "data_zwrotu_rzeczywista": null
+    }
+order: 13000
+

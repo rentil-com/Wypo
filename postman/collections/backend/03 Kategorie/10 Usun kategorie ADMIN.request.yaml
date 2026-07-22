@@ -1,0 +1,10 @@
+$kind: http-request
+name: Usuń kategorię (admin)
+url: "{{base_url}}/kategorie/usun/{{category_id}}"
+method: DELETE
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 10000
+

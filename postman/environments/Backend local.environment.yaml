@@ -1,0 +1,63 @@
+name: Backend local
+values:
+  - key: base_url
+    value: http://localhost:3000
+    enabled: true
+  - key: admin_email
+    value: admin@example.com
+    enabled: true
+  - key: admin_password
+    value: UZUPELNIJ
+    enabled: true
+  - key: user_email
+    value: jan@example.com
+    enabled: true
+  - key: user_password
+    value: UZUPELNIJ
+    enabled: true
+  - key: new_user_email
+    value: nowy.uzytkownik@example.com
+    enabled: true
+  - key: new_user_password
+    value: NoweHaslo!123
+    enabled: true
+  - key: new_email
+    value: jan.nowak@example.com
+    enabled: true
+  - key: verification_code
+    value: "123456"
+    enabled: true
+  - key: login_challenge
+    value: ""
+    enabled: true
+  - key: reset_challenge
+    value: ""
+    enabled: true
+  - key: email_change_challenge
+    value: ""
+    enabled: true
+  - key: api_key
+    value: ""
+    enabled: true
+  - key: account_id
+    value: "1"
+    enabled: true
+  - key: category_id
+    value: "1"
+    enabled: true
+  - key: item_id
+    value: "1"
+    enabled: true
+  - key: rental_id
+    value: "1"
+    enabled: true
+  - key: review_id
+    value: "1"
+    enabled: true
+  - key: page
+    value: "1"
+    enabled: true
+  - key: image_path
+    value: C:/tmp/zdjecie.png
+    enabled: true
+

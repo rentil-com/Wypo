@@ -1,0 +1,29 @@
+{
+  "name": "wypo-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test",
+    "test:postman": "node test/run-postman.js",
+    "run:promotion": "node src/jobs/daily-promotion.js",
+    "db:init": "node src/commands/init-database.js",
+    "settings:list": "node src/commands/settings.js list",
+    "settings:set": "node src/commands/settings.js set",
+    "history:list": "node src/commands/history.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "node-cron": "^4.2.1",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "newman": "^6.2.2"
+  }
+}

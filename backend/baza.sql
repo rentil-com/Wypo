@@ -256,6 +256,18 @@ CREATE TABLE sesje (
         ON DELETE CASCADE
 );
 
+CREATE TABLE klucze_api (
+    uzytkownik_id INTEGER PRIMARY KEY,
+    klucz_hash TEXT UNIQUE NOT NULL,
+    data_utworzenia TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_ostatniego_uzycia TIMESTAMP,
+
+    CONSTRAINT fk_klucze_api_uzytkownicy
+        FOREIGN KEY (uzytkownik_id)
+        REFERENCES uzytkownicy(id)
+        ON DELETE CASCADE
+);
+
 CREATE TABLE recenzje (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 

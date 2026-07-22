@@ -1,0 +1,28 @@
+$kind: http-request
+name: Run promotion
+url: "{{worker_base_url}}/runpromotion"
+method: POST
+headers:
+  Authorization: Bearer {{worker_api_key}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response contains a valid promotion outcome", function () {
+        const body = pm.response.json();
+        pm.expect(["success", "skipped"]).to.include(body.status);
+
+        if (body.status === "success") {
+          pm.expect(body.promotion).to.be.an("object");
+          pm.expect(body.promotion.item_id).to.be.a("number");
+          pm.expect(body.promotion.discount_percent).to.be.a("number");
+          pm.expect(body.promotion.promotional_price).to.be.a("number");
+        } else {
+          pm.expect(body.promotion).to.eql(null);
+        }
+      });
+    language: text/javascript
+order: 3000

@@ -1,0 +1,31 @@
+$kind: http-request
+name: Edytuj sprzęt (PUT)
+url: "{{base_url}}/items/edit/{{item_id}}"
+method: PUT
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "nazwa": "Wiertarka Pro",
+      "opis": "Zaktualizowany opis",
+      "kategoria_id": {{category_id}},
+      "status": "dostepny",
+      "cena": "59.99",
+      "cena_po_promocji": "44.99",
+      "specyfikacje": [
+        {
+          "nazwa_specyfikacji": "Moc",
+          "opis_specyfikacji": "1000 W",
+          "emotka_specyfikacji": "bolt.fill"
+        }
+      ]
+    }
+order: 7000
+

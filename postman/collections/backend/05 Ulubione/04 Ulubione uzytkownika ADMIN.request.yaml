@@ -1,0 +1,10 @@
+$kind: http-request
+name: Ulubione użytkownika (admin)
+url: "{{base_url}}/ulubione/{{account_id}}"
+method: GET
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 4000
+

@@ -1,0 +1,30 @@
+$kind: http-request
+name: Edycja sprzętu z błędnym ID jest odrzucana
+url: "{{base_url}}/items/edit/abc"
+method: PATCH
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: false
+  - key: Content-Type
+    value: application/json
+    disabled: false
+body:
+  type: json
+  content: |-
+    {
+      "cena_po_promocji": 10
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Odpowiedź zawiera błąd", function () {
+        pm.expect(pm.response.json().error).to.be.a("string").and.not.empty;
+      });
+    language: text/javascript
+order: 4000
+

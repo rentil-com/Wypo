@@ -1,0 +1,20 @@
+$kind: http-request
+name: Wyślij przypomnienie o odbiorze (admin)
+url: "{{base_url}}/wypozyczenia/przypomnienie-odbioru/{{rental_id}}"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "miejsce_odbioru": "Punkt wypożyczalni, ul. Przykładowa 1",
+      "godziny_odbioru": "9:00-17:00"
+    }
+order: 10000
+

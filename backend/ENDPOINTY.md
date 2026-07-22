@@ -2,7 +2,10 @@
 
 Domyślny adres lokalny: `http://localhost:3000`.
 
-Autoryzacja działa przez cookie `session_id`. Bez 2FA cookie jest ustawiane przez `POST /auth/login`, a z włączonym 2FA dopiero przez `POST /auth/2fa`. Endpointy wymagające zalogowania zwracają `401`, gdy nie ma poprawnej sesji. Endpointy administracyjne zwracają `403`, gdy użytkownik nie ma roli `admin`.
+Autoryzacja użytkowników działa przez cookie `session_id`. Worker może zamiast
+cookie przekazywać klucz API w nagłówku `Authorization: Bearer <token>`.
+Endpointy wymagające zalogowania zwracają `401`, gdy uwierzytelnienie jest
+niepoprawne. Endpointy administracyjne zwracają `403`, gdy konto nie ma roli `admin`.
 
 ## Statusy w systemie
 
@@ -100,6 +103,50 @@ Jeśli użytkownik ma włączone 2FA, endpoint nie tworzy jeszcze sesji. Wysyła
 }
 ```
 
+### Uwierzytelnianie kluczem API
+
+Klucz API nie tworzy sesji. Worker musi dołączyć go do każdego żądania:
+
+```http
+Authorization: Bearer wypo_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+```
+
+Nie są obsługiwane tokeny w body, query string ani innych nagłówkach. Poprawny
+Bearer daje takie same uprawnienia jak konto administratora, do którego należy.
+Przy każdym żądaniu backend ponownie sprawdza, czy konto nadal ma rolę `admin`,
+ma wyłączone 2FA i czy klucz nadal jest aktywny. Udane użycie aktualizuje
+`last_used_at`.
+
+Nieprawidłowy lub unieważniony Bearer nie uwierzytelnia żądania.
+
+### `GET /auth/api-key`
+
+Wymaga zalogowanego administratora. Zwraca stan klucza aktualnego konta bez
+ujawniania jego wartości:
+
+```json
+{
+  "active": true,
+  "can_generate": true,
+  "created_at": "2026-07-20T10:00:00.000Z",
+  "last_used_at": null
+}
+```
+
+### `POST /auth/api-key`
+
+Wymaga zalogowanego administratora. Generuje pierwszy klucz albo zastępuje
+poprzedni. Konto może mieć tylko jeden aktywny klucz.
+
+Jawna wartość w polu `api_key` jest zwracana tylko raz. Backend przechowuje
+wyłącznie hash klucza. Regeneracja natychmiast unieważnia poprzedni klucz.
+
+Klucz można wygenerować również na koncie z włączonym 2FA.
+
+### `DELETE /auth/api-key`
+
+Wymaga zalogowanego administratora. Unieważnia klucz aktualnego konta.
+
 ### `POST /auth/register-confirm`
 
 Potwierdza kod wysłany przez `POST /account/create`. Dopiero ten endpoint tworzy rekord użytkownika.
@@ -131,6 +178,9 @@ Body:
 Zamiast `challenge` i `code` można użyć pól `wyzwanie` i `kod`. Kod jest ważny 10 minut i pozwala na maksymalnie 5 prób.
 
 ### `POST /auth/2fa/enable`
+
+Włączenie 2FA automatycznie unieważnia klucz API konta. Pole `api_key_revoked`
+w odpowiedzi informuje, czy aktywny klucz został usunięty.
 
 Wymaga logowania. Włącza e-mailowe 2FA dla aktualnego użytkownika i wysyła powiadomienie o zmianie.
 
@@ -186,6 +236,7 @@ Po poprawnej zmianie backend:
 * usuwa wykorzystane żądanie resetu
 * usuwa oczekującą zmianę adresu e-mail
 * usuwa oczekujące wyzwanie 2FA
+* unieważnia aktywny klucz API
 * kończy wszystkie sesje użytkownika i czyści cookie
 * wysyła powiadomienie o zmianie hasła
 
@@ -1207,3 +1258,57 @@ Możliwe błędy:
 * `404` - nie znaleziono zasobu
 * `409` - konflikt, np. zajęty sprzęt, zasób powiązany z innymi rekordami albo duplikat recenzji
 * `500` - błąd serwera
+
+## Zarzadzanie workerem
+
+Backend laczy sie z wewnetrznym API workera przez `WORKER_API_URL` i uzywa
+sekretu `WORKER_API_KEY`. Klucz workera nie jest przyjmowany od klienta ani
+zwracany w odpowiedzi. Wszystkie ponizsze endpointy wymagaja zalogowanego konta
+z rola `admin`; mozna uzyc sesji albo administracyjnego klucza API backendu.
+`WORKER_API_URL` jest opcjonalne. Jezeli zmienna nie jest ustawiona albo jest
+pusta, router `/worker` nie zostaje zamontowany i wszystkie ponizsze endpointy
+sa wylaczone. W takim trybie `WORKER_API_KEY` oraz
+`WORKER_API_REQUEST_TIMEOUT_MS` nie sa wymagane.
+
+### `GET /worker/settings`
+
+Zwraca aktualne ustawienia harmonogramu i promocji:
+
+```json
+{
+  "settings": {
+    "cron_daily_promotion": "0 3 * * *",
+    "timezone": "Europe/Warsaw",
+    "discount_min_percent": 10,
+    "discount_max_percent": 20
+  }
+}
+```
+
+### `PATCH /worker/settings`
+
+Czesciowo zmienia jedno lub kilka ustawien. Wymaga
+`Content-Type: application/json`. Dozwolone pola to `cron_daily_promotion`,
+`timezone`, `discount_min_percent` i `discount_max_percent`. Worker waliduje caly
+wynikowy zestaw i od razu przeladowuje harmonogram po zmianie crona lub strefy.
+
+```json
+{
+  "cron_daily_promotion": "0 4 * * *",
+  "discount_min_percent": 15,
+  "discount_max_percent": 25
+}
+```
+
+Nieprawidlowe ustawienia zwracaja `400`, zly typ zawartosci `415`, a zbyt duze
+body `413`.
+
+### `POST /worker/runpromotion`
+
+Recznie uruchamia zadanie promocji i czeka na jego wynik. Odpowiedz ma status
+`success` albo `skipped`. Gdy zadanie juz trwa, endpoint zwraca `409` ze statusem
+`already_running`.
+
+Problemy z polaczeniem backendu do workera zwracaja `502`, a przekroczenie
+`WORKER_API_REQUEST_TIMEOUT_MS` zwraca `504`. Bledy wewnetrznego uwierzytelnienia
+workera nie sa ujawniane klientowi.

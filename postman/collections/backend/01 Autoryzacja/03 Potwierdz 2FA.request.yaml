@@ -1,0 +1,15 @@
+$kind: http-request
+name: Potwierdź 2FA
+url: "{{base_url}}/auth/2fa"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "challenge": "{{login_challenge}}",
+      "code": "{{verification_code}}"
+    }
+order: 3000
+

@@ -1,0 +1,8 @@
+name: Worker local
+values:
+  - key: worker_base_url
+    value: http://localhost:3001
+    enabled: true
+  - key: worker_api_key
+    value: klucz
+    enabled: true

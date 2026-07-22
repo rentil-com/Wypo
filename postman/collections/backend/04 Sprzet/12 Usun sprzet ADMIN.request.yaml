@@ -1,0 +1,10 @@
+$kind: http-request
+name: Usuń sprzęt (admin)
+url: "{{base_url}}/items/usun/{{item_id}}"
+method: DELETE
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 12000
+

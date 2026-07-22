@@ -1,0 +1,23 @@
+$kind: http-request
+name: Login bez danych jest odrzucany
+url: "{{base_url}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Odpowiedź zawiera błąd", function () {
+        pm.expect(pm.response.json().error).to.be.a("string").and.not.empty;
+      });
+    language: text/javascript
+order: 1000
+

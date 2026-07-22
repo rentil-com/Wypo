@@ -1,0 +1,26 @@
+$kind: http-request
+name: Lista kategorii ma poprawny kontrakt
+url: "{{base_url}}/kategorie"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Odpowiedź jest tablicą kategorii", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.be.an("array");
+
+        body.forEach(function (category) {
+          pm.expect(category).to.have.property("id");
+          pm.expect(category).to.have.property("nazwa");
+          pm.expect(category).to.have.property("zdjecie_url");
+          pm.expect(category).to.have.property("liczba_sprzetow");
+          pm.expect(category).to.have.property("liczba_dostepnych_sprzetow");
+        });
+      });
+    language: text/javascript
+order: 2000
+

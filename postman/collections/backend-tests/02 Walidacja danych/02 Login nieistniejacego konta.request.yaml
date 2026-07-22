@@ -1,0 +1,28 @@
+$kind: http-request
+name: Login nieistniejącego konta nie ujawnia szczegółów
+url: "{{base_url}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "nieistniejacy+{{$guid}}@example.com",
+      "password": "Niepoprawne!123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 401", function () {
+        pm.response.to.have.status(401);
+      });
+
+      pm.test("Odpowiedź zawiera ogólny błąd", function () {
+        const body = pm.response.json();
+        pm.expect(body.error).to.be.a("string").and.not.empty;
+        pm.expect(body).not.to.have.property("user");
+      });
+    language: text/javascript
+order: 2000
+

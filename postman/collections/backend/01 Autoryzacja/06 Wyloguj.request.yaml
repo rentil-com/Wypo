@@ -1,0 +1,6 @@
+$kind: http-request
+name: Wyloguj
+url: "{{base_url}}/auth/logout"
+method: POST
+order: 6000
+

@@ -1,0 +1,10 @@
+$kind: http-request
+name: Szczegóły wniosku (admin)
+url: "{{base_url}}/wypozyczenia/wnioski/{{rental_id}}"
+method: GET
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 3000
+

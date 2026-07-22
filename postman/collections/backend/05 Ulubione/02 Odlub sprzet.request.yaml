@@ -1,0 +1,6 @@
+$kind: http-request
+name: Odlub sprzęt
+url: "{{base_url}}/ulubione/odlub/{{item_id}}"
+method: DELETE
+order: 2000
+

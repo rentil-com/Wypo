@@ -1,0 +1,20 @@
+$kind: http-request
+name: Dodaj kategorię (JSON)
+url: "{{base_url}}/kategorie/dodaj"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "nazwa": "Elektronarzędzia",
+      "zdjecie_url": "https://example.com/kategoria.jpg"
+    }
+order: 3000
+

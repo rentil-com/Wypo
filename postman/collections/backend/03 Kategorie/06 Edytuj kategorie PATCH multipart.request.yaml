@@ -1,0 +1,19 @@
+$kind: http-request
+name: Edytuj kategorię (PATCH, multipart)
+url: "{{base_url}}/kategorie/edit/{{category_id}}"
+method: PATCH
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: formdata
+  content:
+    - type: text
+      key: nazwa
+      value: Nowa nazwa kategorii
+    - key: zdjecie
+      type: file
+      src: "{{image_path}}"
+order: 6000
+

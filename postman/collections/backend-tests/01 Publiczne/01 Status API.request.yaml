@@ -1,0 +1,28 @@
+$kind: http-request
+name: Status API zwraca kontrakt usług
+url: "{{base_url}}/"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status to 200 albo 503", function () {
+        pm.expect([200, 503]).to.include(pm.response.code);
+      });
+
+      pm.test("Odpowiedź zawiera stan API, bazy i S3", function () {
+        const body = pm.response.json();
+        pm.expect(body.api).to.eql("ok");
+        pm.expect(["ok", "zle"]).to.include(body.database);
+        pm.expect(["ok", "zle"]).to.include(body.s3);
+      });
+
+      pm.test("Status 200 oznacza sprawną bazę i S3", function () {
+        if (pm.response.code === 200) {
+          const body = pm.response.json();
+          pm.expect(body.database).to.eql("ok");
+          pm.expect(body.s3).to.eql("ok");
+        }
+      });
+    language: text/javascript
+order: 1000
+

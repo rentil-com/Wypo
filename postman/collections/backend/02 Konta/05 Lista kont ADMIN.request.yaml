@@ -1,0 +1,16 @@
+$kind: http-request
+name: Lista kont (admin)
+url: "{{base_url}}/account/details/all?strona={{page}}&imie=Jan&nazwisko=Kowalski&email={{user_email}}&rola=uzytkownik"
+method: GET
+queryParams:
+  strona: "{{page}}"
+  imie: "Jan"
+  nazwisko: "Kowalski"
+  email: "{{user_email}}"
+  rola: "uzytkownik"
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 5000
+

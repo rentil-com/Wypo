@@ -1,0 +1,10 @@
+$kind: http-request
+name: Aktywuj wypożyczenie (PATCH, admin)
+url: "{{base_url}}/wypozyczenia/aktywuj/{{rental_id}}"
+method: PATCH
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 6000
+

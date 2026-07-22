@@ -1,0 +1,10 @@
+$kind: http-request
+name: Aktywuj wypożyczenie (POST, admin)
+url: "{{base_url}}/wypozyczenia/aktywuj/{{rental_id}}"
+method: POST
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 7000
+

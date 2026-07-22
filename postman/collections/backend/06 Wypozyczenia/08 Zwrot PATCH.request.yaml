@@ -1,0 +1,6 @@
+$kind: http-request
+name: Zwróć sprzęt (PATCH)
+url: "{{base_url}}/wypozyczenia/zwrot/{{rental_id}}"
+method: PATCH
+order: 8000
+

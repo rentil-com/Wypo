@@ -1,0 +1,11 @@
+# Use this workspace to collaborate
+workspace:
+  id: 898d498c-0f7f-483a-8f76-5a804099c314
+
+localResources:
+  collections:
+    - ../backend/postman/Wypo-API-Key-Bearer.postman_collection.json
+    - ../worker/postman/Worker-API.postman_collection.json
+  environments:
+    - ../backend/postman/Wypo-local.postman_environment.json
+    - ../worker/postman/Worker-local.postman_environment.json

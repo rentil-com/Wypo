@@ -1,9 +1,14 @@
 import { pobierzUzytkownikaZSesji } from "../services/sessions.js";
+import { pobierzAdminaZKluczaApi } from "../services/klucze-api.js";
 
 export async function dolaczUzytkownikaZSesji(req, res, next) {
   try {
     if (!Object.prototype.hasOwnProperty.call(req, "uzytkownik")) {
-      req.uzytkownik = await pobierzUzytkownikaZSesji(req);
+      const uwierzytelnienieApi = await pobierzAdminaZKluczaApi(req);
+
+      req.uzytkownik = uwierzytelnienieApi.przekazany
+        ? uwierzytelnienieApi.uzytkownik
+        : await pobierzUzytkownikaZSesji(req);
     }
 
     return next();

@@ -1,0 +1,10 @@
+$kind: http-request
+name: Odkryj recenzję (PUT, admin)
+url: "{{base_url}}/recenzje/odkryj/{{review_id}}"
+method: PUT
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 9000
+

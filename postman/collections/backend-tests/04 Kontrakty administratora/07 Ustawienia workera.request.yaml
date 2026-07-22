@@ -1,0 +1,26 @@
+$kind: http-request
+name: Administrator pobiera ustawienia workera
+url: "{{base_url}}/worker/settings"
+method: GET
+headers:
+  Authorization: "Bearer {{api_key}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Odpowiedz zawiera komplet ustawien workera", function () {
+        const body = pm.response.json();
+        pm.expect(body.settings).to.be.an("object");
+        pm.expect(body.settings).to.have.all.keys(
+          "cron_daily_promotion",
+          "timezone",
+          "discount_min_percent",
+          "discount_max_percent"
+        );
+      });
+    language: text/javascript
+order: 7000
+

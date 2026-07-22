@@ -1,0 +1,25 @@
+$kind: http-request
+name: Get worker settings
+url: "{{worker_base_url}}/settings"
+method: GET
+headers:
+  Authorization: Bearer {{worker_api_key}}
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response contains all worker settings", function () {
+        const body = pm.response.json();
+        pm.expect(body.settings).to.be.an("object");
+        pm.expect(body.settings).to.have.all.keys(
+          "cron_daily_promotion",
+          "timezone",
+          "discount_min_percent",
+          "discount_max_percent"
+        );
+      });
+    language: text/javascript
+order: 1000

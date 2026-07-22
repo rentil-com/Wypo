@@ -1,0 +1,27 @@
+$kind: http-request
+name: Błędne potwierdzenie resetu hasła jest odrzucane
+url: "{{base_url}}/auth/password-reset/confirm"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "challenge": "niepoprawne",
+      "code": "12",
+      "password": "NoweHaslo!123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Odpowiedź zawiera błąd", function () {
+        pm.expect(pm.response.json().error).to.be.a("string").and.not.empty;
+      });
+    language: text/javascript
+order: 7000
+

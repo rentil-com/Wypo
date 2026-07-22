@@ -1,0 +1,6 @@
+$kind: http-request
+name: Moje szczegóły
+url: "{{base_url}}/account/details"
+method: GET
+order: 4000
+

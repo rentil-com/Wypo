@@ -1,0 +1,461 @@
+{
+  "info": {
+    "_postman_id": "8b1655a0-714e-4eb9-8d6e-0b0ef6c8b5cc",
+    "name": "Wypo - API Key Authorization Bearer",
+    "description": "UWAGA: uruchamiaj na koncie testowym. Kolekcja zastępuje ewentualny istniejący klucz administratora, a na końcu unieważnia nowy klucz. Test wymaga konta administratora z wyłączonym 2FA i należy go uruchamiać w podanej kolejności. Sprawdza generowanie, Authorization Bearer, regenerację, unieważnienie oraz wylogowanie sesji testowej.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01. Login administratora bez 2FA",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Status 200 - konto musi mieć wyłączone 2FA', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Zalogowane konto ma rolę admin', function () {",
+              "  pm.expect(json.user).to.be.an('object');",
+              "  pm.expect(json.user.rola).to.eql('admin');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/auth/login",
+        "description": "Loguje administratora. Postman automatycznie zapisze cookie session_id potrzebne do wygenerowania pierwszego klucza."
+      }
+    },
+    {
+      "name": "02. Status klucza przez sesję administratora",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Status 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Konto może wygenerować klucz', function () {",
+              "  pm.expect(json.can_generate).to.eql(true);",
+              "  pm.expect(json).to.have.property('active');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/auth/api-key",
+        "description": "Korzysta z cookie session_id zapisanego przez pierwsze żądanie."
+      }
+    },
+    {
+      "name": "03. Generowanie klucza API",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Status 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Odpowiedź zawiera poprawny klucz', function () {",
+              "  pm.expect(json.api_key).to.match(/^wypo_[a-f0-9]{64}$/);",
+              "});",
+              "",
+              "if (pm.response.code === 201 && json.api_key) {",
+              "  pm.collectionVariables.set('api_key', json.api_key);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "url": "{{base_url}}/auth/api-key",
+        "description": "Generuje klucz przez sesję administratora i zapisuje go do zmiennej kolekcji api_key."
+      }
+    },
+    {
+      "name": "04. Operacja admina przez Authorization Bearer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Bearer daje dostęp do endpointu administratora', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Odpowiedź zawiera listę kont', function () {",
+              "  pm.expect(json.dane).to.be.an('array');",
+              "  pm.expect(json).to.have.property('total');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/account/details/all?strona=1",
+        "description": "Sprawdza rzeczywisty endpoint wymagający roli admin."
+      }
+    },
+    {
+      "name": "05. Odrzucenie Authorization bez Bearer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Authorization bez schematu Bearer zwraca 401', function () {",
+              "  pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{api_key}}",
+            "type": "text"
+          }
+        ],
+        "url": "{{base_url}}/account/details/all?strona=1",
+        "description": "Potwierdza, że sam token bez prefiksu Bearer nie jest akceptowany, nawet jeśli Postman nadal ma cookie sesji."
+      }
+    },
+    {
+      "name": "06. Status i ostatnie użycie przez Bearer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Status 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Klucz jest aktywny i ma datę ostatniego użycia', function () {",
+              "  pm.expect(json.active).to.eql(true);",
+              "  pm.expect(json.last_used_at).to.not.eql(null);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/auth/api-key"
+      }
+    },
+    {
+      "name": "07. Regenerowanie klucza przez Bearer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const oldKey = pm.collectionVariables.get('api_key');",
+              "",
+              "pm.test('Status 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Nowy klucz różni się od poprzedniego', function () {",
+              "  pm.expect(json.api_key).to.match(/^wypo_[a-f0-9]{64}$/);",
+              "  pm.expect(json.api_key).to.not.eql(oldKey);",
+              "});",
+              "",
+              "if (pm.response.code === 201 && json.api_key) {",
+              "  pm.collectionVariables.set('previous_api_key', oldKey);",
+              "  pm.collectionVariables.set('api_key', json.api_key);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": "{{base_url}}/auth/api-key",
+        "description": "Autoryzuje żądanie dotychczasowym kluczem, po czym zapisuje nowy klucz i zachowuje stary do testu unieważnienia."
+      }
+    },
+    {
+      "name": "08. Stary klucz po regeneracji jest odrzucony",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Stary Bearer zwraca 401', function () {",
+              "  pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{previous_api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/account/details/all?strona=1"
+      }
+    },
+    {
+      "name": "09. Nowy klucz po regeneracji działa",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Nowy Bearer zwraca 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/account/details/all?strona=1"
+      }
+    },
+    {
+      "name": "10. Unieważnienie klucza przez Bearer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "",
+              "pm.test('Status 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Klucz został unieważniony', function () {",
+              "  pm.expect(json.revoked).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": "{{base_url}}/auth/api-key"
+      }
+    },
+    {
+      "name": "11. Unieważniony klucz jest odrzucony",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unieważniony Bearer zwraca 401', function () {",
+              "  pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{api_key}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/account/details/all?strona=1"
+      }
+    },
+    {
+      "name": "12. Cleanup - logout i usunięcie zmiennych",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Logout zwraca 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.collectionVariables.unset('api_key');",
+              "pm.collectionVariables.unset('previous_api_key');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "url": "{{base_url}}/auth/logout",
+        "description": "Usuwa sesję administratora i czyści tymczasowe zmienne kolekcji."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@example.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "UZUPELNIJ",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "previous_api_key",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+$kind: http-request
+name: Usuń konto
+url: "{{base_url}}/account/delete/{{account_id}}"
+method: DELETE
+order: 9000
+

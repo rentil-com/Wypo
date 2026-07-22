@@ -1,0 +1,25 @@
+$kind: http-request
+name: Rozpocznij zmianę e-mail
+url: "{{base_url}}/account/email-change"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "new_email": "{{new_email}}",
+      "password": "{{user_password}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 202) {
+        const body = pm.response.json();
+        if (body.challenge) {
+          pm.environment.set("email_change_challenge", body.challenge);
+        }
+      }
+    language: text/javascript
+order: 2000
+

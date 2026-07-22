@@ -9,12 +9,16 @@ import accounts from "./routes/accounts.js";
 import ulubione from "./routes/ulubione.js";
 import wypozyczenia from "./routes/wypozyczenia.js";
 import recenzje from "./routes/recenzje.js";
+import { utworzRouterWorkera } from "./routes/worker.js";
+import { utworzKlientaApiWorkeraZEnv } from "./services/worker-api.js";
 import cors from "cors";
+import { obsluzBladRoutera } from "./middleware/error-handler.js";
 import { pobierzDodatniaLiczbeCalkowitaEnv } from "./helpers/env.js";
 
 const app = express();
 const port = pobierzDodatniaLiczbeCalkowitaEnv("SERVER_PORT", 3000);
 const host = process.env.SERVER_HOST || "0.0.0.0";
+const klientApiWorkera = utworzKlientaApiWorkeraZEnv();
 
 app.use(
   cors({
@@ -37,6 +41,12 @@ app.use("/account", accounts);
 app.use("/ulubione", ulubione);
 app.use("/wypozyczenia", wypozyczenia);
 app.use("/recenzje", recenzje);
+
+if (klientApiWorkera) {
+  app.use("/worker", utworzRouterWorkera({ klient: klientApiWorkera }));
+}
+
+app.use(obsluzBladRoutera);
 
 app.listen(port, host, () => {
   console.log(`Przykladowa apka na porcie ${port}`);

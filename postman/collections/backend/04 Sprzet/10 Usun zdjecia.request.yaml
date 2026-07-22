@@ -1,0 +1,19 @@
+$kind: http-request
+name: Usuń zdjęcia sprzętu
+url: "{{base_url}}/items/delete_photos/{{item_id}}"
+method: DELETE
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "zdjecia": [1, 2]
+    }
+order: 10000
+

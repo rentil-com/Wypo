@@ -1,0 +1,10 @@
+$kind: http-request
+name: Ukryj recenzję (PUT, admin)
+url: "{{base_url}}/recenzje/ukryj/{{review_id}}"
+method: PUT
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 7000
+
