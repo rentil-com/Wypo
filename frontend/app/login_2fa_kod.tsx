@@ -1,9 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -11,7 +8,7 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
 import { ThemedView } from "@components/themed-view";
 import { ThemedText } from "@components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
@@ -49,22 +46,12 @@ export default function Rejestracja() {
     }
 
     return (
-        <SafeAreaProvider style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
-                <KeyboardAvoidingView
-                    style={styles.keyboardAvoidingView}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={[
-                            styles.content,
-                            isMobile && styles.mobileContent,
-                        ]}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        automaticallyAdjustKeyboardInsets
-                    >
+        <FormScreenLayout
+            contentContainerStyle={[
+                styles.content,
+                isMobile && styles.mobileContent,
+            ]}
+        >
                         <ThemedView
                             style={[
                                 styles.card,
@@ -128,28 +115,10 @@ export default function Rejestracja() {
                                 </TouchableOpacity>
                             </View>
                         </ThemedView>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </SafeAreaProvider>
+        </FormScreenLayout>
     );
 }
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    safeArea: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    keyboardAvoidingView: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
     content: {
         flexGrow: 1,
         alignItems: "center",

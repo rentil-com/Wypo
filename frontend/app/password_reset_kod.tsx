@@ -3,9 +3,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -15,7 +12,7 @@ import {
 } from "react-native";
 import { ThemedText } from "@components/themed-text";
 import { ThemedView } from "@components/themed-view";
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
 import { emailChangeConfirm } from "@features/account";
 import { passwordResetConfirm } from "@features/password-reset";
 
@@ -82,22 +79,12 @@ export default function Zmiana_Maila_Kod() {
     const isMobile = width < 640;
 
     return (
-        <SafeAreaProvider style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
-                <KeyboardAvoidingView
-                    style={styles.keyboardAvoidingView}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={[
-                            styles.content,
-                            isMobile && styles.mobileContent,
-                        ]}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        automaticallyAdjustKeyboardInsets
-                    >
+        <FormScreenLayout
+            contentContainerStyle={[
+                styles.content,
+                isMobile && styles.mobileContent,
+            ]}
+        >
                         <ThemedView
                             style={[
                                 styles.card,
@@ -224,28 +211,10 @@ export default function Zmiana_Maila_Kod() {
                                 </TouchableOpacity>
                             </View>
                         </ThemedView>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </SafeAreaProvider>
+        </FormScreenLayout>
     );
 }
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    safeArea: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    keyboardAvoidingView: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
     content: {
         flexGrow: 1,
         alignItems: "center",

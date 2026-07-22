@@ -3,9 +3,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
     ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -13,7 +10,7 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
 import { startEmailChange } from "@features/account";
 import { startPasswordReset } from "@features/password-reset";
 
@@ -60,22 +57,12 @@ export default function Start_Reset_Hasła() {
     }
    
     return (
-        <SafeAreaProvider style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
-                <KeyboardAvoidingView
-                    style={styles.keyboardAvoidingView}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={[
-                            styles.content,
-                            isMobile && styles.mobileContent,
-                        ]}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        automaticallyAdjustKeyboardInsets
-                    >
+        <FormScreenLayout
+            contentContainerStyle={[
+                styles.content,
+                isMobile && styles.mobileContent,
+            ]}
+        >
                         <View style={[
                             styles.card,
                             isMobile && styles.mobileCard,
@@ -158,28 +145,10 @@ export default function Start_Reset_Hasła() {
                         </View>
                              
                        
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </SafeAreaProvider>
+        </FormScreenLayout>
     );
 }
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    safeArea: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    keyboardAvoidingView: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
     content: {
         flexGrow: 1,
         alignItems: "center",
