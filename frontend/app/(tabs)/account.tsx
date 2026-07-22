@@ -176,8 +176,8 @@ if (!account) {
 
 const set_2fa = async ()=> {
   setError(null)
+  if(!account) return;
   setLoading(true)
-   if(!account) return;
   try {
     if(!twoFa){
     const response = await włacz_2fa()

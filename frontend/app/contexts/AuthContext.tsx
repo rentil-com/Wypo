@@ -66,6 +66,7 @@ const [error,setError] = useState<string |  null>(null)
         if("requires_2fa" in response){
             setChallenge(response.challenge)
             setStatus("awaiting_2fa")
+            
         }
         else {
           

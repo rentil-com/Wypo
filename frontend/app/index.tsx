@@ -35,6 +35,9 @@ export default function LoginScreen() {
     if(status === "authenticated"){
       router.push("/(tabs)/user")
     }
+    if(status === "awaiting_2fa"){
+      router.push("/login_2fa_kod")
+    }
 
   },[status])
 
