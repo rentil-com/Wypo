@@ -9,9 +9,11 @@ import { CategoryApiItem } from "@/types/categories";
 import { pobierzKategorie } from "@/services/categories.service";
 import { pobierzProdukty, szukajProdukty } from "@/services/products.service";
 import { ApiItem, ItemsSearchResult } from "@/types/product";
+import { useAuth } from "@/contexts/AuthContext";
+import { getCurrentUser } from "@features/account";
 export default function HeaderPanel () { 
  
-  
+    const {signOut, status, error : authError} = useAuth()
   const [produkty,setProdukty] = useState<ApiItem[]>([])
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
@@ -92,6 +94,23 @@ const handleSearchSubmit = () => {
     },
   });
 };
+
+
+const wylogujSie = async ()=>{ 
+  await signOut()
+}
+const szczegolyKonta = ()=> {
+  router.push("/(tabs)/account")
+}
+
+useEffect(()=>{ 
+  if(status === "anonymous"){
+    router.push("/")
+  }
+},[status])
+
+
+
    return ( 
    <View style={styles.header}>
     <Pressable onPress={()=> router.push("/(tabs)/user")}>
@@ -227,10 +246,16 @@ const handleSearchSubmit = () => {
             <Text style={styles.headerActionText}>Koszyk</Text>
           </Pressable>
 
-          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/account")}>
+          <Pressable style={styles.headerAction} onPress={()=> szczegolyKonta()}>
             <MaterialIcons name="person-outline" size={25} color="#111827" />
             <Text style={styles.headerActionText}>Konto</Text>
           </Pressable>
+
+           <Pressable style={styles.headerAction} onPress={()=> wylogujSie()}>
+           <MaterialIcons name="logout" size={25} color="black" />
+            <Text style={styles.headerActionText}>Wyloguj sie</Text>
+          </Pressable>
+
         </View>
       </View>
 
