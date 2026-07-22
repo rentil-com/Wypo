@@ -1,6 +1,6 @@
-import { apiPost, apiGet ,apiPatch} from "./api";
+import { apiPost, apiGet ,apiPatch,apiDelete} from "./api";
 
-import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse, AccountEditBody, AccountEmailChange, AccountEmailChangeResponse, EmailChangeConfirm, EmailChangeConfirmResponse, PasswordResetConfirmResponse, PasswordResetBody, PasswordReset, PasswordResetConfirm, two_FaResponse } from "@/types/auth";
+import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse, AccountEditBody, AccountEmailChange, AccountEmailChangeResponse, EmailChangeConfirm, EmailChangeConfirmResponse, PasswordResetConfirmResponse, PasswordResetBody, PasswordReset, PasswordResetConfirm, two_FaResponse, DeleteAccountResponse } from "@/types/auth";
 
 
 export async function login(email : string, password : string) {
@@ -179,4 +179,9 @@ export async function włacz_2fa() {
 export async function wyłącz_2fa() {
     const response = await apiPost("/auth/2fa/disable")
     return response as two_FaResponse
+}
+
+export async function usunKonto(id : number) {
+    const response = await apiDelete(`/account/delete/${id}`)
+    return response as DeleteAccountResponse
 }

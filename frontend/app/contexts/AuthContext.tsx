@@ -19,6 +19,7 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   verify2FA: (kod: string) => Promise<void>;
+  clearSession: () => void;
 };
 
 
@@ -36,6 +37,14 @@ const [status,setStatus] = useState<AuthStatus>("loading")
 const [user,setUser] = useState<SessionUser | null>(null)
 const [challenge,setChallenge] = useState<string | null>(null)
 const [error,setError] = useState<string |  null>(null)
+
+const clearSession = useCallback(() => {
+  setUser(null);
+  setChallenge(null);
+  setError(null);
+  setStatus("anonymous");
+}, []);
+
 
  const refreshSession = useCallback(async () => {
  setStatus("loading")
@@ -148,6 +157,7 @@ useEffect(()=> {
         signIn,
         signOut,
         verify2FA,
+        clearSession
       }}
     >
       {children}

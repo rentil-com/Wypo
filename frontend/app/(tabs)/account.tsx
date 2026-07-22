@@ -15,14 +15,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getCurrentUser, updateAccount, wyłącz_2fa, włacz_2fa } from "@/services/auth.service";
+import { getCurrentUser, updateAccount, usunKonto, wyłącz_2fa, włacz_2fa } from "@/services/auth.service";
 import type { AccountDetails } from "@/types/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import HeaderPanel from "@/components/shared/Header/HeaderPanel";
-import { apiPatch, apiPost } from "@/services/api";
 export default function AccountScreen() {
   const { width } = useWindowDimensions();
-  const {status} = useAuth();
+  const {status,clearSession} = useAuth();
   const [account, setAccount] =
     useState<AccountDetails | null>(null);
 
@@ -204,6 +203,19 @@ const usuniecieKonta  = async () =>{
   setError(null)
   if(!account) return;
   setLoading(true)
+  try {
+    await usunKonto(id)
+    clearSession()
+    setDecyzja(false)
+    alert("Pomyslnie usunieto konto")
+    router.replace("/")
+  }
+  catch(error){
+    setError(error instanceof Error ? error.message : "Nieznany bład")
+  }
+  finally {
+    setLoading(false)
+  }
 
 }
 
@@ -522,7 +534,7 @@ const usuniecieKonta  = async () =>{
               </Pressable>
               <Pressable
                 style={[styles.modalButton, styles.modalConfirmButton]}
-                onPress={() => setDecyzja(false)}
+                onPress={() => usuniecieKonta()}
               >
                 <Text style={styles.modalConfirmButtonText}>TAK</Text>
               </Pressable>
