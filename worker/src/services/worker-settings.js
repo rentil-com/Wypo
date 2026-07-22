@@ -7,16 +7,27 @@ export const SETTING_KEYS = Object.freeze([
   "discount_max_percent"
 ]);
 
+export class WorkerSettingsValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "WorkerSettingsValidationError";
+  }
+}
+
 function parseDiscount(value, key) {
   const normalized = String(value).trim();
   const parsed = Number(normalized);
 
   if (!/^\d+$/.test(normalized) || !Number.isInteger(parsed)) {
-    throw new Error(`Ustawienie ${key} musi byc liczba calkowita.`);
+    throw new WorkerSettingsValidationError(
+      `Ustawienie ${key} musi byc liczba calkowita.`
+    );
   }
 
   if (parsed < 1 || parsed > 99) {
-    throw new Error(`Ustawienie ${key} musi byc w zakresie 1-99.`);
+    throw new WorkerSettingsValidationError(
+      `Ustawienie ${key} musi byc w zakresie 1-99.`
+    );
   }
 
   return parsed;
@@ -28,7 +39,9 @@ function validateTimeZone(value) {
   try {
     new Intl.DateTimeFormat("pl-PL", { timeZone: normalized }).format();
   } catch {
-    throw new Error(`Nieprawidlowa strefa czasowa: ${normalized}`);
+    throw new WorkerSettingsValidationError(
+      `Nieprawidlowa strefa czasowa: ${normalized}`
+    );
   }
 
   return normalized;
@@ -40,7 +53,7 @@ export function parseWorkerSettings(rawSettings) {
   ).trim();
 
   if (!cron.validate(cronDailyPromotion)) {
-    throw new Error(
+    throw new WorkerSettingsValidationError(
       `Nieprawidlowe ustawienie cron_daily_promotion: ${cronDailyPromotion}`
     );
   }
@@ -56,7 +69,7 @@ export function parseWorkerSettings(rawSettings) {
   );
 
   if (discountMinPercent > discountMaxPercent) {
-    throw new Error(
+    throw new WorkerSettingsValidationError(
       "discount_min_percent nie moze byc wieksze od discount_max_percent."
     );
   }
@@ -78,23 +91,61 @@ export async function loadWorkerSettings(repository) {
   return parseWorkerSettings(await repository.getAll());
 }
 
-export async function updateWorkerSetting(repository, key, value) {
-  if (!SETTING_KEYS.includes(key)) {
-    throw new Error(
-      `Nieznane ustawienie: ${key}. Dozwolone: ${SETTING_KEYS.join(", ")}.`
+export async function updateWorkerSettings(repository, updates) {
+  if (
+    updates === null ||
+    typeof updates !== "object" ||
+    Array.isArray(updates)
+  ) {
+    throw new WorkerSettingsValidationError(
+      "Ustawienia musza byc obiektem JSON."
+    );
+  }
+
+  const entries = Object.entries(updates);
+
+  if (entries.length === 0) {
+    throw new WorkerSettingsValidationError(
+      "Nalezy przekazac co najmniej jedno ustawienie."
+    );
+  }
+
+  const unknownKeys = entries
+    .map(([key]) => key)
+    .filter((key) => !SETTING_KEYS.includes(key));
+
+  if (unknownKeys.length > 0) {
+    throw new WorkerSettingsValidationError(
+      `Nieznane ustawienia: ${unknownKeys.join(", ")}. Dozwolone: ${SETTING_KEYS.join(", ")}.`
     );
   }
 
   const current = await repository.getAll();
-  const candidate = {
-    ...current,
-    [key]: String(value).trim()
-  };
+  const candidate = { ...current };
+
+  for (const [key, value] of entries) {
+    candidate[key] = String(value).trim();
+  }
 
   const parsedSettings = parseWorkerSettings(candidate);
-  await repository.set(key, candidate[key]);
+  const normalizedSettings = Object.fromEntries(
+    settingsToEntries(parsedSettings).map(([key, value]) => [
+      key,
+      String(value)
+    ])
+  );
+  const changedEntries = entries.map(([key]) => [
+    key,
+    normalizedSettings[key]
+  ]);
+
+  await repository.setMany(changedEntries);
 
   return parsedSettings;
+}
+
+export async function updateWorkerSetting(repository, key, value) {
+  return updateWorkerSettings(repository, { [key]: value });
 }
 
 export function settingsToEntries(settings) {

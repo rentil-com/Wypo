@@ -92,6 +92,9 @@ Uzupełnij `.env`:
 BACKEND_API_URL=http://localhost:3000
 BACKEND_API_AUTHORIZED_KEY=wypo_tutaj_prawdziwy_klucz
 BACKEND_REQUEST_TIMEOUT_MS=10000
+WORKER_API_KEY=klucz
+WORKER_API_HOST=0.0.0.0
+WORKER_API_PORT=3001
 WORKER_DATABASE_URL=postgresql://worker_user:worker_password@localhost:5432/wypo_worker
 CRON_DAILY_PROMOTION=0 3 * * *
 TZ=Europe/Warsaw
@@ -106,6 +109,9 @@ Znaczenie zmiennych:
 - `BACKEND_API_URL` - bazowy adres istniejącego API backendu,
 - `BACKEND_API_AUTHORIZED_KEY` - klucz wysyłany w nagłówku `Authorization: Bearer ...`,
 - `BACKEND_REQUEST_TIMEOUT_MS` - maksymalny czas oczekiwania na odpowiedź backendu w milisekundach,
+- `WORKER_API_KEY` - klucz chroniący endpointy ustawień workera; należy wysyłać go jako `Authorization: Bearer <WORKER_API_KEY>`,
+- `WORKER_API_HOST` - opcjonalny adres nasłuchu API workera, domyślnie `0.0.0.0`,
+- `WORKER_API_PORT` - opcjonalny port API workera, domyślnie `3001`,
 - `WORKER_DATABASE_URL` - adres połączenia z bazą PostgreSQL workera,
 - `CRON_DAILY_PROMOTION` i `TZ` - początkowy harmonogram i strefa czasowa,
 - `PROMOTION_DISCOUNT_MIN_PERCENT` i `PROMOTION_DISCOUNT_MAX_PERCENT` - początkowy zakres losowanego rabatu,
@@ -159,7 +165,57 @@ npm run settings:set -- timezone Europe/Warsaw
 npm run settings:set -- cron_daily_promotion "0 3 * * *"
 ```
 
-Zmiana zakresu rabatu zostanie odczytana przy następnym wykonaniu zadania. Po zmianie `cron_daily_promotion` albo `timezone` należy zrestartować stale działający proces workera.
+Zmiana zakresu rabatu zostanie odczytana przy następnym wykonaniu zadania. Zmiana `cron_daily_promotion` albo `timezone` przez API przeładowuje harmonogram od razu. Po zmianie tych wartości komendą `settings:set` nadal należy zrestartować stale działający proces workera.
+
+## API ustawień workera
+
+API uruchamia się razem z `npm start`, domyślnie pod adresem `http://localhost:3001`. Oba endpointy wymagają nagłówka:
+
+```http
+Authorization: Bearer klucz
+```
+
+Pobranie aktualnych ustawień:
+
+```http
+GET /settings
+```
+
+Częściowa zmiana jednego lub kilku ustawień:
+
+```http
+PATCH /settings
+Content-Type: application/json
+
+{
+  "cron_daily_promotion": "0 4 * * *",
+  "timezone": "Europe/Warsaw",
+  "discount_min_percent": 10,
+  "discount_max_percent": 20
+}
+```
+
+Można przekazać dowolny niepusty podzbiór czterech pól. API najpierw sprawdza cały wynikowy zestaw ustawień, a następnie zapisuje zmieniane wartości w jednej transakcji. Nieprawidłowy klucz zwraca `401`, nieprawidłowe ustawienia `400`, a nieobsługiwana metoda `405`.
+
+Ręczne uruchomienie zadania promocji:
+
+```http
+POST /runpromotion
+Authorization: Bearer klucz
+```
+
+Endpoint czeka na zakończenie zadania i zwraca status `success` lub `skipped`. Jeżeli promocja jest już wykonywana przez cron albo inne żądanie, zwraca `409` ze statusem `already_running`.
+
+## Postman
+
+Kolekcja `Worker API` i środowisko `Worker local` znajdują się w katalogu `postman/` i są automatycznie widoczne w Local View Postmana. Eksport kolekcji wykonywany przez Newman znajduje się w `worker/postman/`.
+
+Uruchomienie testów Postmana na izolowanym serwerze Express, bez modyfikowania prawdziwych cen i bazy:
+
+```bash
+cd worker
+npm run test:postman
+```
 
 ## Historia zmian promocji
 

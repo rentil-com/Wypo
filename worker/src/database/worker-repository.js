@@ -79,16 +79,43 @@ export class WorkerRepository {
   }
 
   async set(key, value) {
-    await this.pool.query(
-      `
-      INSERT INTO worker_settings (setting_key, setting_value, updated_at)
-      VALUES ($1, $2, CURRENT_TIMESTAMP)
-      ON CONFLICT (setting_key) DO UPDATE
-      SET setting_value = EXCLUDED.setting_value,
-          updated_at = CURRENT_TIMESTAMP;
-      `,
-      [key, String(value)]
-    );
+    await this.setMany([[key, value]]);
+  }
+
+  async setMany(entries) {
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return;
+    }
+
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      for (const [key, value] of entries) {
+        await client.query(
+          `
+          INSERT INTO worker_settings (
+            setting_key,
+            setting_value,
+            updated_at
+          )
+          VALUES ($1, $2, CURRENT_TIMESTAMP)
+          ON CONFLICT (setting_key) DO UPDATE
+          SET setting_value = EXCLUDED.setting_value,
+              updated_at = CURRENT_TIMESTAMP;
+          `,
+          [key, String(value)]
+        );
+      }
+
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK").catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async savePromotionRun({

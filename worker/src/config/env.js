@@ -31,6 +31,30 @@ function getRequiredIntegerEnv(name, { min = 1, max = Number.MAX_SAFE_INTEGER } 
   return value;
 }
 
+function getOptionalIntegerEnv(
+  name,
+  defaultValue,
+  { min = 1, max = Number.MAX_SAFE_INTEGER } = {}
+) {
+  const rawValue = process.env[name]?.trim();
+
+  if (!rawValue) {
+    return defaultValue;
+  }
+
+  if (!/^\d+$/.test(rawValue)) {
+    throw new Error(`${name} musi byc liczba calkowita.`);
+  }
+
+  const value = Number(rawValue);
+
+  if (!Number.isSafeInteger(value) || value < min || value > max) {
+    throw new Error(`${name} musi byc w zakresie ${min}-${max}.`);
+  }
+
+  return value;
+}
+
 function getBackendApiUrl() {
   const value = getRequiredEnv("BACKEND_API_URL");
   let url;
@@ -118,6 +142,12 @@ export function getConfig() {
     ...settingsConfig,
     backendApiUrl: getBackendApiUrl(),
     backendApiAuthorizedKey: getRequiredEnv("BACKEND_API_AUTHORIZED_KEY"),
+    workerApiKey: getRequiredEnv("WORKER_API_KEY"),
+    workerApiHost: process.env.WORKER_API_HOST?.trim() || "0.0.0.0",
+    workerApiPort: getOptionalIntegerEnv("WORKER_API_PORT", 3001, {
+      min: 1,
+      max: 65535
+    }),
     requestTimeoutMs: getRequiredIntegerEnv(
       "BACKEND_REQUEST_TIMEOUT_MS"
     )
