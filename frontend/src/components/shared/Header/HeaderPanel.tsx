@@ -2,7 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {  Image, Pressable, Text, TextInput, View } from "react-native";
-import dane from "../../../dane.json"
+import dane from "@/dane.json"
 import { kategorieMap } from "@/constants/categories";
 import {styles} from "./HeaderPanel.styles"
 import { CategoryApiItem } from "@/types/categories";

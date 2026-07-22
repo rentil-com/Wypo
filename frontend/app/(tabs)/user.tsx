@@ -10,8 +10,8 @@ import type {CategoryApiItem} from "@/types/categories"
 import { pobierzKategorie } from "@/services/categories.service";
 import { useLocalSearchParams } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
-import ProductCard from "@/components/shared/Product/ProductCard";
-import PageLayout from "@/components/shared/Layout/PageLayout";
+import ProductCard from "@components/shared/Product/ProductCard";
+import PageLayout from "@components/shared/Layout/PageLayout";
 export default function User() {
 
   

@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getCurrentUser, updateAccount, usunKonto, wyłącz_2fa, włacz_2fa } from "@features/account";
 import type { AccountDetails } from "@features/account";
 import { useAuth } from "@/contexts/AuthContext";
-import HeaderPanel from "@/components/shared/Header/HeaderPanel";
+import HeaderPanel from "@components/shared/Header/HeaderPanel";
 import styles from "../styles/account.styles";
 export default function AccountScreen() {
   const { width } = useWindowDimensions();

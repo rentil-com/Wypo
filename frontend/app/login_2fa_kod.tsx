@@ -12,8 +12,8 @@ import {
     View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { ThemedView } from "./components/themed-view";
-import { ThemedText } from "./components/themed-text";
+import { ThemedView } from "@components/themed-view";
+import { ThemedText } from "@components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { confirm2FA } from "@features/auth";
 import { registerConfirm } from "@features/registration";

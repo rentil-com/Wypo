@@ -14,8 +14,8 @@ import {
     View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { ThemedText } from "./components/themed-text";
-import { ThemedView } from "./components/themed-view";
+import { ThemedText } from "@components/themed-text";
+import { ThemedView } from "@components/themed-view";
 import { register } from "@features/registration";
 
 export default function Rejestracja() {

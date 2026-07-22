@@ -9,15 +9,15 @@ import {
 } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 import { MaterialIcons } from "@expo/vector-icons";
-import { ThemedText } from "@/components/themed-text";
+import { ThemedText } from "@components/themed-text";
 import { useEffect, useState } from "react";
 import { pobierzProdukty } from "@/services/products.service";
 import { pobierzKategorie } from "@/services/categories.service";
 import type { CategoryApiItem } from "@/types/categories";
 import type { ApiItem, ItemsQueryParams } from "@/types/product";
-import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
-import ProductCard from "@/components/shared/Product/ProductCard";
-import PageLayout from "@/components/shared/Layout/PageLayout";
+import Breadcrumbs from "@components/shared/Breadcrumbs/Breadcrumbs";
+import ProductCard from "@components/shared/Product/ProductCard";
+import PageLayout from "@components/shared/Layout/PageLayout";
 
 type CatalogViewProps = {
   kategoriaId?: string;
