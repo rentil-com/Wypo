@@ -10,7 +10,7 @@ import type {CategoryApiItem} from "@/types/categories"
 import { pobierzKategorie } from "@/services/categories.service";
 import { useLocalSearchParams } from "expo-router";
 import { kategorieMap } from "@/constants/categories";
-import ProductCard from "@components/shared/Product/ProductCard";
+import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
 export default function User() {
 
@@ -246,15 +246,12 @@ export default function User() {
       </View>
 
       {/* KATALOG -> PRODUKTY/BESTSELLERY*/}
-      <FlatList
+      <ProductGrid
         data={produkty}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={4}
         scrollEnabled={false}
         columnWrapperStyle={styles.productRow}
         contentContainerStyle={styles.productsList}
-        renderItem={({ item }) => ( <ProductCard item={{...item,opis : item.opis ?? "", zdjecie_url : item.zdjecia_url["1"]}} />
-        )}
+        mapItem={(item) => ({...item,opis : item.opis ?? "", zdjecie_url : item.zdjecia_url["1"]})}
       />
     </PageLayout>
 );

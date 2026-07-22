@@ -53,7 +53,7 @@ const statusStyles: Record<
 },
 };
 
-type ProductCardItem = {
+export type ProductCardItem = {
   id: number;
   nazwa: string;
   opis: string;

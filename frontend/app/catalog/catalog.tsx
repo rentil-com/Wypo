@@ -1,6 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
@@ -16,7 +15,7 @@ import { pobierzKategorie } from "@/services/categories.service";
 import type { CategoryApiItem } from "@/types/categories";
 import type { ApiItem, ItemsQueryParams } from "@/types/product";
 import Breadcrumbs from "@components/shared/Breadcrumbs/Breadcrumbs";
-import ProductCard from "@components/shared/Product/ProductCard";
+import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
 
 type CatalogViewProps = {
@@ -328,14 +327,11 @@ export default function TabsLayout({
        {loading && <Text>Ładowanie .....</Text>}
        {error && <Text>{error}</Text>}
 
-  <FlatList
+  <ProductGrid
     data={produkty}
-    keyExtractor={(elem)=> elem.id.toString()}
-    numColumns={4}
     columnWrapperStyle={styles.productsRow}
     contentContainerStyle={styles.productsGrid}
-    renderItem={({item})=> (<ProductCard item={{...item,opis : item.opis ?? "",cena_po_promocji : item.cena_po_promocji ?? item.cena, zdjecie_url : item.zdjecia_url["1"]}} />
-      )}
+    mapItem={(item)=> ({...item,opis : item.opis ?? "",cena_po_promocji : item.cena_po_promocji ?? item.cena, zdjecie_url : item.zdjecia_url["1"]})}
 />
 
 
