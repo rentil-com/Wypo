@@ -12,6 +12,7 @@ import {
 import { ThemedText } from "@components/themed-text";
 import { ThemedView } from "@components/themed-view";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
 import LoadingButton from "@components/shared/Form/LoadingButton";
 import { emailChangeConfirm } from "@features/account";
 
@@ -110,14 +111,12 @@ export default function Zmiana_Maila_Kod() {
                                 </View>
                             </View>
 
-                            {error && (
-                                <View style={styles.errorMessageWrapper}>
-                                    <Ionicons name="alert-circle-outline" size={20} color="#DC2626" />
-                                    <Text style={styles.errorMessagesText}>
-                                        {error}
-                                    </Text>
-                                </View>
-                            )}
+                            <StatusMessage
+                                message={error}
+                                containerStyle={styles.errorMessageWrapper}
+                                textStyle={styles.errorMessagesText}
+                                showIcon
+                            />
 
                             <View style={styles.form}>
                                 <ThemedText style={styles.label}>

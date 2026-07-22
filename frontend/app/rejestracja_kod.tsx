@@ -9,6 +9,7 @@ import {
     View,
 } from "react-native";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
 import { ThemedView } from "@components/themed-view";
 import { ThemedText } from "@components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
@@ -73,13 +74,11 @@ export default function Rejestracja() {
                                 </View>
                             </View>
 
-                            {error && (
-                                <View style={styles.errorMessageWrapper}>
-                                    <Text style={styles.errorMessagesText}>
-                                        {error}
-                                    </Text>
-                                </View>
-                            )}
+                            <StatusMessage
+                                message={error}
+                                containerStyle={styles.errorMessageWrapper}
+                                textStyle={styles.errorMessagesText}
+                            />
 
                             <View style={styles.form}>
                                 <ThemedText style={styles.label}>

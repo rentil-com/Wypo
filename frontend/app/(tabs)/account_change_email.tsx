@@ -10,6 +10,7 @@ import {
     View,
 } from "react-native";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
 import LoadingButton from "@components/shared/Form/LoadingButton";
 import { startEmailChange } from "@features/account";
 
@@ -98,12 +99,12 @@ export default function Zmiana_Maila() {
                                 </View>
                             </View>
 
-                            {error && (
-                                <View style={styles.errorMessageWrapper}>
-                                    <Ionicons name="alert-circle-outline" size={20} color="#DC2626" />
-                                    <Text style={styles.errorMessagesText}>{error}</Text>
-                                </View>
-                            )}
+                            <StatusMessage
+                                message={error}
+                                containerStyle={styles.errorMessageWrapper}
+                                textStyle={styles.errorMessagesText}
+                                showIcon
+                            />
 
                             <View style={styles.form}>
                           

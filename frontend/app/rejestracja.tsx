@@ -16,6 +16,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@components/themed-text";
 import { ThemedView } from "@components/themed-view";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
 import { register } from "@features/registration";
 
 export default function Rejestracja() {
@@ -35,14 +36,14 @@ export default function Rejestracja() {
         if(adres !=""){
 
         if(!emailRegex.test(adres_dowalidacji)){
-                alert( 'Podaj poprawny adres email');
+                setError('Podaj poprawny adres email');
                 return false
         }
         return true;
     }
 
     else {
- alert('Email jest wymagany')
+ setError('Email jest wymagany')
  return false;
     }
 
@@ -54,11 +55,12 @@ export default function Rejestracja() {
         const passwordRegex = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
 
     if(haslo.length < 8){
-            alert("Haslo powinno zawierac conajmniej 8 znakow")
+            setError("Haslo powinno zawierac conajmniej 8 znakow")
             return false
         }
     else{
        if(!passwordRegex.test(haslo)){
+        setError("Hasło musi zawierać wielką literę, małą literę, cyfrę i znak specjalny.")
         return false;
         
        }
@@ -138,13 +140,11 @@ export default function Rejestracja() {
                                 </View>
 
                                 <View style={mobileStyles.registrationCard}>
-                                    {error && (
-                                        <View style={mobileStyles.mobileErrorMessageWrapper}>
-                                            <Text style={mobileStyles.mobileErrorMessagesText}>
-                                                {error}
-                                            </Text>
-                                        </View>
-                                    )}
+                                    <StatusMessage
+                                        message={error}
+                                        containerStyle={mobileStyles.mobileErrorMessageWrapper}
+                                        textStyle={mobileStyles.mobileErrorMessagesText}
+                                    />
 
                                     <Text style={mobileStyles.mobileTitle}>Załóż konto</Text>
 
@@ -287,13 +287,11 @@ export default function Rejestracja() {
                                     />
                                 </View>
 
-                                {error && (
-                                    <View style={styles.errorMessageWrapper}>
-                                        <ThemedText style={styles.errorMessagesText}>
-                                            {error}
-                                        </ThemedText>
-                                    </View>
-                                )}
+                                <StatusMessage
+                                    message={error}
+                                    containerStyle={styles.errorMessageWrapper}
+                                    textStyle={styles.errorMessagesText}
+                                />
 
                                 <ThemedText type="title" style={styles.title}>
                                     Załóż konto

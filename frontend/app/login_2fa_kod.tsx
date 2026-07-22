@@ -9,6 +9,7 @@ import {
     View,
 } from "react-native";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
 import { ThemedView } from "@components/themed-view";
 import { ThemedText } from "@components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
@@ -22,12 +23,12 @@ export default function Rejestracja() {
     const {expires_in = "", max_attempts = ""} = useLocalSearchParams<{expires_in? : string, max_attempts? : string}>()
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const {challenge,verify2FA} = useAuth()
+    const {challenge,verify2FA,error: authError} = useAuth()
     const isMobile = width < 640;
 
 
     const sprawdzKod = async ()=> {
- 
+        setError(null)
                 setLoading(true)
         try{
             const poprawnyKod = kod.trim()
@@ -72,13 +73,11 @@ export default function Rejestracja() {
                                 
                             </View>
 
-                            {error && (
-                                <View style={styles.errorMessageWrapper}>
-                                    <Text style={styles.errorMessagesText}>
-                                        {error}
-                                    </Text>
-                                </View>
-                            )}
+                            <StatusMessage
+                                message={error || authError}
+                                containerStyle={styles.errorMessageWrapper}
+                                textStyle={styles.errorMessagesText}
+                            />
 
                             <View style={styles.form}>
                                 <ThemedText style={styles.label}>
