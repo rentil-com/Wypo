@@ -15,7 +15,10 @@ function createLogger() {
   };
 }
 
-function createHistoryRepository({ activeRuns = [], promotedItemIds = [] }) {
+function createHistoryRepository({
+  activeRuns = [],
+  lastPromotedItemId = null
+} = {}) {
   const deactivatedRunIds = [];
   const savedRuns = [];
 
@@ -29,8 +32,8 @@ function createHistoryRepository({ activeRuns = [], promotedItemIds = [] }) {
       deactivatedRunIds.push(id);
       return true;
     },
-    async getSuccessfullyPromotedItemIds() {
-      return promotedItemIds;
+    async getLastSuccessfullyPromotedItemId() {
+      return lastPromotedItemId;
     },
     async savePromotionRun(run) {
       savedRuns.push(run);
@@ -51,7 +54,7 @@ test("dezaktywuje tylko niezmieniona promocje ustawiona przez workera", async ()
         promotionalPrice: 80
       }
     ],
-    promotedItemIds: [1]
+    lastPromotedItemId: 1
   });
   const client = {
     async getItem(id) {
@@ -102,7 +105,7 @@ test("nie usuwa promocji zmienionej poza workerem i zapisuje ostrzezenie", async
         promotionalPrice: 80
       }
     ],
-    promotedItemIds: [1]
+    lastPromotedItemId: 1
   });
   const client = {
     async getItem() {
@@ -138,16 +141,46 @@ test("nie usuwa promocji zmienionej poza workerem i zapisuje ostrzezenie", async
   assert.match(logger.warnings[0], /zmieniona poza workerem/);
 });
 
-test("pomija wykonanie, gdy wszystkie dostepne przedmioty byly juz promowane", async () => {
+test("pozwala ponownie promowac przedmiot, jezeli nie byl promowany ostatnio", async () => {
   const updatedPromotions = [];
   const historyRepository = createHistoryRepository({
-    promotedItemIds: [1, 2]
+    lastPromotedItemId: 2
   });
   const client = {
     async getAvailableItems() {
       return [
         { id: 1, nazwa: "Wiertarka", cena: 100, cena_po_promocji: null },
         { id: 2, nazwa: "Mlotek", cena: 50, cena_po_promocji: null }
+      ];
+    },
+    async updatePromotionalPrice(id, price) {
+      updatedPromotions.push({ id, price });
+    }
+  };
+
+  const result = await runDailyPromotion({
+    client,
+    historyRepository,
+    discountMinPercent: 10,
+    discountMaxPercent: 20,
+    random: () => 0,
+    logger: createLogger()
+  });
+
+  assert.equal(result.item.id, 1);
+  assert.deepEqual(updatedPromotions, [{ id: 1, price: 90 }]);
+  assert.equal(historyRepository.savedRuns.at(-1).status, "success");
+});
+
+test("nie promuje tego samego przedmiotu dwa razy pod rzad", async () => {
+  const updatedPromotions = [];
+  const historyRepository = createHistoryRepository({
+    lastPromotedItemId: 1
+  });
+  const client = {
+    async getAvailableItems() {
+      return [
+        { id: 1, nazwa: "Wiertarka", cena: 100, cena_po_promocji: null }
       ];
     },
     async updatePromotionalPrice(id, price) {

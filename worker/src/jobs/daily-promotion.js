@@ -118,19 +118,17 @@ async function deactivateExistingPromotions({
 }
 
 async function getEligibleItems(items, historyRepository) {
-  const successfullyPromotedItemIds = historyRepository
-    ? await historyRepository.getSuccessfullyPromotedItemIds()
-    : [];
-  const promotedItemIds = new Set(
-    successfullyPromotedItemIds.map((itemId) => String(itemId))
-  );
+  const lastPromotedItemId = historyRepository
+    ? await historyRepository.getLastSuccessfullyPromotedItemId()
+    : null;
 
   return items.filter(
     (item) =>
       item?.id !== null &&
       item?.id !== undefined &&
       item.cena_po_promocji == null &&
-      !promotedItemIds.has(String(item.id))
+      (lastPromotedItemId === null ||
+        String(item.id) !== String(lastPromotedItemId))
   );
 }
 

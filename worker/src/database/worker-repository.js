@@ -185,17 +185,19 @@ export class WorkerRepository {
     return result.rowCount > 0;
   }
 
-  async getSuccessfullyPromotedItemIds() {
+  async getLastSuccessfullyPromotedItemId() {
     const result = await this.pool.query(
       `
-      SELECT DISTINCT item_id
+      SELECT item_id
       FROM worker_promotion_runs
       WHERE status = 'success'
-        AND item_id IS NOT NULL;
+        AND item_id IS NOT NULL
+      ORDER BY created_at DESC, id DESC
+      LIMIT 1;
       `
     );
 
-    return result.rows.map((row) => Number(row.item_id));
+    return result.rows.length > 0 ? Number(result.rows[0].item_id) : null;
   }
 
   async getRecentPromotionRuns(limit) {

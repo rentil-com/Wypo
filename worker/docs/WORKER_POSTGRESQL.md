@@ -281,7 +281,7 @@ npm run dev
 5. Jeżeli cena została zmieniona poza workerem, pozostawia ją bez zmian i zapisuje ostrzeżenie w logu.
 6. Oznacza obsłużone aktywne wpisy historii czasem `deactivated_at`.
 7. Pobiera wszystkie strony dostępnych przedmiotów przez `GET /items`.
-8. Wyklucza przedmioty promowane wcześniej przez worker oraz przedmioty z już ustawioną promocją.
+8. Wyklucza przedmiot ostatnio promowany przez worker oraz przedmioty z już ustawioną promocją. Przedmiot może wrócić do promocji po wypromowaniu innego przedmiotu.
 9. Losuje jeden z pozostałych przedmiotów i rabat z zapisanego zakresu, domyślnie 10-20%.
 10. Zaokrągla cenę promocyjną do dwóch miejsc po przecinku.
 11. Wysyła `PATCH /items/edit/:id` z nową ceną:
