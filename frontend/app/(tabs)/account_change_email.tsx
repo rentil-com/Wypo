@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
     StyleSheet,
     Text,
     TextInput,
@@ -11,6 +10,7 @@ import {
     View,
 } from "react-native";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import LoadingButton from "@components/shared/Form/LoadingButton";
 import { startEmailChange } from "@features/account";
 
 
@@ -145,27 +145,13 @@ export default function Zmiana_Maila() {
                                 </Text>
                      
 
-                                <TouchableOpacity
-                                    style={[
-                                        styles.sendButton,
-                                        loading && styles.sendButtonDisabled,
-                                    ]}
+                                <LoadingButton
+                                    loading={loading}
+                                    loadingText="Wysyłanie..."
+                                    label="Wyślij kod"
                                     onPress={() => void wyslijKod()}
-                                    disabled={loading}
-                                    activeOpacity={0.85}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <ActivityIndicator size="small" color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Wysyłanie...</Text>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Ionicons name="paper-plane-outline" size={19} color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Wyślij kod</Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
+                                    icon={<Ionicons name="paper-plane-outline" size={19} color="#FFFFFF" />}
+                                />
                             </View>
                         </View>
                              
@@ -338,30 +324,5 @@ const styles = StyleSheet.create({
         lineHeight: 19,
         textAlign: "center",
         marginTop: -4,
-    },
-    sendButton: {
-        width: "100%",
-        height: 62,
-        borderRadius: 16,
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 9,
-        backgroundColor: "#2563EB",
-        marginTop: 20,
-        shadowColor: "#2563EB",
-        shadowOffset: { width: 0, height: 9 },
-        shadowOpacity: 0.3,
-        shadowRadius: 18,
-        elevation: 11,
-    },
-    sendButtonDisabled: {
-        opacity: 0.7,
-    },
-    sendButtonText: {
-        color: "#FFFFFF",
-        fontSize: 17,
-        lineHeight: 22,
-        fontWeight: "700",
     },
 })

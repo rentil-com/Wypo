@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
     StyleSheet,
     Text,
     TextInput,
@@ -13,6 +12,7 @@ import {
 import { ThemedText } from "@components/themed-text";
 import { ThemedView } from "@components/themed-view";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import LoadingButton from "@components/shared/Form/LoadingButton";
 import { emailChangeConfirm } from "@features/account";
 import { passwordResetConfirm } from "@features/password-reset";
 
@@ -188,27 +188,13 @@ export default function Zmiana_Maila_Kod() {
                                     
                                 </View>
 
-                                <TouchableOpacity
-                                    style={[
-                                        styles.sendButton,
-                                        loading && styles.sendButtonDisabled,
-                                    ]}
+                                <LoadingButton
+                                    loading={loading}
+                                    loadingText="Zapisywanie..."
+                                    label="Zapisz nowe hasło"
                                     onPress={() =>  sprawdzKod()}
-                                    disabled={loading}
-                                    activeOpacity={0.85}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <ActivityIndicator size="small" color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Zapisywanie...</Text>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Zapisz nowe hasło</Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
+                                    icon={<Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />}
+                                />
                             </View>
                         </ThemedView>
         </FormScreenLayout>
@@ -397,31 +383,6 @@ const styles = StyleSheet.create({
         color: "#7B88A4",
         fontSize: 12,
         lineHeight: 17,
-    },
-    sendButton: {
-        width: "100%",
-        height: 62,
-        borderRadius: 16,
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 9,
-        backgroundColor: "#2563EB",
-        marginTop: 20,
-        shadowColor: "#2563EB",
-        shadowOffset: { width: 0, height: 9 },
-        shadowOpacity: 0.3,
-        shadowRadius: 18,
-        elevation: 11,
-    },
-    sendButtonDisabled: {
-        opacity: 0.7,
-    },
-    sendButtonText: {
-        color: "#FFFFFF",
-        fontSize: 17,
-        lineHeight: 22,
-        fontWeight: "700",
     },
 })
 
