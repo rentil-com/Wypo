@@ -136,3 +136,15 @@ export type two_FaResponse = {
   message : string,
   dwuetapowe : boolean
 }
+
+
+export type DeleteAccountResponse = {
+  id: number;
+  imie: string;
+  nazwisko: string;
+  email: string;
+  rola: UserRole;
+  dwuetapowe: boolean;
+  data_utworzenia: string;
+}
+

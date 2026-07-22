@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -33,6 +34,7 @@ export default function AccountScreen() {
   const [nazwisko,setNazwisko] =  useState("")
   const [id,setId] = useState(0)
   const [email,setEmail] = useState("")
+  const [decyzja,setDecyzja] = useState(false)
   const [twoFa,settwoFa] = useState(false) //2fa
   useEffect(() => {
      if (status !== "authenticated") {
@@ -198,6 +200,13 @@ const set_2fa = async ()=> {
   }
 }
 
+const usuniecieKonta  = async () =>{
+  setError(null)
+  if(!account) return;
+  setLoading(true)
+
+}
+
   const isMobile = width < 720;
 
   return (
@@ -300,7 +309,15 @@ const set_2fa = async ()=> {
                 </Text>
               </View>
             
-              
+               <Pressable
+                    style={[styles.actionButton, styles.editButton]}
+                    onPress={() => setDecyzja(true)}
+                  >
+                    <Ionicons name="trash-outline" size={17} color="#1D4ED8" />
+                    <Text style={[styles.actionButtonText, styles.editButtonText]}>
+                      USUŃ KONTO
+                    </Text>
+                  </Pressable>
               <View style={[
                 styles.profileActions,
                 isMobile && styles.mobileProfileActions,
@@ -478,9 +495,41 @@ const set_2fa = async ()=> {
               </View>
               </Pressable>
             </View>
+
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={decyzja}
+        onRequestClose={() => setDecyzja(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="warning-outline" size={30} color="#DC2626" />
+            </View>
+            <Text style={styles.modalTitle}>Czy chcesz usunąć konto?</Text>
+
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.modalButton, styles.modalCancelButton]}
+                onPress={() => setDecyzja(false)}
+              >
+                <Text style={styles.modalCancelButtonText}>NIE</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, styles.modalConfirmButton]}
+                onPress={() => setDecyzja(false)}
+              >
+                <Text style={styles.modalConfirmButtonText}>TAK</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1009,6 +1058,72 @@ const styles = StyleSheet.create({
   },
   twoFactorTextDisabled: {
     color: "#475569",
+  },
+  modalOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.48)",
+    paddingHorizontal: 20,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 420,
+    alignItems: "center",
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 28,
+    paddingVertical: 30,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.18,
+    shadowRadius: 30,
+    elevation: 18,
+  },
+  modalIcon: {
+    width: 58,
+    height: 58,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
+    backgroundColor: "#FEF2F2",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    color: "#0F172A",
+    fontSize: 20,
+    lineHeight: 27,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  modalActions: {
+    width: "100%",
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+  },
+  modalButton: {
+    flex: 1,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 13,
+  },
+  modalCancelButton: {
+    backgroundColor: "#F1F5F9",
+  },
+  modalConfirmButton: {
+    backgroundColor: "#DC2626",
+  },
+  modalCancelButtonText: {
+    color: "#475569",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  modalConfirmButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
   },
   stateScreen: {
     flex: 1,
