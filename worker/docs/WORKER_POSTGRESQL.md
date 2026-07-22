@@ -97,6 +97,7 @@ WORKER_API_HOST=0.0.0.0
 WORKER_API_PORT=3001
 WORKER_DATABASE_URL=postgresql://worker_user:worker_password@localhost:5432/wypo_worker
 CRON_DAILY_PROMOTION=0 3 * * *
+DAILY_PROMOTION_ENABLED=true
 TZ=Europe/Warsaw
 PROMOTION_DISCOUNT_MIN_PERCENT=10
 PROMOTION_DISCOUNT_MAX_PERCENT=20
@@ -114,6 +115,7 @@ Znaczenie zmiennych:
 - `WORKER_API_PORT` - opcjonalny port API workera, domyślnie `3001`,
 - `WORKER_DATABASE_URL` - adres połączenia z bazą PostgreSQL workera,
 - `CRON_DAILY_PROMOTION` i `TZ` - początkowy harmonogram i strefa czasowa,
+- `DAILY_PROMOTION_ENABLED` - opcjonalne `true` albo `false`; domyślnie `true`,
 - `PROMOTION_DISCOUNT_MIN_PERCENT` i `PROMOTION_DISCOUNT_MAX_PERCENT` - początkowy zakres losowanego rabatu,
 - `HISTORY_DEFAULT_LIMIT` - domyślna liczba rekordów wypisywanych przez `history:list`,
 - `HISTORY_MAX_LIMIT` - największa dozwolona liczba rekordów dla `history:list`.
@@ -166,6 +168,11 @@ npm run settings:set -- cron_daily_promotion "0 3 * * *"
 ```
 
 Zmiana zakresu rabatu zostanie odczytana przy następnym wykonaniu zadania. Zmiana `cron_daily_promotion` albo `timezone` przez API przeładowuje harmonogram od razu. Po zmianie tych wartości komendą `settings:set` nadal należy zrestartować stale działający proces workera.
+
+Ustawienie `DAILY_PROMOTION_ENABLED=false` wyłącza automatyczny harmonogram cron
+po ponownym uruchomieniu workera. Ręczne uruchomienie przez `POST /runpromotion`
+lub `npm run run:promotion` pozostaje dostępne. Zmiany harmonogramu zapisane przez
+API nie uruchamiają crona, dopóki zmienna ma wartość `false`.
 
 ## API ustawień workera
 

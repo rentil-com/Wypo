@@ -102,13 +102,23 @@ async function main() {
       );
     };
 
-    await applySchedule(initialSettings);
+    const onSettingsUpdated = config.dailyPromotionEnabled
+      ? applySchedule
+      : async () => {};
+
+    if (config.dailyPromotionEnabled) {
+      await applySchedule(initialSettings);
+    } else {
+      console.info(
+        "[worker] Automatyczna codzienna promocja jest wylaczona."
+      );
+    }
 
     apiServer = createWorkerApiServer({
       repository,
       apiKey: config.workerApiKey,
       runPromotion: executePromotion,
-      onSettingsUpdated: applySchedule
+      onSettingsUpdated
     });
     await listenWorkerApi(apiServer, {
       host: config.workerApiHost,

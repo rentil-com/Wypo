@@ -55,6 +55,22 @@ function getOptionalIntegerEnv(
   return value;
 }
 
+function getOptionalBooleanEnv(name, defaultValue) {
+  const rawValue = process.env[name]?.trim();
+
+  if (!rawValue) {
+    return defaultValue;
+  }
+
+  const normalizedValue = rawValue.toLowerCase();
+
+  if (!["true", "false"].includes(normalizedValue)) {
+    throw new Error(`${name} musi miec wartosc true albo false.`);
+  }
+
+  return normalizedValue === "true";
+}
+
 function getBackendApiUrl() {
   const value = getRequiredEnv("BACKEND_API_URL");
   let url;
@@ -142,6 +158,10 @@ export function getConfig() {
     ...settingsConfig,
     backendApiUrl: getBackendApiUrl(),
     backendApiAuthorizedKey: getRequiredEnv("BACKEND_API_AUTHORIZED_KEY"),
+    dailyPromotionEnabled: getOptionalBooleanEnv(
+      "DAILY_PROMOTION_ENABLED",
+      true
+    ),
     workerApiKey: getRequiredEnv("WORKER_API_KEY"),
     workerApiHost: process.env.WORKER_API_HOST?.trim() || "0.0.0.0",
     workerApiPort: getOptionalIntegerEnv("WORKER_API_PORT", 3001, {
