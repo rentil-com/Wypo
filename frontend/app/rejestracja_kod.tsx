@@ -15,7 +15,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from "./components/themed-view";
 import { ThemedText } from "./components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import { registerConfirm } from "./services/auth.service";
+import { registerConfirm } from "@features/registration";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function Rejestracja() {
@@ -308,4 +308,3 @@ const styles = StyleSheet.create({
         lineHeight: 17,
     },
 })
-

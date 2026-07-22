@@ -7,8 +7,8 @@ import {
 } from "react";
 
 import type { ReactNode } from "react";
-import { login as LoginRequest, logout as LogoutRequest, confirm2FA, confirm2FA as confirma2FARequest, getCurrentUser } from "@/services/auth.service";
-import { AuthStatus, SessionUser } from "@/types/auth";
+import { login as LoginRequest, logout as LogoutRequest, confirm2FA, confirm2FA as confirma2FARequest, AuthStatus, SessionUser } from "@features/auth";
+import { getCurrentUser } from "@features/account";
 
 type AuthContextValue = {
   status: AuthStatus;

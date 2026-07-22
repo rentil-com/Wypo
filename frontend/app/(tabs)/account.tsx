@@ -15,8 +15,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getCurrentUser, updateAccount, usunKonto, wyłącz_2fa, włacz_2fa } from "@/services/auth.service";
-import type { AccountDetails } from "@/types/auth";
+import { getCurrentUser, updateAccount, usunKonto, wyłącz_2fa, włacz_2fa } from "@features/account";
+import type { AccountDetails } from "@features/account";
 import { useAuth } from "@/contexts/AuthContext";
 import HeaderPanel from "@/components/shared/Header/HeaderPanel";
 export default function AccountScreen() {

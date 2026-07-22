@@ -16,7 +16,8 @@ import {
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { emailChangeConfirm, passwordResetConfirm } from "@/services/auth.service";
+import { emailChangeConfirm } from "@features/account";
+import { passwordResetConfirm } from "@features/password-reset";
 
 
 

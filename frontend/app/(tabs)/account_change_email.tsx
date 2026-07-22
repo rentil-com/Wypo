@@ -14,7 +14,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { startEmailChange } from "@/services/auth.service";
+import { startEmailChange } from "@features/account";
 
 
 export default function Zmiana_Maila() {
@@ -396,4 +396,3 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
 })
-

@@ -10,7 +10,7 @@ import { pobierzKategorie } from "@/services/categories.service";
 import { pobierzProdukty, szukajProdukty } from "@/services/products.service";
 import { ApiItem, ItemsSearchResult } from "@/types/product";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCurrentUser } from "@/services/auth.service";
+import { getCurrentUser } from "@features/account";
 export default function HeaderPanel () { 
  
     const {signOut, status, error : authError} = useAuth()

@@ -16,7 +16,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "./components/themed-text";
 import { ThemedView } from "./components/themed-view";
-import { register } from "./services/auth.service";
+import { register } from "@features/registration";
 
 export default function Rejestracja() {
     const { width } = useWindowDimensions();

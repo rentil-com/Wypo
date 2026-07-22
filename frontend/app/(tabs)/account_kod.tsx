@@ -16,7 +16,7 @@ import {
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { emailChangeConfirm } from "@/services/auth.service";
+import { emailChangeConfirm } from "@features/account";
 
 
 
@@ -407,4 +407,3 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
 })
-

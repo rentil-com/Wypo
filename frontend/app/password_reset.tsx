@@ -14,7 +14,8 @@ import {
     View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { startEmailChange, startPasswordReset } from "@/services/auth.service";
+import { startEmailChange } from "@features/account";
+import { startPasswordReset } from "@features/password-reset";
 
 
 export default function Start_Reset_Hasła() {
