@@ -21,7 +21,6 @@ import { useAuth } from "./contexts/AuthContext";
 export default function Rejestracja() {
     const { width } = useWindowDimensions();
     const [kod,setKod] = useState("")
-    const {email} = useLocalSearchParams<{email: string}>()
     const {expires_in = "", max_attempts = ""} = useLocalSearchParams<{expires_in? : string, max_attempts? : string}>()
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -35,7 +34,7 @@ export default function Rejestracja() {
         try{
             const poprawnyKod = kod.trim()
         if (!/^\d{6}$/.test(poprawnyKod)) {
-        setError("Kod musi składać się z 6 cyfr.")
+        setError("Kod 2FA musi składać się z 6 cyfr.")
         return;
         }
             await verify2FA(kod)
@@ -76,16 +75,13 @@ export default function Rejestracja() {
                                     styles.title,
                                     isMobile && styles.mobileTitle,
                                 ]}>
-                                    Wpisz kod z e-maila
+                                    Weryfikacja dwuetapowa (2FA)
                                 </ThemedText>
                                 <Text style={styles.subtitle}>
-                                 
+                                    Aby dokończyć logowanie, wpisz sześciocyfrowy kod wysłany na Twój adres e-mail.
                                 </Text>
-                                <View style={styles.emailWrapper}>
-                                    <Text style={styles.emailText}>
-                                        {email ?? ""}
-                                    </Text>
-                                </View>
+                                <Ionicons name="shield-checkmark-outline" size={30} color="#2563EB" />
+                                
                             </View>
 
                             {error && (
@@ -98,13 +94,13 @@ export default function Rejestracja() {
 
                             <View style={styles.form}>
                                 <ThemedText style={styles.label}>
-                                    Kod weryfikacyjny
+                                    Kod logowania 2FA
                                 </ThemedText>
                                 <TextInput
                                     value={kod}
                                     onChangeText={(val)=> setKod(val)}
                                     style={styles.input}
-                                    placeholder="Wprowadź kod"
+                                    placeholder="000000"
                                     placeholderTextColor="#94A3B8"
                                     autoCapitalize="none"
                                     keyboardType="number-pad"
@@ -112,10 +108,10 @@ export default function Rejestracja() {
                                   <View style={styles.securityHint}>
                                     <Ionicons name="time-outline" size={16} color="#7B88A4" />
                                     <Text style={styles.securityHintText}>
-                                        Kod jest ważny tylko przez {expires_in} s.
+                                        Kod 2FA jest ważny tylko przez {expires_in} s.
                                     </Text>
                                      <Text style={styles.securityHintText}>
-                                        Masz tylko {max_attempts} prób.
+                                        Pozostała liczba prób: {max_attempts}.
                                     </Text>
                                     
                                 </View>
@@ -126,7 +122,7 @@ export default function Rejestracja() {
                                     activeOpacity={0.85}
                                 >
                                     <Text style={styles.sendButtonText}>
-                                        WYŚLIJ KOD
+                                        POTWIERDŹ LOGOWANIE
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -157,42 +153,44 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         alignItems: "center",
         justifyContent: "center",
-        paddingHorizontal: 40,
-        paddingVertical: 40,
+        paddingHorizontal: 32,
+        paddingVertical: 32,
     },
     mobileContent: {
         paddingHorizontal: 16,
-        paddingVertical: 24,
+        paddingVertical: 20,
     },
     card: {
         width: "100%",
-        maxWidth: 720,
-        minHeight: 470,
+        maxWidth: 650,
+        minHeight: 450,
         justifyContent: "center",
         backgroundColor: "#FFFFFF",
-        borderRadius: 34,
-        paddingHorizontal: 72,
-        paddingVertical: 58,
+        borderRadius: 30,
+        borderWidth: 1,
+        borderColor: "#E5EDF7",
+        paddingHorizontal: 64,
+        paddingVertical: 52,
         shadowColor: "#0F172A",
-        shadowOffset: { width: 0, height: 24 },
-        shadowOpacity: 0.1,
-        shadowRadius: 40,
-        elevation: 20,
+        shadowOffset: { width: 0, height: 18 },
+        shadowOpacity: 0.08,
+        shadowRadius: 32,
+        elevation: 14,
     },
     mobileCard: {
         minHeight: 0,
-        borderRadius: 24,
-        paddingHorizontal: 22,
-        paddingVertical: 34,
+        borderRadius: 22,
+        paddingHorizontal: 20,
+        paddingVertical: 30,
     },
     heading: {
         width: "100%",
         alignItems: "center",
-        marginBottom: 30,
+        marginBottom: 26,
     },
     title: {
-        fontSize: 36,
-        lineHeight: 43,
+        fontSize: 34,
+        lineHeight: 41,
         fontWeight: "900",
         color: "#071536",
         textAlign: "center",
@@ -200,8 +198,8 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     mobileTitle: {
-        fontSize: 27,
-        lineHeight: 34,
+        fontSize: 26,
+        lineHeight: 33,
     },
     subtitle: {
         fontSize: 16,
@@ -213,10 +211,10 @@ const styles = StyleSheet.create({
     },
     emailWrapper: {
         maxWidth: "100%",
-        borderRadius: 12,
+        borderRadius: 11,
         backgroundColor: "#EEF6FF",
-        paddingHorizontal: 16,
-        paddingVertical: 9,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
     },
     emailText: {
         fontSize: 15,
@@ -264,32 +262,32 @@ const styles = StyleSheet.create({
     },
     input: {
         width: "100%",
-        height: 62,
+        height: 68,
         borderWidth: 1,
-        borderColor: "#DDE5F0",
+        borderColor: "#BFDBFE",
         borderRadius: 16,
         paddingHorizontal: 20,
-        backgroundColor: "#FFFFFF",
+        backgroundColor: "#F8FBFF",
         color: "#0F172A",
-        fontSize: 18,
-        fontWeight: "600",
+        fontSize: 24,
+        fontWeight: "800",
         textAlign: "center",
-        letterSpacing: 3,
+        letterSpacing: 9,
         outlineStyle: "none" as any,
     },
     sendButton: {
         width: "100%",
-        height: 62,
+        height: 58,
         borderRadius: 16,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#2563EB",
-        marginTop: 20,
+        marginTop: 18,
         shadowColor: "#2563EB",
-        shadowOffset: { width: 0, height: 9 },
-        shadowOpacity: 0.3,
-        shadowRadius: 18,
-        elevation: 11,
+        shadowOffset: { width: 0, height: 7 },
+        shadowOpacity: 0.22,
+        shadowRadius: 14,
+        elevation: 8,
     },
     sendButtonText: {
         color: "#FFFFFF",
@@ -299,9 +297,11 @@ const styles = StyleSheet.create({
     },
     securityHint: {
         flexDirection: "row",
+        flexWrap: "wrap",
         alignItems: "center",
         justifyContent: "center",
-        gap: 6,
+        columnGap: 6,
+        rowGap: 3,
         marginTop: 13,
     },
     securityHintText: {
