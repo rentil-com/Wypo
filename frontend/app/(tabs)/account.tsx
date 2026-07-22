@@ -14,10 +14,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getCurrentUser, updateAccount } from "@/services/auth.service";
+import { getCurrentUser, updateAccount, wyłącz_2fa, włacz_2fa } from "@/services/auth.service";
 import type { AccountDetails } from "@/types/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import HeaderPanel from "@/components/shared/Header/HeaderPanel";
+import { apiPatch, apiPost } from "@/services/api";
 export default function AccountScreen() {
   const { width } = useWindowDimensions();
   const {status} = useAuth();
@@ -30,10 +31,9 @@ export default function AccountScreen() {
   const [edytowanie,setEdytowanie] = useState(false)
   const [imie,setImie] = useState("")
   const [nazwisko,setNazwisko] =  useState("")
-  const [nowyEmail,setNowyEmail] = useState("")
   const [id,setId] = useState(0)
   const [email,setEmail] = useState("")
-
+  const [twoFa,settwoFa] = useState(false) //2fa
   useEffect(() => {
      if (status !== "authenticated") {
     return;
@@ -47,6 +47,7 @@ export default function AccountScreen() {
         setNazwisko(response?.nazwisko.toString())
         setEmail(response.email)
         setId(response.id)
+        settwoFa(response.dwuetapowe)
         
         
       } catch (error) {
@@ -170,6 +171,31 @@ if (!account) {
       </View>
     </SafeAreaView>
   );
+}
+
+
+const set_2fa = async ()=> {
+  setError(null)
+  setLoading(true)
+   if(!account) return;
+  try {
+    if(!twoFa){
+    const response = await włacz_2fa()
+    settwoFa(response.dwuetapowe)
+    alert(`${response.message}`)
+    }
+    else{
+      const response = await wyłącz_2fa()
+      settwoFa(response.dwuetapowe)
+        alert(`${response.message}`)
+    }
+  }
+  catch(error){
+    setError(error instanceof Error ? error.message : "Nieznany bład")
+  }
+  finally {
+    setLoading(false)
+  }
 }
 
   const isMobile = width < 720;
@@ -408,12 +434,12 @@ if (!account) {
               ]}>
                 <View style={[
                   styles.securityIcon,
-                  account.dwuetapowe && styles.securityIconEnabled,
+                  twoFa && styles.securityIconEnabled,
                 ]}>
                   <Ionicons
-                    name={account.dwuetapowe ? "shield-checkmark-outline" : "shield-outline"}
+                    name={twoFa ? "shield-checkmark-outline" : "shield-outline"}
                     size={25}
-                    color={account.dwuetapowe ? "#15803D" : "#64748B"}
+                    color={twoFa ? "#15803D" : "#64748B"}
                   />
                 </View>
                 <View style={styles.securityText}>
@@ -422,33 +448,35 @@ if (!account) {
                   </Text>
                   <Text style={styles.securityDescription}>
                     Dodatkowa ochrona podczas logowania do konta.
+                    
                   </Text>
                 </View>
               </View>
-
+                <Pressable onPress={()=> set_2fa()}>   
               <View style={[
                 styles.twoFactorBadge,
-                account.dwuetapowe
+                twoFa
                   ? styles.twoFactorBadgeEnabled
                   : styles.twoFactorBadgeDisabled,
               ]}>
                 <View style={[
                   styles.twoFactorDot,
-                  account.dwuetapowe
+                  twoFa
                     ? styles.twoFactorDotEnabled
                     : styles.twoFactorDotDisabled,
                 ]} />
                 <Text style={[
                   styles.twoFactorText,
-                  account.dwuetapowe
+                  twoFa
                     ? styles.twoFactorTextEnabled
                     : styles.twoFactorTextDisabled,
                 ]}>
-                  2FA: {account.dwuetapowe
+                  2FA: {twoFa
                     ? "włączone"
                     : "wyłączone"}
                 </Text>
               </View>
+              </Pressable>
             </View>
           </View>
         </View>

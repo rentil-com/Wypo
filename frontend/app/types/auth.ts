@@ -130,3 +130,9 @@ export type PasswordResetConfirm = {
 export type PasswordResetConfirmResponse = {
   message: string;
 };
+
+
+export type two_FaResponse = {
+  message : string,
+  dwuetapowe : boolean
+}

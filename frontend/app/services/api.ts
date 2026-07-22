@@ -24,7 +24,7 @@ export async function apiGet(path : string) {
     return data;
 }
 
-export async function apiPost(path : string, body : object) {
+export async function apiPost(path : string, body? : object) {
     if(!API_URL){
         throw new Error("Brak adresu API")
     }

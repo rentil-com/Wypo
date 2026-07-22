@@ -1,6 +1,6 @@
 import { apiPost, apiGet ,apiPatch} from "./api";
 
-import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse, AccountEditBody, AccountEmailChange, AccountEmailChangeResponse, EmailChangeConfirm, EmailChangeConfirmResponse, PasswordResetConfirmResponse, PasswordResetBody, PasswordReset, PasswordResetConfirm } from "@/types/auth";
+import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse, AccountDetails, AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse, AccountEditBody, AccountEmailChange, AccountEmailChangeResponse, EmailChangeConfirm, EmailChangeConfirmResponse, PasswordResetConfirmResponse, PasswordResetBody, PasswordReset, PasswordResetConfirm, two_FaResponse } from "@/types/auth";
 
 
 export async function login(email : string, password : string) {
@@ -167,4 +167,16 @@ export async function passwordResetConfirm(challenge : string, code : string, pa
 
 
     
+}
+
+
+export async function włacz_2fa() {
+    const response = await apiPost("/auth/2fa/enable")
+    return response as two_FaResponse
+}
+
+
+export async function wyłącz_2fa() {
+    const response = await apiPost("/auth/2fa/disable")
+    return response as two_FaResponse
 }
