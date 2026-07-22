@@ -1,7 +1,7 @@
 import type { StyleProp, ViewStyle } from "react-native";
 import { FlatList } from "react-native";
 
-import type { ApiItem } from "@/types/product";
+import type { ApiItem } from "@features/products";
 
 import ProductCard, { type ProductCardItem } from "./ProductCard";
 

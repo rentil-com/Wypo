@@ -1,9 +1,1 @@
-import { useLocalSearchParams } from "expo-router";
-import CatalogView from "./catalog"
-
-export default function PromotionsPage() {
-
-;
-
-  return <CatalogView tylkoPromocje={true} />;
-}
+export { default } from "@features/categories/screens/PromotionsScreen";

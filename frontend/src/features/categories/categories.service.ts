@@ -1,5 +1,5 @@
-import { apiGet } from "./api";
-import type { CategoryApiItem, CategoryResponse } from "@/types/categories";
+import { apiGet } from "@/services/api";
+import type { CategoryApiItem, CategoryResponse } from "./categories.types";
 export async function pobierzKategorie() {
     const response = await apiGet("/kategorie");
 

@@ -1,4 +1,4 @@
-import type { ItemsQueryParams, ItemsSearchParams } from "@/types/product";
+import type { ItemsQueryParams, ItemsSearchParams } from "@features/products";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 

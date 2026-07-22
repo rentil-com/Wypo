@@ -3,12 +3,9 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {  Image, Pressable, Text, TextInput, View } from "react-native";
 import dane from "@/dane.json"
-import { kategorieMap } from "@/constants/categories";
 import {styles} from "./HeaderPanel.styles"
-import { CategoryApiItem } from "@/types/categories";
-import { pobierzKategorie } from "@/services/categories.service";
-import { pobierzProdukty, szukajProdukty } from "@/services/products.service";
-import { ApiItem, ItemsSearchResult } from "@/types/product";
+import { kategorieMap, pobierzKategorie, type CategoryApiItem } from "@features/categories";
+import { pobierzProdukty, szukajProdukty, type ApiItem, type ItemsSearchResult } from "@features/products";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentUser } from "@features/account";
 export default function HeaderPanel () { 

@@ -1,5 +1,5 @@
-import { apiGet } from "./api";
-import type {SingleProductApiItem  } from "@/types/singleproduct";
+import { apiGet } from "@/services/api";
+import type {SingleProductApiItem  } from "./singleproduct.types";
 export async function pobierzPojedynczyProdukt (id : number) {
     const response = await apiGet(`/items/${id}`);
 
