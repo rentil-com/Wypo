@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
 import StatusMessage from "@components/shared/Feedback/StatusMessage";
+import SecurityHint from "@components/shared/Feedback/SecurityHint";
 import { ThemedView } from "@components/themed-view";
 import { ThemedText } from "@components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
@@ -92,16 +93,14 @@ export default function Rejestracja() {
                                     autoCapitalize="none"
                                     keyboardType="number-pad"
                                 />
-                                  <View style={styles.securityHint}>
-                                    <Ionicons name="time-outline" size={16} color="#7B88A4" />
-                                    <Text style={styles.securityHintText}>
-                                        Kod 2FA jest ważny tylko przez {expires_in} s.
-                                    </Text>
-                                     <Text style={styles.securityHintText}>
-                                        Pozostała liczba prób: {max_attempts}.
-                                    </Text>
-                                    
-                                </View>
+                                <SecurityHint
+                                    containerStyle={styles.securityHint}
+                                    textStyle={styles.securityHintText}
+                                    messages={[
+                                        <>Kod 2FA jest ważny tylko przez {expires_in} s.</>,
+                                        <>Pozostała liczba prób: {max_attempts}.</>,
+                                    ]}
+                                />
 
                                 <TouchableOpacity
                                     style={styles.sendButton}

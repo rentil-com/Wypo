@@ -13,6 +13,7 @@ import { ThemedText } from "@components/themed-text";
 import { ThemedView } from "@components/themed-view";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
 import StatusMessage from "@components/shared/Feedback/StatusMessage";
+import SecurityHint from "@components/shared/Feedback/SecurityHint";
 import LoadingButton from "@components/shared/Form/LoadingButton";
 import { emailChangeConfirm } from "@features/account";
 
@@ -134,16 +135,14 @@ export default function Zmiana_Maila_Kod() {
                                     editable={!loading}
                                 />
 
-                                <View style={styles.securityHint}>
-                                    <Ionicons name="time-outline" size={16} color="#7B88A4" />
-                                    <Text style={styles.securityHintText}>
-                                        Kod jest ważny tylko przez {expires_in} s.
-                                    </Text>
-                                     <Text style={styles.securityHintText}>
-                                        Masz tylko {max_attempts} prób.
-                                    </Text>
-                                    
-                                </View>
+                                <SecurityHint
+                                    containerStyle={styles.securityHint}
+                                    textStyle={styles.securityHintText}
+                                    messages={[
+                                        <>Kod jest ważny tylko przez {expires_in} s.</>,
+                                        <>Masz tylko {max_attempts} prób.</>,
+                                    ]}
+                                />
 
                                 <LoadingButton
                                     loading={loading}

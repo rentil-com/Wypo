@@ -18,6 +18,7 @@ import { getCurrentUser, updateAccount, usunKonto, wyłącz_2fa, włacz_2fa } fr
 import type { AccountDetails } from "@features/account";
 import { useAuth } from "@/contexts/AuthContext";
 import HeaderPanel from "@components/shared/Header/HeaderPanel";
+import EmptyState from "@components/shared/Feedback/EmptyState";
 import styles from "../styles/account.styles";
 export default function AccountScreen() {
   const { width } = useWindowDimensions();
@@ -110,30 +111,29 @@ if (status === "loading") {
 
 if (status === "anonymous") {
   return (
-    <SafeAreaView style={styles.stateScreen}>
-      <View style={styles.stateCard}>
-        <View style={styles.stateIcon}>
-          <Ionicons name="lock-closed-outline" size={30} color="#2563EB" />
-        </View>
-        <Text style={styles.stateTitle}>Musisz się zalogować</Text>
-        <Text style={styles.stateDescription}>
-          Zaloguj się, aby zobaczyć informacje o swoim koncie.
-        </Text>
-      </View>
-    </SafeAreaView>
+    <EmptyState
+      screenStyle={styles.stateScreen}
+      cardStyle={styles.stateCard}
+      iconContainerStyle={styles.stateIcon}
+      iconName="lock-closed-outline"
+      title="Musisz się zalogować"
+      titleStyle={styles.stateTitle}
+      description="Zaloguj się, aby zobaczyć informacje o swoim koncie."
+      descriptionStyle={styles.stateDescription}
+    />
   );
 }
 
 if (status === "awaiting_2fa") {
   return (
-    <SafeAreaView style={styles.stateScreen}>
-      <View style={styles.stateCard}>
-        <View style={styles.stateIcon}>
-          <Ionicons name="shield-checkmark-outline" size={30} color="#2563EB" />
-        </View>
-        <Text style={styles.stateTitle}>Dokończ logowanie kodem 2FA</Text>
-      </View>
-    </SafeAreaView>
+    <EmptyState
+      screenStyle={styles.stateScreen}
+      cardStyle={styles.stateCard}
+      iconContainerStyle={styles.stateIcon}
+      iconName="shield-checkmark-outline"
+      title="Dokończ logowanie kodem 2FA"
+      titleStyle={styles.stateTitle}
+    />
   );
 }
 
@@ -150,27 +150,28 @@ if (loading) {
 
 if (error) {
   return (
-    <SafeAreaView style={styles.stateScreen}>
-      <View style={styles.stateCard}>
-        <View style={[styles.stateIcon, styles.errorStateIcon]}>
-          <Ionicons name="alert-circle-outline" size={30} color="#DC2626" />
-        </View>
-        <Text style={[styles.stateTitle, styles.errorStateText]}>{error}</Text>
-      </View>
-    </SafeAreaView>
+    <EmptyState
+      screenStyle={styles.stateScreen}
+      cardStyle={styles.stateCard}
+      iconContainerStyle={[styles.stateIcon, styles.errorStateIcon]}
+      iconName="alert-circle-outline"
+      iconColor="#DC2626"
+      title={error}
+      titleStyle={[styles.stateTitle, styles.errorStateText]}
+    />
   );
 }
 
 if (!account) {
   return (
-    <SafeAreaView style={styles.stateScreen}>
-      <View style={styles.stateCard}>
-        <View style={styles.stateIcon}>
-          <Ionicons name="person-outline" size={30} color="#2563EB" />
-        </View>
-        <Text style={styles.stateTitle}>Brak danych konta</Text>
-      </View>
-    </SafeAreaView>
+    <EmptyState
+      screenStyle={styles.stateScreen}
+      cardStyle={styles.stateCard}
+      iconContainerStyle={styles.stateIcon}
+      iconName="person-outline"
+      title="Brak danych konta"
+      titleStyle={styles.stateTitle}
+    />
   );
 }
 

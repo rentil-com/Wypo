@@ -10,11 +10,11 @@ import {
 } from "react-native";
 import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
 import StatusMessage from "@components/shared/Feedback/StatusMessage";
+import SecurityHint from "@components/shared/Feedback/SecurityHint";
 import { ThemedView } from "@components/themed-view";
 import { ThemedText } from "@components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { registerConfirm } from "@features/registration";
-import { Ionicons } from "@expo/vector-icons";
 
 export default function Rejestracja() {
     const { width } = useWindowDimensions();
@@ -93,16 +93,14 @@ export default function Rejestracja() {
                                     autoCapitalize="none"
                                     keyboardType="number-pad"
                                 />
-                                  <View style={styles.securityHint}>
-                                    <Ionicons name="time-outline" size={16} color="#7B88A4" />
-                                    <Text style={styles.securityHintText}>
-                                        Kod jest ważny tylko przez {expires_in} s.
-                                    </Text>
-                                     <Text style={styles.securityHintText}>
-                                        Masz tylko {max_attempts} prób.
-                                    </Text>
-                                    
-                                </View>
+                                <SecurityHint
+                                    containerStyle={styles.securityHint}
+                                    textStyle={styles.securityHintText}
+                                    messages={[
+                                        <>Kod jest ważny tylko przez {expires_in} s.</>,
+                                        <>Masz tylko {max_attempts} prób.</>,
+                                    ]}
+                                />
 
                                 <TouchableOpacity
                                     style={styles.sendButton}
