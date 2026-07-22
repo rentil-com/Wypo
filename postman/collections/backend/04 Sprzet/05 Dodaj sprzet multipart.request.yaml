@@ -5,25 +5,33 @@ method: POST
 headers:
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: false
+    disabled: true
 body:
   type: formdata
   content:
-    - key: nazwa
+    - type: text
+      key: nazwa
       value: Wiertarka
-    - key: opis
+    - type: text
+      key: opis
       value: Wiertarka udarowa
-    - key: kategoria_id
+    - type: text
+      key: kategoria_id
       value: "{{category_id}}"
-    - key: cena
+    - type: text
+      key: cena
       value: "49.99"
-    - key: cena_po_promocji
+    - type: text
+      key: cena_po_promocji
       value: "39.99"
-    - key: status
+    - type: text
+      key: status
       value: dostepny
-    - key: zdjecia_url
+    - type: text
+      key: zdjecia_url
       value: '{"1":"https://example.com/wiertarka.jpg"}'
-    - key: specyfikacje
+    - type: text
+      key: specyfikacje
       value: '[{"nazwa_specyfikacji":"Moc","opis_specyfikacji":"900 W","emotka_specyfikacji":"bolt.fill"}]'
     - key: zdjecia
       type: file

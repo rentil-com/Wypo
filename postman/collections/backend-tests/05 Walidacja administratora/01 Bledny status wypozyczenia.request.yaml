@@ -2,6 +2,8 @@ $kind: http-request
 name: Błędny filtr statusu wypożyczenia jest odrzucany
 url: "{{base_url}}/wypozyczenia/wnioski?status=niepoprawny"
 method: GET
+queryParams:
+  status: "niepoprawny"
 headers:
   Authorization: "Bearer {{api_key}}"
 scripts:

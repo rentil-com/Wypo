@@ -2,6 +2,8 @@ $kind: http-request
 name: Błędny filtr liczby gwiazdek jest odrzucany
 url: "{{base_url}}/recenzje?gwiazdki=6"
 method: GET
+queryParams:
+  gwiazdki: "6"
 headers:
   Authorization: "Bearer {{api_key}}"
 scripts:

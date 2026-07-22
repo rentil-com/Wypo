@@ -2,5 +2,7 @@ $kind: http-request
 name: Moje recenzje
 url: "{{base_url}}/recenzje/moje?strona={{page}}"
 method: GET
+queryParams:
+  strona: "{{page}}"
 order: 3000
 

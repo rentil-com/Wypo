@@ -5,6 +5,6 @@ method: PUT
 headers:
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: false
+    disabled: true
 order: 7000
 

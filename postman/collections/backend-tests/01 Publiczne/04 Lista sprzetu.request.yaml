@@ -2,6 +2,8 @@ $kind: http-request
 name: Lista sprzętu ma poprawny kontrakt paginacji
 url: "{{base_url}}/items?strona=1"
 method: GET
+queryParams:
+  strona: "1"
 headers:
   Authorization: Bearer invalid_test_token
 scripts:

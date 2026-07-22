@@ -2,5 +2,7 @@ $kind: http-request
 name: Wyszukaj sprzęt
 url: "{{base_url}}/items/search?q=wiertarka"
 method: GET
+queryParams:
+  q: "wiertarka"
 order: 1000
 

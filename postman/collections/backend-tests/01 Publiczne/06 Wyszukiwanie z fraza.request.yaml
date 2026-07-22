@@ -2,6 +2,8 @@ $kind: http-request
 name: Wyszukiwanie ogranicza liczbę wyników
 url: "{{base_url}}/items/search?q=a"
 method: GET
+queryParams:
+  q: "a"
 scripts:
   - type: afterResponse
     code: |-

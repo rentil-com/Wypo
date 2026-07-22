@@ -5,11 +5,12 @@ method: POST
 headers:
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: false
+    disabled: true
 body:
   type: formdata
   content:
-    - key: zdjecia_url
+    - type: text
+      key: zdjecia_url
       value: '["https://example.com/url1.jpg","https://example.com/url2.jpg"]'
     - key: zdjecie
       type: file

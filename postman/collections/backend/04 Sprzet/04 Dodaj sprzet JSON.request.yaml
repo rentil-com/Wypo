@@ -5,10 +5,10 @@ method: POST
 headers:
   - key: Content-Type
     value: application/json
-    enabled: true
+    disabled: false
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: false
+    disabled: true
 body:
   type: json
   content: |-

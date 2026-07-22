@@ -5,10 +5,10 @@ method: PATCH
 headers:
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: true
+    disabled: false
   - key: Content-Type
     value: application/json
-    enabled: true
+    disabled: false
 body:
   type: json
   content: |-

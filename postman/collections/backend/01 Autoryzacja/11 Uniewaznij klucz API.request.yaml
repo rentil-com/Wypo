@@ -5,7 +5,7 @@ method: DELETE
 headers:
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: false
+    disabled: true
 scripts:
   - type: afterResponse
     code: |-

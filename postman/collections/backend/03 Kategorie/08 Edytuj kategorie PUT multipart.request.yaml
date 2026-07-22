@@ -5,11 +5,12 @@ method: PUT
 headers:
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: false
+    disabled: true
 body:
   type: formdata
   content:
-    - key: nazwa
+    - type: text
+      key: nazwa
       value: Nowa nazwa kategorii
     - key: zdjecie
       type: file

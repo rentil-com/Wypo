@@ -2,5 +2,7 @@ $kind: http-request
 name: Lista kategorii
 url: "{{base_url}}/kategorie?nazwa=Elektronarzędzia"
 method: GET
+queryParams:
+  nazwa: "Elektronarzędzia"
 order: 1000
 

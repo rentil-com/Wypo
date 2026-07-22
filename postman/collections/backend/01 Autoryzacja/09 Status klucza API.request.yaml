@@ -5,6 +5,6 @@ method: GET
 headers:
   - key: Authorization
     value: "Bearer {{api_key}}"
-    enabled: false
+    disabled: true
 order: 9000
 
