@@ -260,44 +260,31 @@ export default function ProductDetailedView() {
                 {/* OPIS PRODUKTU */}
                 <Text style={styles.description}>{pojedynczyProdukt?.opis}</Text>
 
-                {/* SPECYFIKACJE */}
-                <View style={styles.specList}>
-                  <View style={styles.specRow}>
-                    <View style={styles.specLeft}>
-                      <Text style={styles.specLabel}>Procesor</Text>
-                    </View>
-                    <Text style={styles.specValue}>Intel Core i5-1145G7</Text>
-                  </View>
+                    <View style={styles.specList}>
+          {pojedynczyProdukt.specyfikacje.map((specyfikacja) => (
+            <View key={specyfikacja.id} style={styles.specRow}>
+              <View style={styles.specLeft}>
+                <Text style={styles.specEmoji}>
+                  {specyfikacja.emotka_specyfikacji}
+                </Text>
 
-                  <View style={styles.specRow}>
-                    <View style={styles.specLeft}>
-                      <Text style={styles.specLabel}>Pamięć RAM</Text>
-                    </View>
-                    <Text style={styles.specValue}>16 GB DDR4</Text>
-                  </View>
+                <Text style={styles.specLabel}>
+                  {specyfikacja.nazwa_specyfikacji}
+                </Text>
+              </View>
 
-                  <View style={styles.specRow}>
-                    <View style={styles.specLeft}>
-                      <Text style={styles.specLabel}>Dysk</Text>
-                    </View>
-                    <Text style={styles.specValue}>512 GB SSD</Text>
-                  </View>
+              <Text style={styles.specValue}>
+                {specyfikacja.opis_specyfikacji}
+              </Text>
+            </View>
+          ))}
 
-                  <View style={styles.specRow}>
-                    <View style={styles.specLeft}>
-                      <Text style={styles.specLabel}>Ekran</Text>
-                    </View>
-                    <Text style={styles.specValue}>14&quot; Full HD</Text>
-                  </View>
-
-                  <View style={styles.specRow}>
-                    <View style={styles.specLeft}>
-                      <Text style={styles.specLabel}>System</Text>
-                    </View>
-                    <Text style={styles.specValue}>Windows 11 Pro</Text>
-                  </View>
-                </View>
-
+          {pojedynczyProdukt.specyfikacje.length === 0 && (
+            <Text style={styles.description}>
+              Brak specyfikacji produktu.
+            </Text>
+          )}
+        </View>
                 <View style={styles.divider} />
 
                 {/* OKRES WYNAJMU */}
@@ -932,6 +919,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#E2E8F0",
     marginHorizontal: 20,
   },
+  specEmoji: {
+  width: 24,
+  fontSize: 18,
+  textAlign: "center",
+},
   
 });
   

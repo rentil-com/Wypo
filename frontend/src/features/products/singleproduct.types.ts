@@ -1,4 +1,9 @@
-
+export type ProductSpecification = {
+  id: number;
+  nazwa_specyfikacji: string;
+  opis_specyfikacji: string;
+  emotka_specyfikacji: string;
+};
 export type SingleProductApiItem = {
   id: number;
   nazwa: string;
@@ -8,7 +13,7 @@ export type SingleProductApiItem = {
   zdjecia_url: Record<string, string>;
   cena: number;
   cena_po_promocji: number | null;
-  specyfikacje : Array<Record<string, string>>
+  specyfikacje : ProductSpecification[];
 };
 
 export type SingleProductResponse =  SingleProductApiItem[]
