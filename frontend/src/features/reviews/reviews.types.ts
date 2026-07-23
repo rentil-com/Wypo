@@ -27,3 +27,19 @@ export type ProductReviewsResponse = {
   liczbaStron: number;
   dane: ReviewResponse[];
 };
+
+
+export type SingleReviewResponse = {
+    id : number,
+    uzytkownik_id : number,
+    sprzet_id : number,
+    wypozyczenie_id : number | null,
+    gwiazdki : Review_Rating
+    tresc : string | null,
+    status : ReviewsStatus,
+    data_dodania : string,
+    imie? : string,
+    nazwisko? : string,
+    nazwa_sprzetu? : string
+
+}
