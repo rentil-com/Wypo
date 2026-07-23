@@ -1,0 +1,26 @@
+$kind: http-request
+name: Lista promocji ma kontrakt paginacji
+url: "{{base_url}}/promocje?strona=1"
+method: GET
+headers:
+  Authorization: "Bearer {{api_key}}"
+queryParams:
+  strona: "1"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Kontrakt paginacji promocji", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("strona", 1);
+        pm.expect(body).to.have.property("limitPromocjiNaStrone");
+        pm.expect(body).to.have.property("total");
+        pm.expect(body).to.have.property("liczbaStron");
+        pm.expect(body.dane).to.be.an("array");
+      });
+    language: text/javascript
+order: 1000
+

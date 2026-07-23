@@ -51,6 +51,9 @@ values:
   - key: rental_id
     value: "1"
     enabled: true
+  - key: promotion_id
+    value: "1"
+    enabled: true
   - key: review_id
     value: "1"
     enabled: true

@@ -13,7 +13,7 @@ body:
   type: json
   content: |-
     {
-      "cena_po_promocji": 10
+      "cena": 10
     }
 scripts:
   - type: afterResponse

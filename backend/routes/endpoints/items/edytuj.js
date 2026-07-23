@@ -18,6 +18,15 @@ import { pobierzSprzetPoId } from "../../../services/items.js";
 import { zapiszSpecyfikacjeSprzetu } from "../../../services/specifications.js";
 
 const router = Router();
+const DOZWOLONE_POLA = new Set([
+  "nazwa",
+  "opis",
+  "kategoria_id",
+  "status",
+  "cena",
+  "specyfikacje",
+  "specyfikacja"
+]);
 
 async function edytujSprzet(req, res) {
   let client = null;
@@ -44,10 +53,14 @@ async function edytujSprzet(req, res) {
       });
     }
 
+    if (Object.keys(body).some((pole) => !DOZWOLONE_POLA.has(pole))) {
+      return res.status(400).json({
+        error: "Body zawiera nieobslugiwane pola sprzetu."
+      });
+    }
+
     const pola = [];
     const params = [];
-    let cena = null;
-    let cenaPoPromocji = null;
     const specyfikacjeZBody = pobierzSpecyfikacjeZBody(body);
     let specyfikacjeDoZapisu = null;
 
@@ -108,35 +121,20 @@ async function edytujSprzet(req, res) {
       pola.push(`status = $${params.length}`);
     }
 
-    const czyZmianaCeny =
-      czyPolePrzekazane(body, "cena") ||
-      czyPolePrzekazane(body, "cena_po_promocji");
-
     if (czyPolePrzekazane(body, "cena")) {
-      cena = parsujCene(body.cena, true);
+      const cena = parsujCene(body.cena, true);
 
       if (!cena.poprawna) {
         return res.status(400).json({
           error: "Nieprawidlowa cena sprzetu."
         });
       }
+
+      params.push(cena.wartosc);
+      pola.push(`cena = $${params.length}`);
     }
 
-    if (czyPolePrzekazane(body, "cena_po_promocji")) {
-      cenaPoPromocji = parsujCene(body.cena_po_promocji);
-
-      if (!cenaPoPromocji.poprawna) {
-        return res.status(400).json({
-          error: "Nieprawidlowa cena promocyjna sprzetu."
-        });
-      }
-    }
-
-    if (
-      pola.length === 0 &&
-      !czyZmianaCeny &&
-      specyfikacjeDoZapisu === null
-    ) {
+    if (pola.length === 0 && specyfikacjeDoZapisu === null) {
       return res.status(400).json({
         error: "Brak danych do aktualizacji."
       });
@@ -148,7 +146,7 @@ async function edytujSprzet(req, res) {
 
     const obecnyResult = await client.query(
       `
-      SELECT cena, cena_po_promocji
+      SELECT id
       FROM sprzety
       WHERE id = $1
       FOR UPDATE;
@@ -165,39 +163,6 @@ async function edytujSprzet(req, res) {
       });
     }
 
-    const obecnySprzet = obecnyResult.rows[0];
-
-    if (czyZmianaCeny) {
-      const aktualnaCena = cena ? cena.wartosc : Number(obecnySprzet.cena);
-      const aktualnaCenaPoPromocji = cenaPoPromocji
-        ? cenaPoPromocji.wartosc
-        : obecnySprzet.cena_po_promocji === null
-          ? null
-          : Number(obecnySprzet.cena_po_promocji);
-
-      if (
-        aktualnaCenaPoPromocji !== null &&
-        aktualnaCenaPoPromocji > aktualnaCena
-      ) {
-        await client.query("ROLLBACK");
-        transakcjaAktywna = false;
-
-        return res.status(400).json({
-          error: "Cena promocyjna nie moze byc wieksza od ceny."
-        });
-      }
-
-      if (cena) {
-        params.push(cena.wartosc);
-        pola.push(`cena = $${params.length}`);
-      }
-
-      if (cenaPoPromocji) {
-        params.push(cenaPoPromocji.wartosc);
-        pola.push(`cena_po_promocji = $${params.length}`);
-      }
-    }
-
     if (pola.length > 0) {
       params.push(id);
 
@@ -205,8 +170,7 @@ async function edytujSprzet(req, res) {
         `
         UPDATE sprzety
         SET ${pola.join(", ")}
-        WHERE id = $${params.length}
-        RETURNING id;
+        WHERE id = $${params.length};
         `,
         params
       );
@@ -216,7 +180,7 @@ async function edytujSprzet(req, res) {
       await zapiszSpecyfikacjeSprzetu(client, id, specyfikacjeDoZapisu);
     }
 
-    const sprzet = await pobierzSprzetPoId(client, id);
+    const sprzet = await pobierzSprzetPoId(client, id, req.uzytkownik.id);
 
     await client.query("COMMIT");
     transakcjaAktywna = false;

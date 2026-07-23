@@ -7,6 +7,7 @@ import {
 } from "../../../helpers/common.js";
 import {
   mapujWypozyczenie,
+  polaWypozyczeniaSql,
   parsujDate,
   STATUSY_LISTY_WYPOZYCZEN
 } from "../../../helpers/wypozyczenia.js";
@@ -93,8 +94,8 @@ router.get("/", async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista
-      FROM wypozyczenia
+      SELECT ${polaWypozyczeniaSql("w")}
+      FROM wypozyczenia w
       WHERE ${whereSql}
       ORDER BY data_zlozenia DESC, id DESC
       LIMIT $${limitIndex} OFFSET $${offsetIndex};

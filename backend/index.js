@@ -9,6 +9,7 @@ import accounts from "./routes/accounts.js";
 import ulubione from "./routes/ulubione.js";
 import wypozyczenia from "./routes/wypozyczenia.js";
 import recenzje from "./routes/recenzje.js";
+import promocje from "./routes/promocje.js";
 import { utworzRouterWorkera } from "./routes/worker.js";
 import { utworzKlientaApiWorkeraZEnv } from "./services/worker-api.js";
 import cors from "cors";
@@ -41,6 +42,7 @@ app.use("/account", accounts);
 app.use("/ulubione", ulubione);
 app.use("/wypozyczenia", wypozyczenia);
 app.use("/recenzje", recenzje);
+app.use("/promocje", promocje);
 
 if (klientApiWorkera) {
   app.use("/worker", utworzRouterWorkera({ klient: klientApiWorkera }));

@@ -1,14 +1,7 @@
-import { polaSprzetuSql } from "../helpers/items.js";
+import { pobierzSprzetZPromocja } from "./promocje.js";
 
-export async function pobierzSprzetPoId(client, id) {
-  const result = await client.query(
-    `
-    SELECT ${polaSprzetuSql("s")}
-    FROM sprzety s
-    WHERE s.id = $1;
-    `,
-    [id]
-  );
-
-  return result.rows[0] || null;
+export async function pobierzSprzetPoId(client, id, uzytkownikId = null) {
+  return pobierzSprzetZPromocja(client, id, uzytkownikId, {
+    zeSpecyfikacjami: true
+  });
 }

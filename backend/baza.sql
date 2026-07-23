@@ -290,6 +290,12 @@ CREATE TABLE wypozyczenia (
     data_do TIMESTAMP NOT NULL,
     status status_wypozyczenia NOT NULL DEFAULT 'oczekujacy',
     data_zwrotu_rzeczywista TIMESTAMP,
+    promocja_id INTEGER,
+    cena_bazowa NUMERIC(10, 2) NOT NULL,
+    cena_koncowa NUMERIC(10, 2) NOT NULL,
+    promocja_nazwa VARCHAR(100),
+    promocja_typ typ_promocji,
+    promocja_wartosc NUMERIC(10, 2),
 
     CONSTRAINT fk_wypozyczenia_sprzet
         FOREIGN KEY (sprzet_id)
@@ -301,9 +307,30 @@ CREATE TABLE wypozyczenia (
         REFERENCES uzytkownicy(id)
         ON DELETE RESTRICT,
 
+    CONSTRAINT fk_wypozyczenia_promocje
+        FOREIGN KEY (promocja_id)
+        REFERENCES promocje(id)
+        ON DELETE SET NULL,
+
     CONSTRAINT chk_wypozyczenia_dat
-        CHECK (data_do >= data_od)
+        CHECK (data_do >= data_od),
+
+    CONSTRAINT chk_wypozyczenia_ceny
+        CHECK (
+            cena_bazowa >= 0
+            AND cena_koncowa >= 0
+            AND cena_koncowa <= cena_bazowa
+        )
 );
+
+CREATE INDEX idx_wypozyczenia_promocja_id
+    ON wypozyczenia(promocja_id);
+
+COMMENT ON COLUMN wypozyczenia.cena_bazowa IS
+    'Cena bazowa sprzetu za dzien zapisana w chwili utworzenia wypozyczenia.';
+
+COMMENT ON COLUMN wypozyczenia.cena_koncowa IS
+    'Cena za dzien po promocji zapisana w chwili utworzenia wypozyczenia.';
 
 CREATE TABLE ulubione (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { pool } from "../../../db/pool.js";
 import { parsujId } from "../../../helpers/common.js";
-import { mapujSprzet, polaSprzetuSql } from "../../../helpers/items.js";
+import { mapujSprzet } from "../../../helpers/items.js";
+import { pobierzSprzetZPromocja } from "../../../services/promocje.js";
 
 const router = Router();
 
@@ -12,31 +13,29 @@ router.get("/:id", async (req, res) => {
 
     if (!id) {
       return res.status(400).json({
-        error: "Nieprawidłowe ID sprzętu."
+        error: "Nieprawidlowe ID sprzetu."
       });
     }
 
-    const result = await pool.query(
-      `
-      SELECT ${polaSprzetuSql("s")}
-      FROM sprzety s
-      WHERE s.id = $1;
-      `,
-      [id]
+    const sprzet = await pobierzSprzetZPromocja(
+      pool,
+      id,
+      req.uzytkownik?.id || null,
+      { zeSpecyfikacjami: true }
     );
 
-    if (result.rows.length === 0) {
+    if (!sprzet) {
       return res.status(404).json({
-        error: "Nie znaleziono sprzętu."
+        error: "Nie znaleziono sprzetu."
       });
     }
 
-    return res.status(200).json(mapujSprzet(result.rows[0], czyAdmin));
+    return res.status(200).json(mapujSprzet(sprzet, czyAdmin));
   } catch (err) {
     console.error(err);
 
     return res.status(500).json({
-      error: "Błąd serwera"
+      error: "Blad serwera"
     });
   }
 });

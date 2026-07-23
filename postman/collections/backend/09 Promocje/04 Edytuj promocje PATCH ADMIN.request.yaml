@@ -1,0 +1,23 @@
+$kind: http-request
+name: Edytuj promocje PATCH (ADMIN)
+url: "{{base_url}}/promocje/{{promotion_id}}"
+method: PATCH
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "aktywna": false,
+      "zakres_sprzetow": {
+        "wszystkie": false,
+        "kategorie_ids": [],
+        "sprzety_ids": [{{item_id}}]
+      }
+    }
+order: 4000

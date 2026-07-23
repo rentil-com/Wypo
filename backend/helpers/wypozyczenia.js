@@ -28,16 +28,53 @@ export function czyStatusBlokujeSprzet(status) {
   return STATUSY_BLOKUJACE_SPRZET.includes(status);
 }
 
+export function polaWypozyczeniaSql(alias = "w") {
+  return `
+    ${alias}.id,
+    ${alias}.sprzet_id,
+    ${alias}.uzytkownik_id,
+    ${alias}.data_zlozenia,
+    ${alias}.data_od,
+    ${alias}.data_do,
+    ${alias}.status,
+    ${alias}.data_zwrotu_rzeczywista,
+    ${alias}.promocja_id,
+    ${alias}.cena_bazowa,
+    ${alias}.cena_koncowa,
+    ${alias}.promocja_nazwa,
+    ${alias}.promocja_typ,
+    ${alias}.promocja_wartosc`;
+}
+
 export function mapujWypozyczenie(wypozyczenie) {
+  const maSnapshotPromocji =
+    wypozyczenie.promocja_nazwa !== null &&
+    wypozyczenie.promocja_nazwa !== undefined;
+
   return {
-    id: wypozyczenie.id,
-    sprzet_id: wypozyczenie.sprzet_id,
-    uzytkownik_id: wypozyczenie.uzytkownik_id,
+    id: Number(wypozyczenie.id),
+    sprzet_id: Number(wypozyczenie.sprzet_id),
+    uzytkownik_id: Number(wypozyczenie.uzytkownik_id),
     data_zlozenia: wypozyczenie.data_zlozenia,
     data_od: wypozyczenie.data_od,
     data_do: wypozyczenie.data_do,
     status: wypozyczenie.status,
-    data_zwrotu_rzeczywista: wypozyczenie.data_zwrotu_rzeczywista
+    data_zwrotu_rzeczywista: wypozyczenie.data_zwrotu_rzeczywista,
+    cena_bazowa: Number(wypozyczenie.cena_bazowa),
+    cena_koncowa: Number(wypozyczenie.cena_koncowa),
+    promocja_id: wypozyczenie.promocja_id === null
+      ? null
+      : Number(wypozyczenie.promocja_id),
+    promocja: maSnapshotPromocji
+      ? {
+          id: wypozyczenie.promocja_id === null
+            ? null
+            : Number(wypozyczenie.promocja_id),
+          nazwa: wypozyczenie.promocja_nazwa,
+          typ: wypozyczenie.promocja_typ,
+          wartosc: Number(wypozyczenie.promocja_wartosc)
+        }
+      : null
   };
 }
 

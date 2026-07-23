@@ -1,12 +1,16 @@
-import { STATUSY_BLOKUJACE_SPRZET } from "../helpers/wypozyczenia.js";
+import {
+  polaWypozyczeniaSql,
+  STATUSY_BLOKUJACE_SPRZET
+} from "../helpers/wypozyczenia.js";
+import { pobierzSprzetZPromocja } from "./promocje.js";
 
 export async function pobierzWypozyczenieDoAktualizacji(client, id) {
   const result = await client.query(
     `
-    SELECT id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista
-    FROM wypozyczenia
-    WHERE id = $1
-    FOR UPDATE;
+    SELECT ${polaWypozyczeniaSql("w")}
+    FROM wypozyczenia w
+    WHERE w.id = $1
+    FOR UPDATE OF w;
     `,
     [id]
   );
@@ -14,18 +18,14 @@ export async function pobierzWypozyczenieDoAktualizacji(client, id) {
   return result.rows[0] || null;
 }
 
-export async function pobierzSprzetDoAktualizacji(client, id) {
-  const result = await client.query(
-    `
-    SELECT id, status
-    FROM sprzety
-    WHERE id = $1
-    FOR UPDATE;
-    `,
-    [id]
-  );
-
-  return result.rows[0] || null;
+export async function pobierzSprzetDoAktualizacji(
+  client,
+  id,
+  uzytkownikId = null
+) {
+  return pobierzSprzetZPromocja(client, id, uzytkownikId, {
+    blokada: true
+  });
 }
 
 export async function czySprzetMaAktywneWypozyczenia(

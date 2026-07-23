@@ -22,8 +22,9 @@ scripts:
           pm.expect(item).to.have.property("nazwa_przedmiotu");
           pm.expect(item).to.have.property("zdjecie_url");
           pm.expect(item).to.have.property("cena");
-          pm.expect(item).to.have.property("cena_po_promocji");
+          pm.expect(item).to.have.property("cena_aktualna");
           pm.expect(item).to.have.property("czy_promocja");
+          pm.expect(item).to.have.property("promocja");
         });
       });
     language: text/javascript

@@ -454,8 +454,31 @@ Każdy wynik zawiera pola:
 * `nazwa_przedmiotu`
 * `zdjecie_url`
 * `cena`
-* `cena_po_promocji`
+* `cena_aktualna`
 * `czy_promocja`
+* `promocja`
+
+`cena` jest cena bazowa za jeden dzien, a `cena_aktualna` cena po
+zastosowaniu najlepszej promocji dostepnej dla aktualnej sesji. Pole
+`promocja` ma wartosc `null` albo zawiera wylacznie `id`, `nazwa`, `typ`,
+`wartosc` i `data_do`. Promocje przypisane do konta nie sa naliczane ani
+ujawniane gosciom lub innym uzytkownikom.
+Przykladowy fragment odpowiedzi:
+
+```json
+{
+  "cena": 49.99,
+  "cena_aktualna": 39.99,
+  "czy_promocja": true,
+  "promocja": {
+    "id": 8,
+    "nazwa": "Weekend z elektronarzedziami",
+    "typ": "procentowa",
+    "wartosc": 20,
+    "data_do": "2026-08-04T00:00:00.000Z"
+  }
+}
+```
 
 ### `GET /items`
 
@@ -470,6 +493,10 @@ Query parametry:
 * `cena_od` albo `cena_min`
 * `cena_do` albo `cena_max`
 * `promocja` albo `tylko_promocje`
+
+Filtry ceny i `tylko_promocje` dzialaja na `cena_aktualna` wyliczonej dla
+aktualnej sesji. Lista, wyszukiwarka i szczegoly korzystaja z tego samego
+selektora promocji i nie sumuja rabatow.
 
 Dla admina zwracany jest rzeczywisty status sprzętu. Dla zwykłego użytkownika status inny niż `dostepny` jest mapowany na `niedostepny`.
 
@@ -508,7 +535,6 @@ Body JSON albo `multipart/form-data`:
     }
   ],
   "cena": "49.99",
-  "cena_po_promocji": "39.99",
   "status": "dostepny"
 }
 ```
@@ -526,7 +552,6 @@ Opcjonalne pola:
 * `opis`
 * `zdjecia_url`
 * `specyfikacje`
-* `cena_po_promocji`
 * `status`
 
 ### `PATCH /items/edit/:id`
@@ -542,7 +567,6 @@ Edytuje sprzęt. Można zmieniać:
 * `kategoria_id`
 * `status`
 * `cena`
-* `cena_po_promocji`
 * `specyfikacje` - wysłana tablica zastępuje całą listę specyfikacji sprzętu
 
 Zdjęć nie można zmieniać przez `edit/:id`. Do tego służą osobne endpointy poniżej.
@@ -599,6 +623,85 @@ Admin only.
 
 Zwraca listę ID sprzętów, które można usunąć, czyli takich, które nie mają żadnego wypożyczenia.
 
+## Promocje
+
+Wszystkie endpointy w tej sekcji wymagaja zalogowanego administratora.
+Uwierzytelnienie moze pochodzic z sesji albo klucza API administratora.
+
+### `POST /promocje`
+
+Tworzy promocje i wszystkie jej przypisania w jednej transakcji. Pole
+`utworzona_przez` jest pobierane z uwierzytelnienia i nie jest przyjmowane w
+body. Poprawna odpowiedz ma status `201`.
+
+```json
+{
+  "nazwa": "Weekend z elektronarzedziami",
+  "opis": "20% rabatu dla wybranych klientow",
+  "typ": "procentowa",
+  "wartosc": 20,
+  "aktywna": true,
+  "data_od": "2026-08-01T00:00:00+02:00",
+  "data_do": "2026-08-04T00:00:00+02:00",
+  "zakres_sprzetow": {
+    "wszystkie": false,
+    "kategorie_ids": [2],
+    "sprzety_ids": [15, 16]
+  },
+  "zakres_uzytkownikow": {
+    "wszyscy": false,
+    "uzytkownicy_ids": [10, 25, 31]
+  }
+}
+```
+
+`typ` przyjmuje `procentowa` albo `kwotowa`. `wartosc` musi byc dodatnia, a
+dla typu procentowego nie moze przekraczac 100. `data_do` moze byc `null`,
+ale jesli jest podana, musi byc pozniejsza od `data_od`.
+
+Dla zakresu sprzetow `wszystkie: true` wymaga pustych list. Gdy
+`wszystkie: false`, trzeba wskazac co najmniej jedna kategorie albo jeden
+sprzet. Analogicznie `wszyscy: true` wymaga pustej listy uzytkownikow, a
+`wszyscy: false` co najmniej jednego konta. Duplikaty ID sa usuwane, natomiast
+nieistniejace ID zwracaja `404`.
+
+### `GET /promocje`
+
+Zwraca paginowana liste promocji, maksymalnie 20 rekordow na strone.
+Obslugiwane query parametry:
+
+* `strona`
+* `nazwa`
+* `typ` - `procentowa` albo `kwotowa`
+* `stan` - `zaplanowana`, `aktywna`, `wygasla` albo `wylaczona`
+* `sprzet_id`
+* `kategoria_id`
+* `uzytkownik_id`
+
+Odpowiedz zawiera `strona`, `limitPromocjiNaStrone`, `filtry`, `total`,
+`liczbaStron` i tablice `dane`. Stan jest wyliczany na podstawie flagi
+`aktywna` oraz aktualnego czasu.
+
+### `GET /promocje/:id`
+
+Zwraca pelny zapis promocji razem z `zakres_sprzetow` i
+`zakres_uzytkownikow`. Nieistniejacy rekord zwraca `404`.
+
+### `PATCH /promocje/:id`
+
+Aktualizuje tylko przekazane pola. Rekord jest blokowany przez
+`SELECT ... FOR UPDATE`. Przekazanie `zakres_sprzetow` albo
+`zakres_uzytkownikow` zastepuje caly odpowiedni zakres w tej samej
+transakcji. Promocje wylacza sie przez:
+
+```json
+{
+  "aktywna": false
+}
+```
+
+API nie udostepnia trwalego usuwania promocji.
+
 ## Ulubione
 
 ### `POST /ulubione/polub/:id`
@@ -650,6 +753,19 @@ Warunki:
 * sprzęt musi istnieć
 * sprzęt musi mieć status `dostepny`
 * `data_do` nie może być wcześniejsza niż `data_od`
+
+Cena sprzetu oznacza cene za jeden dzien. Podczas tworzenia wniosku backend
+wybiera najlepsza promocje dla aktualnej sesji i zapisuje niezmienny snapshot:
+
+* `cena_bazowa`
+* `cena_koncowa`
+* `promocja_id`
+* `promocja` - `null` albo obiekt snapshotu z `id`, `nazwa`, `typ` i `wartosc`
+
+Klient nie moze przeslac ceny koncowej ani ID promocji. Pozniejsza edycja,
+wylaczenie lub usuniecie promocji nie przelicza zapisanego wypozyczenia.
+Pola snapshotu sa zwracane przez utworzenie, liste, szczegoly i endpointy
+aktualizujace wypozyczenie.
 
 ### `GET /wypozyczenia/wnioski`
 

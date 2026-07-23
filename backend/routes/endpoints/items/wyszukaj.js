@@ -3,6 +3,11 @@ import { pool } from "../../../db/pool.js";
 import { LIMIT_WYNIKOW_WYSZUKIWANIA } from "../../../helpers/constants.js";
 import { normalizujTekst } from "../../../helpers/common.js";
 import { pobierzPierwszeZdjecieUrl } from "../../../helpers/images.js";
+import {
+  mapujSkrotPromocji,
+  polaPromocjiSprzetuSql,
+  promocjaLateralSql
+} from "../../../services/promocje.js";
 
 const router = Router();
 
@@ -18,35 +23,46 @@ router.get("/", async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT id, nazwa, zdjecia_url, cena, cena_po_promocji
-      FROM sprzety
-      WHERE nazwa ILIKE $1
+      SELECT
+        s.id,
+        s.nazwa,
+        s.zdjecia_url,
+        s.cena,
+        ${polaPromocjiSprzetuSql("s", "najlepsza_promocja")}
+      FROM sprzety s
+      ${promocjaLateralSql({
+        sprzetAlias: "s",
+        promocjaAlias: "najlepsza_promocja",
+        uzytkownikParam: "$1"
+      })}
+      WHERE s.nazwa ILIKE $2
       ORDER BY
-        CASE WHEN nazwa ILIKE $2 THEN 0 ELSE 1 END,
-        nazwa,
-        id
-      LIMIT $3;
+        CASE WHEN s.nazwa ILIKE $3 THEN 0 ELSE 1 END,
+        s.nazwa,
+        s.id
+      LIMIT $4;
       `,
       [
+        req.uzytkownik?.id || null,
         `%${wyszukiwanaNazwa}%`,
         `${wyszukiwanaNazwa}%`,
         LIMIT_WYNIKOW_WYSZUKIWANIA
       ]
     );
 
-    const dane = result.rows.map((sprzet) => ({
-      id: Number(sprzet.id),
-      nazwa_przedmiotu: sprzet.nazwa,
-      zdjecie_url: pobierzPierwszeZdjecieUrl(sprzet.zdjecia_url),
-      cena: Number(sprzet.cena),
-      cena_po_promocji:
-        sprzet.cena_po_promocji === null
-          ? null
-          : Number(sprzet.cena_po_promocji),
-      czy_promocja:
-        sprzet.cena_po_promocji !== null &&
-        Number(sprzet.cena_po_promocji) < Number(sprzet.cena)
-    }));
+    const dane = result.rows.map((sprzet) => {
+      const promocja = mapujSkrotPromocji(sprzet);
+
+      return {
+        id: Number(sprzet.id),
+        nazwa_przedmiotu: sprzet.nazwa,
+        zdjecie_url: pobierzPierwszeZdjecieUrl(sprzet.zdjecia_url),
+        cena: Number(sprzet.cena),
+        cena_aktualna: Number(sprzet.cena_aktualna),
+        czy_promocja: promocja !== null,
+        promocja
+      };
+    });
 
     return res.status(200).json(dane);
   } catch (err) {

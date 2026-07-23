@@ -3,6 +3,7 @@ import { pool } from "../../../db/pool.js";
 import { parsujId } from "../../../helpers/common.js";
 import {
   mapujWypozyczenie,
+  polaWypozyczeniaSql,
   STATUSY_LISTY_WYPOZYCZEN
 } from "../../../helpers/wypozyczenia.js";
 
@@ -20,9 +21,9 @@ router.get("/:id", async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista
-      FROM wypozyczenia
-      WHERE id = $1
+      SELECT ${polaWypozyczeniaSql("w")}
+      FROM wypozyczenia w
+      WHERE w.id = $1
         AND status = ANY($2::status_wypozyczenia[])
       LIMIT 1;
       `,

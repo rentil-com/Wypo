@@ -10,12 +10,17 @@ import {
   parsujBoolean,
   parsujFiltrCeny
 } from "../../../helpers/validation.js";
+import {
+  polaPromocjiSprzetuSql,
+  promocjaLateralSql
+} from "../../../services/promocje.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
     const czyAdmin = req.uzytkownik?.rola === "admin";
+    const uzytkownikId = req.uzytkownik?.id || null;
     const strona = parsujId(req.query.strona) || 1;
     const offset = (strona - 1) * LIMIT_PRZEDMIOTOW_NA_STRONE;
     const kategoria = req.query.kategoria
@@ -33,75 +38,79 @@ router.get("/", async (req, res) => {
     );
 
     const where = [];
-    const whereParams = [];
+    const params = [uzytkownikId];
 
     if (kategoria) {
-      whereParams.push(kategoria);
-      where.push(`kategoria_id = $${whereParams.length}`);
+      params.push(kategoria);
+      where.push(`kategoria_id = $${params.length}`);
     }
 
-    if (status && DOZWOLONE_STATUSY.includes(status)) {
+    if (status) {
       if (czyAdmin) {
-        whereParams.push(status);
-        where.push(`status = $${whereParams.length}`);
+        params.push(status);
+        where.push(`status = $${params.length}`);
         zastosowanyStatus = status;
       } else if (status === "dostepny") {
-        whereParams.push("dostepny");
-        where.push(`status = $${whereParams.length}`);
+        params.push("dostepny");
+        where.push(`status = $${params.length}`);
         zastosowanyStatus = "dostepny";
       }
     }
 
     if (nazwa) {
-      whereParams.push(`%${nazwa}%`);
-      where.push(`nazwa ILIKE $${whereParams.length}`);
+      params.push(`%${nazwa}%`);
+      where.push(`nazwa ILIKE $${params.length}`);
     }
 
     if (cenaOd !== null) {
-      whereParams.push(cenaOd);
-      where.push(
-        `COALESCE(cena_po_promocji, cena) >= $${whereParams.length}`
-      );
+      params.push(cenaOd);
+      where.push(`cena_aktualna >= $${params.length}`);
     }
 
     if (cenaDo !== null) {
-      whereParams.push(cenaDo);
-      where.push(
-        `COALESCE(cena_po_promocji, cena) <= $${whereParams.length}`
-      );
+      params.push(cenaDo);
+      where.push(`cena_aktualna <= $${params.length}`);
     }
 
     if (tylkoPromocje) {
-      where.push("cena_po_promocji IS NOT NULL AND cena > cena_po_promocji");
+      where.push("promocja_id IS NOT NULL");
     }
 
+    const katalogSql = `
+      SELECT
+        ${podstawowePolaSprzetuSql("s")},
+        ${polaPromocjiSprzetuSql("s", "najlepsza_promocja")}
+      FROM sprzety s
+      ${promocjaLateralSql({
+        sprzetAlias: "s",
+        promocjaAlias: "najlepsza_promocja",
+        uzytkownikParam: "$1"
+      })}
+    `;
     const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
-    const resultParams = [
-      ...whereParams,
-      LIMIT_PRZEDMIOTOW_NA_STRONE,
-      offset
-    ];
-    const limitIndex = whereParams.length + 1;
-    const offsetIndex = whereParams.length + 2;
+    const limitIndex = params.length + 1;
+    const offsetIndex = params.length + 2;
 
     const result = await pool.query(
       `
-      SELECT ${podstawowePolaSprzetuSql("s")}
-      FROM sprzety s
+      WITH katalog AS (${katalogSql})
+      SELECT *
+      FROM katalog
       ${whereSql}
-      ORDER BY s.id
+      ORDER BY id
       LIMIT $${limitIndex} OFFSET $${offsetIndex};
       `,
-      resultParams
+      [...params, LIMIT_PRZEDMIOTOW_NA_STRONE, offset]
     );
 
     const countQuery = await pool.query(
       `
+      WITH katalog AS (${katalogSql})
       SELECT COUNT(*) AS total
-      FROM sprzety
+      FROM katalog
       ${whereSql};
       `,
-      whereParams
+      params
     );
 
     const total = Number(countQuery.rows[0].total);
@@ -126,7 +135,7 @@ router.get("/", async (req, res) => {
     console.error(err);
 
     return res.status(500).json({
-      error: "Błąd serwera"
+      error: "Blad serwera"
     });
   }
 });
