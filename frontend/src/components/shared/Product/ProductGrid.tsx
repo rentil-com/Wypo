@@ -9,6 +9,7 @@ type ProductGridProps = {
   ulubioneIds : number[]
   data: ApiItem[];
   mapItem: (item: ApiItem) => ProductCardItem;
+  onFavouriteChange?: (id: number, polubione: boolean) => void;
   columnWrapperStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   scrollEnabled?: boolean;
@@ -18,6 +19,7 @@ export default function ProductGrid({
   ulubioneIds,
   data,
   mapItem,
+  onFavouriteChange,
   columnWrapperStyle,
   contentContainerStyle,
   scrollEnabled,
@@ -30,7 +32,13 @@ export default function ProductGrid({
       scrollEnabled={scrollEnabled}
       columnWrapperStyle={columnWrapperStyle}
       contentContainerStyle={contentContainerStyle}
-      renderItem={({ item }) => <ProductCard item={mapItem(item)} initialCzyPolubione={ulubioneIds.includes(item.id)} />}
+      renderItem={({ item }) => (
+        <ProductCard
+          item={mapItem(item)}
+          initialCzyPolubione={ulubioneIds.includes(item.id)}
+          onFavouriteChange={onFavouriteChange}
+        />
+      )}
     />
   );
 }

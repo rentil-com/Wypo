@@ -67,6 +67,7 @@ export type ProductCardItem = {
 type ProductCardProps = {
   item: ProductCardItem;
   initialCzyPolubione: boolean;
+  onFavouriteChange?: (id: number, polubione: boolean) => void;
 };
 
 
@@ -74,7 +75,8 @@ type ProductCardProps = {
 
 export default function ProductCard({
   item,
-  initialCzyPolubione
+  initialCzyPolubione,
+  onFavouriteChange,
 }: ProductCardProps) {
   const status =
     statusStyles[
@@ -95,13 +97,15 @@ export default function ProductCard({
       setLoading(true)
 
       try {
-        if(czyPolubione == true){
+        if (czyPolubione) {
           const response = await usunPolubienie(item.id)
-          setczyPolubione(false)
+          setczyPolubione(response.polubione)
+          onFavouriteChange?.(response.id, response.polubione)
         }
         else{
         const response =  await polubPrzedmiot(item.id)
-        setczyPolubione(true)
+        setczyPolubione(response.polubione)
+        onFavouriteChange?.(response.id, response.polubione)
         }
       }
       catch(error){
@@ -119,7 +123,12 @@ export default function ProductCard({
   return (
     <View style={styles.productCard}>
       {/* DODAJ DO ULUBIONYCH */}
-      <Pressable style={styles.favoriteButton} onPress={()=> polub()}>
+      <Pressable
+        style={styles.favoriteButton}
+        onPress={() => polub()}
+        disabled={loading}
+        accessibilityHint={error ?? undefined}
+      >
       {!czyPolubione &&<MaterialIcons
           name="favorite-border"
           size={23}
