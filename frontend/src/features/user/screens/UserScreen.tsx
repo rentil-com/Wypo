@@ -224,6 +224,16 @@ export default function User() {
             <Text style={styles.allButtonText}>Wszystkie</Text>
           </Pressable>
 
+          <Pressable style={[styles.categoryAdminButton, styles.addCategoryButton]}>
+            <MaterialIcons name="add" size={18} color="#FFFFFF" />
+            <Text style={styles.addCategoryButtonText}>Dodaj kategorię</Text>
+          </Pressable>
+
+          <Pressable style={[styles.categoryAdminButton, styles.deleteCategoryButton]}>
+            <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
+            <Text style={styles.deleteCategoryButtonText}>Usuń kategorię</Text>
+          </Pressable>
+
           <Pressable style={styles.arrowButton}>
             <MaterialIcons name="chevron-left" size={22} color="#111827" />
           </Pressable>
@@ -248,10 +258,23 @@ export default function User() {
     data={kategorie}
     keyExtractor={(elem)=> elem.id.toString()}
     numColumns={4}
-    renderItem={({item})=> (     <Pressable style={styles.categoryCard}  onPress={()=> router.push(`/catalog/category/${item.id}`)}>   <View style={styles.categoryIconBoxActive}> 
-  <Image source={{uri : item.zdjecie_url}} style={styles.categoryImage}/>
-          </View> 
-           <Text style={styles.categoryName}>{item.nazwa}</Text> </Pressable>)}
+    renderItem={({item})=> (
+      <View style={styles.categoryCardWrapper}>
+        <Pressable
+          style={styles.categoryCard}
+          onPress={()=> router.push(`/catalog/category/${item.id}`)}
+        >
+          <View style={styles.categoryIconBoxActive}>
+            <Image source={{uri : item.zdjecie_url}} style={styles.categoryImage}/>
+          </View>
+          <Text style={styles.categoryName}>{item.nazwa}</Text>
+        </Pressable>
+
+        <Pressable style={styles.categoryEditButton}>
+          <MaterialIcons name="edit" size={15} color="#1D4ED8" />
+        </Pressable>
+      </View>
+    )}
       
       />
       </View>
@@ -439,6 +462,38 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
 
+  categoryAdminButton: {
+    height: 38,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+
+  addCategoryButton: {
+    backgroundColor: "#176BDE",
+  },
+
+  addCategoryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  deleteCategoryButton: {
+    backgroundColor: "#FFF7F7",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+
+  deleteCategoryButtonText: {
+    color: "#DC2626",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
   arrowButton: {
     width: 38,
     height: 38,
@@ -454,6 +509,11 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     gap: 16,
+  },
+
+  categoryCardWrapper: {
+    flex: 1,
+    position: "relative",
   },
 
   categoryCard: {
@@ -472,6 +532,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 16,
     elevation: 3,
+  },
+
+  categoryEditButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    backgroundColor: "#F8FBFF",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
   },
 
   categoryCardActive: {
