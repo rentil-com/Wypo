@@ -43,3 +43,19 @@ export type SingleReviewResponse = {
     nazwa_sprzetu? : string
 
 }
+
+
+export type MyReviewsResponse = {
+    strona: number;
+    limitRecenzjiNaStrone: number;
+    total: number;
+    liczbaStron: number;
+    dane: ReviewResponse[];
+}
+
+export type AddReviewBody = {
+  sprzet_id: number;
+  wypozyczenie_id?: number | null;
+  gwiazdki: Review_Rating;
+  tresc?: string | null;
+};
