@@ -8,12 +8,26 @@ type ProductReviewsSectionProps = {
   loading?: boolean;
   error?: string | null;
 };
+function formatReviewDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("pl-PL", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 export default function ProductReviewsSection({
   reviews,
   loading = false,
   error = null,
 }: ProductReviewsSectionProps) {
+    
   return (
     <View style={styles.section}>
       <View style={styles.header}>
@@ -77,7 +91,7 @@ export default function ProductReviewsSection({
                   <Text style={styles.authorName}>
                     {[review.imie, review.nazwisko].filter(Boolean).join(' ') || 'Użytkownik'}
                   </Text>
-                  <Text style={styles.reviewDate}>{review.data_dodania}</Text>
+                  <Text style={styles.reviewDate}>{formatReviewDate(review.data_dodania)}</Text>
                 </View>
                 <View style={styles.reviewStars}>
                   {[1, 2, 3, 4, 5].map((star) => (

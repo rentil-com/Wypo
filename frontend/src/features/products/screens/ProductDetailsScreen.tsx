@@ -10,42 +10,9 @@ import { kategorieMap, pobierzKategoriePoId, type CategoryApiItem } from "@featu
 import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
 import ProductReviewsSection from "@features/reviews/screens/ProductReviewsSection";
 import type { ProductReviewsResponse } from '@features/reviews/reviews.types';
+import { pobierzWszystkieRecenzjeProduktu } from "@features/reviews/reviews.services";
 
-const reviewsPreview: ProductReviewsResponse = {
-  strona: 1,
-  limitRecenzjiNaStrone: 10,
-  sprzet_id: 1,
-  srednia_ocen: 4.5,
-  liczba_recenzji: 2,
-  total: 2,
-  liczbaStron: 1,
-  dane: [
-    {
-      id: 1,
-      uzytkownik_id: 2,
-      sprzet_id: 1,
-      wypozyczenie_id: 5,
-      gwiazdki: 5,
-      tresc: 'Sprzęt działał bardzo dobrze i był zgodny z opisem.',
-      status: 'aktywna',
-      data_dodania: '2026-07-08T10:00:00.000Z',
-      imie: 'Jan',
-      nazwisko: 'Kowalski',
-    },
-    {
-      id: 2,
-      uzytkownik_id: 3,
-      sprzet_id: 1,
-      wypozyczenie_id: 8,
-      gwiazdki: 4,
-      tresc: 'Dobry sprzęt, wypożyczenie przebiegło bez problemów.',
-      status: 'aktywna',
-      data_dodania: '2026-07-03T14:30:00.000Z',
-      imie: 'Anna',
-      nazwisko: 'Nowak',
-    },
-  ],
-};
+
 
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
@@ -84,6 +51,10 @@ export default function ProductDetailedView() {
   icon: "cancel",
 },
   };
+  const [reviews, setReviews] = useState<ProductReviewsResponse | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+
   const [kategoria,setKategoria] = useState<CategoryApiItem>();
   const [pojedynczyProdukt,setPojedynczyProdukt] = useState<SingleProductApiItem>();
   const [loading,setLoading] = useState(true)
@@ -126,7 +97,29 @@ export default function ProductDetailedView() {
   
     },[]);
   
+    useEffect(() => {
+    async function zaladujRecenzje() {
+      setReviewsError(null);
+      setReviewsLoading(true);
 
+      try {
+        const response =
+          await pobierzWszystkieRecenzjeProduktu(Number(id));
+
+        setReviews(response);
+      } catch (error) {
+        setReviewsError(
+          error instanceof Error
+            ? error.message
+            : "Nie udało się pobrać recenzji",
+        );
+      } finally {
+        setReviewsLoading(false);
+      }
+    }
+
+    void zaladujRecenzje();
+  }, [id]);
   {/* TYMCZASOWA GALERIA ZDJEC, NARAZIE MAM JEDNO ZDJECIE (POTEM BEDZIE WIELE) */}
     
   if (!pojedynczyProdukt) {
@@ -279,7 +272,11 @@ export default function ProductDetailedView() {
                 {/* OPINIE DO ZOBACZENIA PO KLIKNIECIU */}
                 <View style={styles.ratingRow}>
                   <MaterialIcons name="star" size={18} color="#F59E0B" />
-                  <Text style={styles.ratingText}>4.8 (124 opinie)</Text>
+                  <Text style={styles.ratingText}>
+                  {reviews
+                    ? `${reviews.srednia_ocen.toFixed(1)} (${reviews.liczba_recenzji} opinii)`
+                    : "Brak opinii"}
+                </Text>
                 </View>
 
                 {/* CENA PRODUKTU */}
@@ -358,7 +355,8 @@ export default function ProductDetailedView() {
             </View>
           </View>
 
-          <ProductReviewsSection reviews={reviewsPreview} />
+          <ProductReviewsSection reviews={reviews}   loading={reviewsLoading}
+  error={reviewsError}/>
 
           {/* PASEK ZALET */}
           <View style={styles.benefitsBar}>
