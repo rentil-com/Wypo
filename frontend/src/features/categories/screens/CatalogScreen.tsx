@@ -15,6 +15,8 @@ import { pobierzKategorie, type CategoryApiItem } from "@features/categories";
 import Breadcrumbs from "@components/shared/Breadcrumbs/Breadcrumbs";
 import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
+import { pobierzUlubione } from "@features/favourites/fav.service";
+import { FavouritesResponse } from "@features/favourites/fav.types";
 
 type CatalogViewProps = {
   kategoriaId?: string;
@@ -38,6 +40,7 @@ export default function TabsLayout({
     cena_do: null,
     promocja: Boolean(promocja || tylkoPromocje),
   });
+  const [tablicaUlubionych,settablicaUlubionych] = useState<FavouritesResponse | null>(null)
   const [kategorie, setKategorie] = useState<CategoryApiItem[]>([]);
   const [produkty, setProdukty] = useState<ApiItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,13 +61,39 @@ export default function TabsLayout({
         }
       }
     }
-
-    void zaladujKategorie();
-
+void zaladujKategorie();
     return () => {
       cancelled = true;
     };
   }, []);
+
+useEffect(() => {
+  let cancelled = false;
+
+  async function zaladujUlubione() {
+    try {
+      const response = await pobierzUlubione();
+
+      if (!cancelled) {
+        settablicaUlubionych(response);
+      }
+    } catch (error) {
+      if (!cancelled) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Nie udało się pobrać ulubionych",
+        );
+      }
+    }
+  }
+
+  void zaladujUlubione();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -326,6 +355,7 @@ export default function TabsLayout({
        {error && <Text>{error}</Text>}
 
   <ProductGrid
+    ulubioneIds ={tablicaUlubionych ??  []}
     data={produkty}
     columnWrapperStyle={styles.productsRow}
     contentContainerStyle={styles.productsGrid}

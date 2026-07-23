@@ -7,7 +7,8 @@ import {
   View,
 } from "react-native";
 import {styles } from "./ProductCard.styles"
-
+import { useState,useEffect } from "react";
+import { polubPrzedmiot, usunPolubienie } from "@features/favourites/fav.service";
 type StatusSprzetu =
   | "dostepny"
   | "niedostepny"
@@ -65,25 +66,70 @@ export type ProductCardItem = {
 
 type ProductCardProps = {
   item: ProductCardItem;
+  initialCzyPolubione: boolean;
 };
+
+
+
 
 export default function ProductCard({
   item,
+  initialCzyPolubione
 }: ProductCardProps) {
   const status =
     statusStyles[
       item.status as StatusSprzetu
     ];
 
+
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [czyPolubione,setczyPolubione] = useState(initialCzyPolubione)
+
+  useEffect(() => {
+    setczyPolubione(initialCzyPolubione);
+  }, [initialCzyPolubione]);
+    const polub = async ()=> {
+      setError(null)
+      setLoading(true)
+
+      try {
+        if(czyPolubione == true){
+          const response = await usunPolubienie(item.id)
+          setczyPolubione(false)
+        }
+        else{
+        const response =  await polubPrzedmiot(item.id)
+        setczyPolubione(true)
+        }
+      }
+      catch(error){
+        setError(error instanceof Error ? error.message : "Nieznany błąd")
+      }
+      finally{
+        setLoading(false)
+      }
+
+
+    }
+
+  
+
   return (
     <View style={styles.productCard}>
       {/* DODAJ DO ULUBIONYCH */}
-      <Pressable style={styles.favoriteButton}>
-        <MaterialIcons
+      <Pressable style={styles.favoriteButton} onPress={()=> polub()}>
+      {!czyPolubione &&<MaterialIcons
           name="favorite-border"
           size={23}
           color="#111827"
-        />
+        />}
+        {czyPolubione &&  <MaterialIcons
+          name="favorite"
+          size={23}
+          color="#111827"
+        />}
       </Pressable>
 
       {/* KLIKALNA CZĘŚĆ KARTY */}

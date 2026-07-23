@@ -8,6 +8,8 @@ import { pobierzProdukty, type ApiItem } from "@features/products";
 import { kategorieMap, pobierzKategorie, type CategoryApiItem } from "@features/categories";
 import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
+import { FavouritesResponse } from "@features/favourites/fav.types";
+import { pobierzUlubione } from "@features/favourites/fav.service";
 export default function User() {
 
   
@@ -21,11 +23,8 @@ export default function User() {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [lastResetDate,setLastResetDate] = useState<string | null>(null);
 
-  const [katalog,setKatalog] = useState(dane)
-
-  const products = kategoria_id ? katalog.filter((product)=> String(product.kategoria_id)=== String(kategoria_id)) : katalog
   const [randomIndex,setRandomIndex] = useState(0)
-
+  const [ulubioneIds, setUlubioneIds] = useState<FavouritesResponse | null>(null);
   const [kategorie,setKategorie] = useState<CategoryApiItem[]>([]);
   const [produkty,setProdukty] = useState<ApiItem[]>([]);
   const [loading,setLoading] = useState(true)
@@ -68,7 +67,33 @@ export default function User() {
 
   },[]);
 
+  useEffect(() => {
+    let cancelled = false;
 
+    async function zaladujUlubione() {
+      try {
+        const response = await pobierzUlubione();
+
+        if (!cancelled) {
+          setUlubioneIds(response);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setEror(
+            error instanceof Error
+              ? error.message
+              : "Nie udało się pobrać ulubionych",
+          );
+        }
+      }
+    }
+
+    void zaladujUlubione();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const calculate_time_left =()=> {
     const now = new Date()
@@ -220,7 +245,7 @@ export default function User() {
       <Text style={styles.categoryNameActive}>Promocje</Text>
         </Pressable>
    <FlatList
-       data={kategorie}
+    data={kategorie}
     keyExtractor={(elem)=> elem.id.toString()}
     numColumns={4}
     renderItem={({item})=> (     <Pressable style={styles.categoryCard}  onPress={()=> router.push(`/catalog/category/${item.id}`)}>   <View style={styles.categoryIconBoxActive}> 
@@ -243,6 +268,7 @@ export default function User() {
 
       {/* KATALOG -> PRODUKTY/BESTSELLERY*/}
       <ProductGrid
+        ulubioneIds={ulubioneIds ?? []}
         data={produkty}
         scrollEnabled={false}
         columnWrapperStyle={styles.productRow}
