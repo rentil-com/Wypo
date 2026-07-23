@@ -1,4 +1,5 @@
 import { formatujZdjeciaUrl } from "./images.js";
+import { mapujSkrotPromocji } from "../services/promocje.js";
 
 export function formatujSpecyfikacje(specyfikacje) {
   if (!Array.isArray(specyfikacje)) {
@@ -21,8 +22,7 @@ export function podstawowePolaSprzetuSql(alias = "s") {
         ${alias}.kategoria_id,
         ${alias}.status,
         ${alias}.zdjecia_url,
-        ${alias}.cena,
-        ${alias}.cena_po_promocji`;
+        ${alias}.cena`;
 }
 
 export function polaSprzetuSql(alias = "s") {
@@ -47,13 +47,17 @@ export function polaSprzetuSql(alias = "s") {
 }
 
 export function mapujSprzet(sprzet, czyAdmin) {
+  const promocja = mapujSkrotPromocji(sprzet);
+  const cena = Number(sprzet.cena);
+  const cenaAktualna = sprzet.cena_aktualna === undefined
+    ? cena
+    : Number(sprzet.cena_aktualna);
   const wynik = {
     ...sprzet,
-    cena: Number(sprzet.cena),
-    cena_po_promocji:
-      sprzet.cena_po_promocji === null
-        ? null
-        : Number(sprzet.cena_po_promocji),
+    cena,
+    cena_aktualna: cenaAktualna,
+    czy_promocja: promocja !== null,
+    promocja,
     status: czyAdmin
       ? sprzet.status
       : sprzet.status === "dostepny"
@@ -61,6 +65,12 @@ export function mapujSprzet(sprzet, czyAdmin) {
         : "niedostepny",
     zdjecia_url: formatujZdjeciaUrl(sprzet.zdjecia_url)
   };
+
+  delete wynik.promocja_id;
+  delete wynik.promocja_nazwa;
+  delete wynik.promocja_typ;
+  delete wynik.promocja_wartosc;
+  delete wynik.promocja_data_do;
 
   if (Object.prototype.hasOwnProperty.call(sprzet, "specyfikacje")) {
     wynik.specyfikacje = formatujSpecyfikacje(sprzet.specyfikacje);

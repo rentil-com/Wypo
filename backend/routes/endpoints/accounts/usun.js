@@ -48,7 +48,8 @@ router.delete("/:id", async (req, res) => {
   } catch (err) {
     if (err.code === "23503") {
       return res.status(409).json({
-        error: "Nie mozna usunac konta, do ktorego przypisane sa wypozyczenia."
+        error:
+          "Nie mozna usunac konta powiazanego z wypozyczeniem lub promocja."
       });
     }
 

@@ -1,6 +1,8 @@
 # Worker promocji i PostgreSQL
 
-Worker raz dziennie pobiera wszystkie strony `GET /items?status=dostepny`, losuje dostępny przedmiot, oblicza rabat i zapisuje `cena_po_promocji` przez `PATCH /items/edit/:id`. Każde żądanie do backendu zawiera nagłówek `Authorization: Bearer <BACKEND_API_AUTHORIZED_KEY>`.
+Worker raz dziennie pobiera wszystkie strony `GET /items?status=dostepny`,
+losuje dostępny przedmiot i tworzy dla niego rekord przez `POST /promocje`.
+Każde żądanie zawiera `Authorization: Bearer <BACKEND_API_AUTHORIZED_KEY>`.
 
 PostgreSQL służy wyłącznie do przechowywania ustawień i historii wykonań workera. Worker nie odczytuje ani nie modyfikuje istniejących tabel backendu, a klucz API pozostaje tylko w `.env`.
 
@@ -20,6 +22,7 @@ worker/
 ├── sql/
 │   ├── 001_create_worker_settings.sql
 │   ├── 002_create_worker_promotion_runs.sql
+│   ├── 003_add_backend_promotion_id.sql
 │   └── baza.sql
 ├── src/
 │   ├── clients/
@@ -68,7 +71,7 @@ Plik `sql/baza.sql` zawiera kompletny schemat obu tabel i indeksu w jednej trans
 psql "$WORKER_DATABASE_URL" -f sql/baza.sql
 ```
 
-Pliki `001_*.sql` i `002_*.sql` są używane przez komendę `npm run db:init`.
+Pliki `001_*.sql`, `002_*.sql` i `003_*.sql` są używane przez `npm run db:init`.
 
 ## Konfiguracja
 
@@ -136,10 +139,25 @@ npm run db:init
 
 1. łączy się z `WORKER_DATABASE_URL`,
 2. tworzy tabele `worker_settings` i `worker_promotion_runs`, jeśli ich nie ma,
+   oraz dodaje brakujące `backend_promotion_id`,
 3. zapisuje brakujące ustawienia domyślne,
 4. wypisuje aktualne ustawienia bez sekretów.
 
 Operację można uruchamiać wielokrotnie - istniejące ustawienia nie są nadpisywane.
+
+## Aktualizacja ze starego workera promocji
+
+Przejście z wersji zapisującej `cena_po_promocji` wykonaj w oknie serwisowym:
+
+1. zatrzymaj stary worker i jego harmonogram,
+2. zatrzymaj backend,
+3. wykonaj migracje backendu `002_promocje.sql`, a następnie
+   `003_snapshot_ceny_wypozyczenia.sql`,
+4. wdroż nowy backend i uruchom go,
+5. wdroż nowy worker, wykonaj `npm run db:init` i dopiero potem uruchom worker.
+
+Nie uruchamiaj starego workera po migracji `002` ani nowego workera przed
+udostępnieniem endpointów `/promocje` przez backend.
 
 ## Ustawienia w PostgreSQL
 
@@ -276,30 +294,40 @@ npm run dev
 
 1. Worker pobiera z PostgreSQL zakres rabatu.
 2. Pobiera z historii własne aktywne wpisy `success`.
-3. Dla każdego takiego wpisu pobiera aktualny przedmiot przez `GET /items/:id` i porównuje jego cenę promocyjną z ceną zapisaną w historii.
-4. Jeżeli ceny są równe, wysyła `PATCH /items/edit/:id` z body:
+3. Dla każdego wpisu z `backend_promotion_id` wysyła `PATCH /promocje/:id`:
 
 ```json
 {
-  "cena_po_promocji": null
+  "aktywna": false
 }
 ```
 
-5. Jeżeli cena została zmieniona poza workerem, pozostawia ją bez zmian i zapisuje ostrzeżenie w logu.
-6. Oznacza obsłużone aktywne wpisy historii czasem `deactivated_at`.
-7. Pobiera wszystkie strony dostępnych przedmiotów przez `GET /items`.
-8. Wyklucza przedmiot ostatnio promowany przez worker oraz przedmioty z już ustawioną promocją. Przedmiot może wrócić do promocji po wypromowaniu innego przedmiotu.
-9. Losuje jeden z pozostałych przedmiotów i rabat z zapisanego zakresu, domyślnie 10-20%.
-10. Zaokrągla cenę promocyjną do dwóch miejsc po przecinku.
-11. Wysyła `PATCH /items/edit/:id` z nową ceną:
+4. Wpisy starego formatu bez ID oznacza jako nieaktywne bez zmiany backendu.
+5. Oznacza obsłużone wpisy historii czasem `deactivated_at`.
+6. Pobiera wszystkie strony dostępnych przedmiotów przez `GET /items`.
+7. Wyklucza ostatnio promowany przedmiot i sprzęty z aktywną promocją.
+8. Losuje przedmiot i rabat z zapisanego zakresu, domyślnie 10-20%.
+9. Wysyła `POST /promocje` z promocją procentową dla wybranego sprzętu:
 
 ```json
 {
-  "cena_po_promocji": 80
+  "nazwa": "Promocja dnia: Wiertarka",
+  "typ": "procentowa",
+  "wartosc": 20,
+  "aktywna": true,
+  "zakres_sprzetow": {
+    "kategorie_ids": [],
+    "wszystkie": false,
+    "sprzety_ids": [15]
+  },
+  "zakres_uzytkownikow": {
+    "wszyscy": true,
+    "uzytkownicy_ids": []
+  }
 }
 ```
 
-12. Loguje wybrany przedmiot, starą cenę, rabat, nową cenę i ewentualny błąd.
-13. Zapisuje wynik wykonania w tabeli `worker_promotion_runs`.
+10. Loguje wybrany przedmiot, starą cenę, rabat, nową cenę i błędy.
+11. Zapisuje wynik oraz `backend_promotion_id` w `worker_promotion_runs`.
 
 Worker obsługuje brak przedmiotów, brak lub nieprawidłową cenę, timeout backendu, odpowiedzi HTTP inne niż 2xx, błędne ustawienia, błąd PostgreSQL oraz brak wymaganych zmiennych środowiskowych.

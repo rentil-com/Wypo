@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { pool } from "../../../db/pool.js";
 import { DOZWOLONE_STATUSY } from "../../../helpers/constants.js";
-import { normalizujTekst, normalizujTekstOpcjonalny, parsujId } from "../../../helpers/common.js";
+import {
+  normalizujTekst,
+  normalizujTekstOpcjonalny,
+  parsujId
+} from "../../../helpers/common.js";
 import {
   czyPoprawnePlikiZdjec,
   nastepnyNumerZdjecia,
@@ -22,6 +26,16 @@ import {
 import { dodajSpecyfikacjeSprzetu } from "../../../services/specifications.js";
 
 const router = Router();
+const DOZWOLONE_POLA = new Set([
+  "nazwa",
+  "opis",
+  "kategoria_id",
+  "status",
+  "cena",
+  "zdjecia_url",
+  "specyfikacje",
+  "specyfikacja"
+]);
 
 router.post("/", uploadDodawanieSprzetu, async (req, res) => {
   let client = null;
@@ -29,12 +43,17 @@ router.post("/", uploadDodawanieSprzetu, async (req, res) => {
   const zdjeciaDodaneDoS3 = [];
 
   try {
+    if (Object.keys(req.body).some((pole) => !DOZWOLONE_POLA.has(pole))) {
+      return res.status(400).json({
+        error: "Body zawiera nieobslugiwane pola sprzetu."
+      });
+    }
+
     const nazwa = normalizujTekst(req.body.nazwa);
     const opis = normalizujTekstOpcjonalny(req.body.opis);
     const kategoriaId = parsujId(req.body.kategoria_id);
     const status = req.body.status || "dostepny";
     const cena = parsujCene(req.body.cena, true);
-    const cenaPoPromocji = parsujCene(req.body.cena_po_promocji);
     const pliki = plikiZdjec(req);
     const zdjeciaZBody = parsujZdjeciaUrl(req.body.zdjecia_url);
     const zdjeciaUrl = zdjeciaZBody.wartosc || {};
@@ -48,9 +67,6 @@ router.post("/", uploadDodawanieSprzetu, async (req, res) => {
       !kategoriaId ||
       !DOZWOLONE_STATUSY.includes(status) ||
       !cena.poprawna ||
-      !cenaPoPromocji.poprawna ||
-      (cenaPoPromocji.wartosc !== null &&
-        cenaPoPromocji.wartosc > cena.wartosc) ||
       !zdjeciaZBody.poprawna ||
       !specyfikacjeZBody.poprawna ||
       !czyPoprawnePlikiZdjec(pliki)
@@ -86,21 +102,12 @@ router.post("/", uploadDodawanieSprzetu, async (req, res) => {
         kategoria_id,
         zdjecia_url,
         cena,
-        cena_po_promocji,
         status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id;
       `,
-      [
-        nazwa,
-        opis,
-        kategoriaId,
-        zdjeciaUrl,
-        cena.wartosc,
-        cenaPoPromocji.wartosc,
-        status
-      ]
+      [nazwa, opis, kategoriaId, zdjeciaUrl, cena.wartosc, status]
     );
 
     await dodajSpecyfikacjeSprzetu(
@@ -109,7 +116,11 @@ router.post("/", uploadDodawanieSprzetu, async (req, res) => {
       specyfikacjeZBody.wartosc
     );
 
-    const sprzet = await pobierzSprzetPoId(client, result.rows[0].id);
+    const sprzet = await pobierzSprzetPoId(
+      client,
+      result.rows[0].id,
+      req.uzytkownik.id
+    );
 
     await client.query("COMMIT");
     transakcjaAktywna = false;

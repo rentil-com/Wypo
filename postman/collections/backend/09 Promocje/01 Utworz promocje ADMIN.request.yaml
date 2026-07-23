@@ -1,0 +1,41 @@
+$kind: http-request
+name: Utworz promocje (ADMIN)
+url: "{{base_url}}/promocje"
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+    disabled: false
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+body:
+  type: json
+  content: |-
+    {
+      "nazwa": "Weekend z elektronarzedziami",
+      "opis": "20% rabatu dla wybranych klientow",
+      "typ": "procentowa",
+      "wartosc": 20,
+      "aktywna": true,
+      "data_od": "2026-08-01T00:00:00+02:00",
+      "data_do": "2026-08-04T00:00:00+02:00",
+      "zakres_sprzetow": {
+        "wszystkie": false,
+        "kategorie_ids": [{{category_id}}],
+        "sprzety_ids": [{{item_id}}]
+      },
+      "zakres_uzytkownikow": {
+        "wszyscy": false,
+        "uzytkownicy_ids": [{{account_id}}]
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 201) {
+        pm.environment.set("promotion_id", pm.response.json().id);
+      }
+    language: text/javascript
+order: 1000
+

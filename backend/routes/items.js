@@ -23,10 +23,10 @@ router.use("/add_photos", ...administrator, dodajZdjeciaRouter);
 router.use("/delete_photos", ...administrator, usunZdjeciaRouter);
 router.use("/usun", ...administrator, listaUsuwalnychRouter);
 router.use("/usun", ...administrator, usunRouter);
-router.use("/search", wyszukajRouter);
 
-// Lista i szczegoly sa publiczne, ale odpowiedz zalezy od roli w sesji.
+// Publiczne odpowiedzi uwzgledniaja promocje aktualnej sesji, jezeli istnieje.
 router.use(dolaczUzytkownikaZSesji);
+router.use("/search", wyszukajRouter);
 router.use("/", listaRouter);
 router.use("/", szczegolyRouter);
 router.use(obsluzBladRoutera);

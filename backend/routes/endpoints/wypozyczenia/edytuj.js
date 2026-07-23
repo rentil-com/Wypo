@@ -28,18 +28,29 @@ import { wyslijMailWypozyczeniaWTle } from "../../../services/maile-wypozyczen.j
 const router = Router();
 
 async function edytujWypozyczenie(req, res) {
+  const id = parsujId(req.params.id);
+
+  if (!id) {
+    return res.status(400).json({
+      error: "Nieprawidlowe ID wypozyczenia."
+    });
+  }
+
+  const body = req.body || {};
+
+  if (
+    czyPolePrzekazane(body, "sprzet_id") ||
+    czyPolePrzekazane(body, "uzytkownik_id")
+  ) {
+    return res.status(400).json({
+      error:
+        "Nie mozna zmienic sprzetu ani uzytkownika istniejacego wypozyczenia."
+    });
+  }
+
   const client = await pool.connect();
 
   try {
-    const id = parsujId(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({
-        error: "Nieprawidlowe ID wypozyczenia."
-      });
-    }
-
-    const body = req.body || {};
     const pola = [];
     const params = [];
     let nowySprzetId = null;
@@ -281,7 +292,7 @@ async function edytujWypozyczenie(req, res) {
       UPDATE wypozyczenia
       SET ${pola.join(", ")}
       WHERE id = $${params.length}
-      RETURNING id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista;
+      RETURNING id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista, promocja_id, cena_bazowa, cena_koncowa, promocja_nazwa, promocja_typ, promocja_wartosc;
       `,
       params
     );

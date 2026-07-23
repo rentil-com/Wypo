@@ -79,7 +79,7 @@ async function aktywujWypozyczenie(req, res) {
         UPDATE wypozyczenia
         SET status = 'odrzucony'
         WHERE id = $1
-        RETURNING id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista;
+        RETURNING id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista, promocja_id, cena_bazowa, cena_koncowa, promocja_nazwa, promocja_typ, promocja_wartosc;
         `,
         [wypozyczenie.id]
       );
@@ -125,7 +125,7 @@ async function aktywujWypozyczenie(req, res) {
       UPDATE wypozyczenia
       SET status = 'aktywny'
       WHERE id = $1
-      RETURNING id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista;
+      RETURNING id, sprzet_id, uzytkownik_id, data_zlozenia, data_od, data_do, status, data_zwrotu_rzeczywista, promocja_id, cena_bazowa, cena_koncowa, promocja_nazwa, promocja_typ, promocja_wartosc;
       `,
       [id]
     );

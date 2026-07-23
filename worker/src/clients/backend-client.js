@@ -131,19 +131,25 @@ export class BackendClient {
     }
   }
 
-  updatePromotionalPrice(itemId, promotionalPrice) {
-    return this.request(`/items/edit/${encodeURIComponent(itemId)}`, {
+  createPromotion(promotion) {
+    return this.request("/promocje", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(promotion)
+    });
+  }
+
+  deactivatePromotion(promotionId) {
+    return this.request(`/promocje/${encodeURIComponent(promotionId)}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        cena_po_promocji: promotionalPrice
+        aktywna: false
       })
     });
-  }
-
-  clearPromotionalPrice(itemId) {
-    return this.updatePromotionalPrice(itemId, null);
   }
 }

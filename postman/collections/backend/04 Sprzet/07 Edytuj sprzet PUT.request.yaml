@@ -18,7 +18,6 @@ body:
       "kategoria_id": {{category_id}},
       "status": "dostepny",
       "cena": "59.99",
-      "cena_po_promocji": "44.99",
       "specyfikacje": [
         {
           "nazwa_specyfikacji": "Moc",

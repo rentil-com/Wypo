@@ -1,0 +1,37 @@
+$kind: http-request
+name: Promocja procentowa powyzej 100 jest odrzucana
+url: "{{base_url}}/promocje"
+method: POST
+headers:
+  Content-Type: application/json
+  Authorization: "Bearer {{api_key}}"
+body:
+  type: json
+  content: |-
+    {
+      "nazwa": "Niepoprawna promocja",
+      "typ": "procentowa",
+      "wartosc": 101,
+      "zakres_sprzetow": {
+        "wszystkie": true,
+        "kategorie_ids": [],
+        "sprzety_ids": []
+      },
+      "zakres_uzytkownikow": {
+        "wszyscy": true,
+        "uzytkownicy_ids": []
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status 400", function () {
+        pm.response.to.have.status(400);
+      });
+
+      pm.test("Czytelny blad wartosci", function () {
+        pm.expect(pm.response.json().error).to.match(/wartosc/i);
+      });
+    language: text/javascript
+order: 2000
+

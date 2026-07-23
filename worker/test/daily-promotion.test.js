@@ -42,37 +42,35 @@ function createHistoryRepository({
   };
 }
 
-test("dezaktywuje tylko niezmieniona promocje ustawiona przez workera", async () => {
-  const clearedItemIds = [];
-  const updatedPromotions = [];
+test("dezaktywuje poprzednia promocje backendu i tworzy nowa", async () => {
+  const deactivatedPromotionIds = [];
+  const createdPromotions = [];
   const historyRepository = createHistoryRepository({
     activeRuns: [
       {
         id: 10,
         itemId: 1,
         itemName: "Wiertarka",
+        backendPromotionId: 31,
         promotionalPrice: 80
       }
     ],
     lastPromotedItemId: 1
   });
   const client = {
-    async getItem(id) {
-      assert.equal(id, 1);
-      return { id, cena_po_promocji: "80.00" };
-    },
-    async clearPromotionalPrice(id) {
-      clearedItemIds.push(id);
+    async deactivatePromotion(id) {
+      deactivatedPromotionIds.push(id);
     },
     async getAvailableItems() {
       return [
-        { id: 1, nazwa: "Wiertarka", cena: 100, cena_po_promocji: null },
-        { id: 2, nazwa: "Mlotek", cena: 100, cena_po_promocji: null },
-        { id: 3, nazwa: "Pilarka", cena: 100, cena_po_promocji: 70 }
+        { id: 1, nazwa: "Wiertarka", cena: 100, czy_promocja: false },
+        { id: 2, nazwa: "Mlotek", cena: 100, czy_promocja: false },
+        { id: 3, nazwa: "Pilarka", cena: 100, czy_promocja: true }
       ];
     },
-    async updatePromotionalPrice(id, price) {
-      updatedPromotions.push({ id, price });
+    async createPromotion(promotion) {
+      createdPromotions.push(promotion);
+      return { id: 32 };
     }
   };
 
@@ -85,16 +83,20 @@ test("dezaktywuje tylko niezmieniona promocje ustawiona przez workera", async ()
     logger: createLogger()
   });
 
-  assert.deepEqual(clearedItemIds, [1]);
+  assert.deepEqual(deactivatedPromotionIds, [31]);
   assert.deepEqual(historyRepository.deactivatedRunIds, [10]);
-  assert.deepEqual(updatedPromotions, [{ id: 2, price: 90 }]);
+  assert.deepEqual(createdPromotions[0].zakres_sprzetow.sprzety_ids, [2]);
+  assert.equal(createdPromotions[0].typ, "procentowa");
+  assert.equal(createdPromotions[0].wartosc, 10);
   assert.equal(result.item.id, 2);
+  assert.equal(result.backendPromotionId, 32);
+  assert.equal(historyRepository.savedRuns.at(-1).backendPromotionId, 32);
   assert.equal(historyRepository.savedRuns.at(-1).status, "success");
 });
 
-test("nie usuwa promocji zmienionej poza workerem i zapisuje ostrzezenie", async () => {
-  const clearedItemIds = [];
-  const updatedPromotions = [];
+test("zamyka stary wpis historii bez ID promocji backendu", async () => {
+  const deactivatedPromotionIds = [];
+  const createdPromotions = [];
   const logger = createLogger();
   const historyRepository = createHistoryRepository({
     activeRuns: [
@@ -108,20 +110,18 @@ test("nie usuwa promocji zmienionej poza workerem i zapisuje ostrzezenie", async
     lastPromotedItemId: 1
   });
   const client = {
-    async getItem() {
-      return { id: 1, cena_po_promocji: 75 };
-    },
-    async clearPromotionalPrice(id) {
-      clearedItemIds.push(id);
+    async deactivatePromotion(id) {
+      deactivatedPromotionIds.push(id);
     },
     async getAvailableItems() {
       return [
-        { id: 1, nazwa: "Wiertarka", cena: 100, cena_po_promocji: 75 },
-        { id: 2, nazwa: "Mlotek", cena: 50, cena_po_promocji: null }
+        { id: 1, nazwa: "Wiertarka", cena: 100, czy_promocja: false },
+        { id: 2, nazwa: "Mlotek", cena: 50, czy_promocja: false }
       ];
     },
-    async updatePromotionalPrice(id, price) {
-      updatedPromotions.push({ id, price });
+    async createPromotion(promotion) {
+      createdPromotions.push(promotion);
+      return { id: 41 };
     }
   };
 
@@ -134,27 +134,28 @@ test("nie usuwa promocji zmienionej poza workerem i zapisuje ostrzezenie", async
     logger
   });
 
-  assert.deepEqual(clearedItemIds, []);
+  assert.deepEqual(deactivatedPromotionIds, []);
   assert.deepEqual(historyRepository.deactivatedRunIds, [20]);
-  assert.deepEqual(updatedPromotions, [{ id: 2, price: 40 }]);
+  assert.deepEqual(createdPromotions[0].zakres_sprzetow.sprzety_ids, [2]);
   assert.equal(logger.warnings.length, 1);
-  assert.match(logger.warnings[0], /zmieniona poza workerem/);
+  assert.match(logger.warnings[0], /nie ma identyfikatora promocji backendu/);
 });
 
 test("pozwala ponownie promowac przedmiot, jezeli nie byl promowany ostatnio", async () => {
-  const updatedPromotions = [];
+  const createdPromotions = [];
   const historyRepository = createHistoryRepository({
     lastPromotedItemId: 2
   });
   const client = {
     async getAvailableItems() {
       return [
-        { id: 1, nazwa: "Wiertarka", cena: 100, cena_po_promocji: null },
-        { id: 2, nazwa: "Mlotek", cena: 50, cena_po_promocji: null }
+        { id: 1, nazwa: "Wiertarka", cena: 100, czy_promocja: false },
+        { id: 2, nazwa: "Mlotek", cena: 50, czy_promocja: false }
       ];
     },
-    async updatePromotionalPrice(id, price) {
-      updatedPromotions.push({ id, price });
+    async createPromotion(promotion) {
+      createdPromotions.push(promotion);
+      return { id: 51 };
     }
   };
 
@@ -168,23 +169,24 @@ test("pozwala ponownie promowac przedmiot, jezeli nie byl promowany ostatnio", a
   });
 
   assert.equal(result.item.id, 1);
-  assert.deepEqual(updatedPromotions, [{ id: 1, price: 90 }]);
+  assert.deepEqual(createdPromotions[0].zakres_sprzetow.sprzety_ids, [1]);
   assert.equal(historyRepository.savedRuns.at(-1).status, "success");
 });
 
 test("nie promuje tego samego przedmiotu dwa razy pod rzad", async () => {
-  const updatedPromotions = [];
+  const createdPromotions = [];
   const historyRepository = createHistoryRepository({
     lastPromotedItemId: 1
   });
   const client = {
     async getAvailableItems() {
       return [
-        { id: 1, nazwa: "Wiertarka", cena: 100, cena_po_promocji: null }
+        { id: 1, nazwa: "Wiertarka", cena: 100, czy_promocja: false }
       ];
     },
-    async updatePromotionalPrice(id, price) {
-      updatedPromotions.push({ id, price });
+    async createPromotion(promotion) {
+      createdPromotions.push(promotion);
+      return { id: 61 };
     }
   };
 
@@ -198,6 +200,6 @@ test("nie promuje tego samego przedmiotu dwa razy pod rzad", async () => {
   });
 
   assert.equal(result, null);
-  assert.deepEqual(updatedPromotions, []);
+  assert.deepEqual(createdPromotions, []);
   assert.deepEqual(historyRepository.savedRuns, [{ status: "skipped" }]);
 });

@@ -22,9 +22,6 @@ body:
       key: cena
       value: "49.99"
     - type: text
-      key: cena_po_promocji
-      value: "39.99"
-    - type: text
       key: status
       value: dostepny
     - type: text

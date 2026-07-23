@@ -28,7 +28,6 @@ body:
         }
       ],
       "cena": "49.99",
-      "cena_po_promocji": "39.99",
       "status": "dostepny"
     }
 order: 4000

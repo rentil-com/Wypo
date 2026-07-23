@@ -44,6 +44,7 @@ function serializeSettings(settings) {
 
 function serializePromotion(result) {
   return {
+    promotion_id: result.backendPromotionId,
     item_id: result.item.id,
     item_name: result.item.nazwa ?? null,
     old_price: result.oldPrice,

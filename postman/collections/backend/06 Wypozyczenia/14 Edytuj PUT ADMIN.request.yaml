@@ -13,8 +13,6 @@ body:
   type: json
   content: |-
     {
-      "sprzet_id": {{item_id}},
-      "uzytkownik_id": {{account_id}},
       "data_od": "2026-08-01T10:00:00.000Z",
       "data_do": "2026-08-03T10:00:00.000Z",
       "status": "aktywny",

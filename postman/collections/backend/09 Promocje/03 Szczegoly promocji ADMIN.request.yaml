@@ -1,0 +1,10 @@
+$kind: http-request
+name: Szczegoly promocji (ADMIN)
+url: "{{base_url}}/promocje/{{promotion_id}}"
+method: GET
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 3000
+
