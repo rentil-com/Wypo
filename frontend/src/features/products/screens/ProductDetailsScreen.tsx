@@ -8,6 +8,45 @@ import PageLayout from "@components/shared/Layout/PageLayout";
 import { pobierzPojedynczyProdukt, type SingleProductApiItem } from "@features/products";
 import { kategorieMap, pobierzKategoriePoId, type CategoryApiItem } from "@features/categories";
 import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
+import ProductReviewsSection from "@features/reviews/screens/ProductReviewsSection";
+import type { ProductReviewsResponse } from '@features/reviews/reviews.types';
+
+const reviewsPreview: ProductReviewsResponse = {
+  strona: 1,
+  limitRecenzjiNaStrone: 10,
+  sprzet_id: 1,
+  srednia_ocen: 4.5,
+  liczba_recenzji: 2,
+  total: 2,
+  liczbaStron: 1,
+  dane: [
+    {
+      id: 1,
+      uzytkownik_id: 2,
+      sprzet_id: 1,
+      wypozyczenie_id: 5,
+      gwiazdki: 5,
+      tresc: 'Sprzęt działał bardzo dobrze i był zgodny z opisem.',
+      status: 'aktywna',
+      data_dodania: '2026-07-08T10:00:00.000Z',
+      imie: 'Jan',
+      nazwisko: 'Kowalski',
+    },
+    {
+      id: 2,
+      uzytkownik_id: 3,
+      sprzet_id: 1,
+      wypozyczenie_id: 8,
+      gwiazdki: 4,
+      tresc: 'Dobry sprzęt, wypożyczenie przebiegło bez problemów.',
+      status: 'aktywna',
+      data_dodania: '2026-07-03T14:30:00.000Z',
+      imie: 'Anna',
+      nazwisko: 'Nowak',
+    },
+  ],
+};
+
 export default function ProductDetailedView() {
   {/* STATUSY SPRZETU */}
   type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie" | "niedostepny";
@@ -318,6 +357,8 @@ export default function ProductDetailedView() {
               </View>
             </View>
           </View>
+
+          <ProductReviewsSection reviews={reviewsPreview} />
 
           {/* PASEK ZALET */}
           <View style={styles.benefitsBar}>
