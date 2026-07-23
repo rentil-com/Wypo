@@ -1,13 +1,17 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState,useEffect } from "react";
-import { Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import dane from "@/dane.json";
+import { useEffect, useState } from "react";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Breadcrumbs from "@components/shared/Breadcrumbs/Breadcrumbs";
 import PageLayout from "@components/shared/Layout/PageLayout";
 import { pobierzPojedynczyProdukt, type SingleProductApiItem } from "@features/products";
-import { kategorieMap, pobierzKategoriePoId, type CategoryApiItem } from "@features/categories";
-import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
+import { pobierzKategoriePoId, type CategoryApiItem } from "@features/categories";
 import ProductReviewsSection from "@features/reviews/screens/ProductReviewsSection";
 import type { ProductReviewsResponse } from '@features/reviews/reviews.types';
 import { pobierzWszystkieRecenzjeProduktu } from "@features/reviews/reviews.services";
@@ -60,21 +64,21 @@ export default function ProductDetailedView() {
   const [loading,setLoading] = useState(true)
   const [error,setEror] = useState<string | null>(null)
   {/* STANY I PARAMETRY */}
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   {/* index = aktualne zdjecie w galerii */}
   const [indexaktualneZdjecie, setindexaktualneZdjecie] = useState(0);
   const zdjecia = pojedynczyProdukt
   ? Object.values(pojedynczyProdukt.zdjecia_url)
   : [];
-  {/* PRODUKT O DANYM ID */}
-  const product = dane.find((item) => item.id.toString() === id);
-
   {/* SUGESTIE WYSZUKIWANIA */}
  
     useEffect (()=> {
 
 
       async function zaladujProdukty() {
+        setEror(null);
+        setLoading(true);
+
         try {
           const produkt = await pobierzPojedynczyProdukt(Number(id))
   
@@ -95,7 +99,7 @@ export default function ProductDetailedView() {
 
       void zaladujProdukty();
   
-    },[]);
+    }, [id]);
   
     useEffect(() => {
     async function zaladujRecenzje() {
@@ -120,12 +124,23 @@ export default function ProductDetailedView() {
 
     void zaladujRecenzje();
   }, [id]);
+
   {/* TYMCZASOWA GALERIA ZDJEC, NARAZIE MAM JEDNO ZDJECIE (POTEM BEDZIE WIELE) */}
-    
+
+  if (loading) {
+    return (
+      <View style={styles.screen}>
+        <Text>Ładowanie produktu...</Text>
+      </View>
+    );
+  }
+
   if (!pojedynczyProdukt) {
     return (
       <View style={styles.screen}>
-        <Text style={styles.errorText}>Nie znaleziono produktu.</Text>
+        <Text style={styles.errorText}>
+          {error ?? "Nie znaleziono produktu."}
+        </Text>
       </View>
     );
   }
@@ -155,7 +170,7 @@ export default function ProductDetailedView() {
 
 
   return (
-   <PageLayout> 
+   <PageLayout>
          
 
           {/* SCIEZKA KATEGORII */}
@@ -355,8 +370,11 @@ export default function ProductDetailedView() {
             </View>
           </View>
 
-          <ProductReviewsSection reviews={reviews}   loading={reviewsLoading}
-  error={reviewsError}/>
+          <ProductReviewsSection
+            reviews={reviews}
+            loading={reviewsLoading}
+            error={reviewsError}
+          />
 
           {/* PASEK ZALET */}
           <View style={styles.benefitsBar}>

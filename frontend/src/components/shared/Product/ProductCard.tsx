@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import {styles } from "./ProductCard.styles"
+import { styles } from "./ProductCard.styles";
 import { useState,useEffect } from "react";
 import { polubPrzedmiot, usunPolubienie } from "@features/favourites/fav.service";
 type StatusSprzetu =
@@ -64,9 +64,16 @@ export type ProductCardItem = {
   cena_po_promocji: number | null;
 };
 
+export type ProductRatingSummary = {
+  srednia_ocen: number;
+  liczba_recenzji: number;
+};
+
 type ProductCardProps = {
   item: ProductCardItem;
   initialCzyPolubione: boolean;
+  rating: ProductRatingSummary | null;
+  ratingLoading?: boolean;
   onFavouriteChange?: (id: number, polubione: boolean) => void;
 };
 
@@ -76,6 +83,8 @@ type ProductCardProps = {
 export default function ProductCard({
   item,
   initialCzyPolubione,
+  rating,
+  ratingLoading = false,
   onFavouriteChange,
 }: ProductCardProps) {
   const status =
@@ -117,8 +126,6 @@ export default function ProductCard({
 
 
     }
-
-  
 
   return (
     <View style={styles.productCard}>
@@ -222,7 +229,11 @@ export default function ProductCard({
             />
 
             <Text style={styles.ratingText}>
-              4.8
+              {ratingLoading
+                ? "..."
+                : rating && rating.liczba_recenzji > 0
+                  ? `${rating.srednia_ocen.toFixed(1)} (${rating.liczba_recenzji})`
+                  : "Brak opinii"}
             </Text>
           </View>
         </View>

@@ -296,6 +296,26 @@ const usuniecieKonta  = async () =>{
           </LinearGradient>
 
           <View style={[
+            styles.accountLinks,
+            isMobile && styles.mobileAccountLinks,
+          ]}>
+            <Pressable style={styles.accountLinkButton}>
+              <Ionicons name="star-outline" size={22} color="#1D4ED8" />
+              <Text style={styles.accountLinkText}>Moje Recenzje</Text>
+              <Ionicons name="chevron-forward-outline" size={20} color="#1D4ED8" />
+            </Pressable>
+
+            <Pressable
+              style={styles.accountLinkButton}
+              onPress={() => router.push("/(tabs)/loans")}
+            >
+              <Ionicons name="calendar-outline" size={22} color="#1D4ED8" />
+              <Text style={styles.accountLinkText}>Moje wypożyczenia</Text>
+              <Ionicons name="chevron-forward-outline" size={20} color="#1D4ED8" />
+            </Pressable>
+          </View>
+
+          <View style={[
             styles.accountCard,
             isMobile && styles.mobileAccountCard,
           ]}>
