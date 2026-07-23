@@ -108,6 +108,31 @@ export async function apiDelete(path : string,body? : object ) {
     return data;
 }
 
+export async function apiFormData(path: string,method: "POST" | "PATCH" | "PUT", body: FormData,) {
+  if (!API_URL) {
+    throw new Error("Brak adresu API");
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+    },
+    body,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Nie udało się wysłać danych");
+  }
+
+  return data;
+}
+
+
+
 export function buildSearchUrl(params: ItemsSearchParams): string {
     const searchParams = new URLSearchParams();
     searchParams.append("q", params.q);
