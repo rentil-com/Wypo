@@ -1,19 +1,18 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
-import dane from "@/dane.json";
+import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { useAuth } from "@/contexts/AuthContext";
 import { pobierzProdukty, type ApiItem } from "@features/products";
-import { kategorieMap, pobierzKategorie, type CategoryApiItem } from "@features/categories";
+import { pobierzKategorie, type CategoryApiItem } from "@features/categories";
 import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
 import { FavouritesResponse } from "@features/favourites/fav.types";
 import { pobierzUlubione } from "@features/favourites/fav.service";
 export default function User() {
-
-  
-  const { kategoria_id } = useLocalSearchParams();
+  const { user } = useAuth();
+  const isAdmin = user?.rola === "admin";
 
   {/* CZAS RESETU */}
   const RESET_HOUR = 10
@@ -26,6 +25,7 @@ export default function User() {
   const [randomIndex,setRandomIndex] = useState(0)
   const [ulubioneIds, setUlubioneIds] = useState<FavouritesResponse | null>(null);
   const [kategorie,setKategorie] = useState<CategoryApiItem[]>([]);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryApiItem | null>(null);
   const [produkty,setProdukty] = useState<ApiItem[]>([]);
   const [loading,setLoading] = useState(true)
   const [error,setEror] = useState<string | null>(null)
@@ -224,15 +224,15 @@ export default function User() {
             <Text style={styles.allButtonText}>Wszystkie</Text>
           </Pressable>
 
-          <Pressable style={[styles.categoryAdminButton, styles.addCategoryButton]}>
-            <MaterialIcons name="add" size={18} color="#FFFFFF" />
-            <Text style={styles.addCategoryButtonText}>Dodaj kategorię</Text>
-          </Pressable>
-
-          <Pressable style={[styles.categoryAdminButton, styles.deleteCategoryButton]}>
-            <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
-            <Text style={styles.deleteCategoryButtonText}>Usuń kategorię</Text>
-          </Pressable>
+          {isAdmin && (
+            <Pressable
+              style={[styles.categoryAdminButton, styles.addCategoryButton]}
+              onPress={() => router.push("/category/addCategory")}
+            >
+              <MaterialIcons name="add" size={18} color="#FFFFFF" />
+              <Text style={styles.addCategoryButtonText}>Dodaj kategorię</Text>
+            </Pressable>
+          )}
 
           <Pressable style={styles.arrowButton}>
             <MaterialIcons name="chevron-left" size={22} color="#111827" />
@@ -270,9 +270,28 @@ export default function User() {
           <Text style={styles.categoryName}>{item.nazwa}</Text>
         </Pressable>
 
-        <Pressable style={styles.categoryEditButton}>
-          <MaterialIcons name="edit" size={15} color="#1D4ED8" />
-        </Pressable>
+        {isAdmin && (
+          <View style={styles.categoryCardAdminActions}>
+            <Pressable
+              style={[styles.categoryCardAdminButton, styles.categoryEditButton]}
+              onPress={() =>
+                router.push({
+                  pathname: "/category/edit/[id]",
+                  params: { id: item.id.toString() },
+                })
+              }
+            >
+              <MaterialIcons name="edit" size={15} color="#1D4ED8" />
+            </Pressable>
+
+            <Pressable
+              style={[styles.categoryCardAdminButton, styles.categoryDeleteButton]}
+              onPress={() => setCategoryToDelete(item)}
+            >
+              <MaterialIcons name="delete-outline" size={16} color="#DC2626" />
+            </Pressable>
+          </View>
+        )}
       </View>
     )}
       
@@ -298,6 +317,42 @@ export default function User() {
         contentContainerStyle={styles.productsList}
         mapItem={(item) => ({...item,opis : item.opis ?? "", zdjecie_url : item.zdjecia_url["1"]})}
       />
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={isAdmin && categoryToDelete !== null}
+        onRequestClose={() => setCategoryToDelete(null)}
+      >
+        <View style={styles.categoryModalOverlay}>
+          <View style={styles.categoryModalCard}>
+            <View style={styles.categoryModalIcon}>
+              <MaterialIcons name="delete-outline" size={30} color="#DC2626" />
+            </View>
+
+            <Text style={styles.categoryModalTitle}>Usunąć kategorię?</Text>
+            <Text style={styles.categoryModalDescription}>
+              Czy na pewno chcesz usunąć kategorię „{categoryToDelete?.nazwa}”?
+            </Text>
+
+            <View style={styles.categoryModalActions}>
+              <Pressable
+                style={[styles.categoryModalButton, styles.categoryModalCancelButton]}
+                onPress={() => setCategoryToDelete(null)}
+              >
+                <Text style={styles.categoryModalCancelText}>Anuluj</Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.categoryModalButton, styles.categoryModalDeleteButton]}
+                onPress={() => setCategoryToDelete(null)}
+              >
+                <Text style={styles.categoryModalDeleteText}>Usuń</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </PageLayout>
 );
 }
@@ -482,18 +537,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  deleteCategoryButton: {
-    backgroundColor: "#FFF7F7",
-    borderWidth: 1,
-    borderColor: "#FECACA",
-  },
-
-  deleteCategoryButtonText: {
-    color: "#DC2626",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-
   arrowButton: {
     width: 38,
     height: 38,
@@ -534,19 +577,32 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  categoryEditButton: {
+  categoryCardAdminActions: {
     position: "absolute",
     top: 10,
     right: 10,
+    flexDirection: "row",
+    gap: 6,
+    zIndex: 2,
+  },
+
+  categoryCardAdminButton: {
     width: 30,
     height: 30,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#DBEAFE",
-    backgroundColor: "#F8FBFF",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2,
+  },
+
+  categoryEditButton: {
+    borderColor: "#DBEAFE",
+    backgroundColor: "#F8FBFF",
+  },
+
+  categoryDeleteButton: {
+    borderColor: "#FECACA",
+    backgroundColor: "#FFF7F7",
   },
 
   categoryCardActive: {
@@ -672,6 +728,72 @@ timerColon: {
   color: "rgba(255,255,255,0.65)",
   marginHorizontal: 10,
   paddingBottom: 6,
+},
+categoryModalOverlay: {
+  flex: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "rgba(15, 23, 42, 0.5)",
+  paddingHorizontal: 20,
+},
+categoryModalCard: {
+  width: "100%",
+  maxWidth: 430,
+  alignItems: "center",
+  borderRadius: 24,
+  backgroundColor: "#FFFFFF",
+  padding: 30,
+},
+categoryModalIcon: {
+  width: 58,
+  height: 58,
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 18,
+  backgroundColor: "#FEF2F2",
+  marginBottom: 16,
+},
+categoryModalTitle: {
+  color: "#0F172A",
+  fontSize: 21,
+  fontWeight: "900",
+  textAlign: "center",
+},
+categoryModalDescription: {
+  color: "#64748B",
+  fontSize: 14,
+  lineHeight: 21,
+  textAlign: "center",
+  marginTop: 8,
+},
+categoryModalActions: {
+  width: "100%",
+  flexDirection: "row",
+  gap: 12,
+  marginTop: 24,
+},
+categoryModalButton: {
+  flex: 1,
+  height: 48,
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 13,
+},
+categoryModalCancelButton: {
+  backgroundColor: "#F1F5F9",
+},
+categoryModalDeleteButton: {
+  backgroundColor: "#DC2626",
+},
+categoryModalCancelText: {
+  color: "#475569",
+  fontSize: 14,
+  fontWeight: "800",
+},
+categoryModalDeleteText: {
+  color: "#FFFFFF",
+  fontSize: 14,
+  fontWeight: "800",
 },
 categoryImage :{
   width : 32,
