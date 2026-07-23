@@ -14,6 +14,11 @@ router.get("/", async (req, res) => {
         FROM wypozyczenia w
         WHERE w.sprzet_id = s.id
       )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM promocje_sprzety ps
+        WHERE ps.sprzet_id = s.id
+      )
       ORDER BY id;
       `
     );

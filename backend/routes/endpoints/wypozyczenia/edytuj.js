@@ -28,18 +28,29 @@ import { wyslijMailWypozyczeniaWTle } from "../../../services/maile-wypozyczen.j
 const router = Router();
 
 async function edytujWypozyczenie(req, res) {
+  const id = parsujId(req.params.id);
+
+  if (!id) {
+    return res.status(400).json({
+      error: "Nieprawidlowe ID wypozyczenia."
+    });
+  }
+
+  const body = req.body || {};
+
+  if (
+    czyPolePrzekazane(body, "sprzet_id") ||
+    czyPolePrzekazane(body, "uzytkownik_id")
+  ) {
+    return res.status(400).json({
+      error:
+        "Nie mozna zmienic sprzetu ani uzytkownika istniejacego wypozyczenia."
+    });
+  }
+
   const client = await pool.connect();
 
   try {
-    const id = parsujId(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({
-        error: "Nieprawidlowe ID wypozyczenia."
-      });
-    }
-
-    const body = req.body || {};
     const pola = [];
     const params = [];
     let nowySprzetId = null;

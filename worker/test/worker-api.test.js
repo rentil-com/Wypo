@@ -165,6 +165,7 @@ test("uruchamia promocje recznie i zwraca jej wynik", async () => {
         message: "Wykonano promocje.",
         status: "success",
         promotion: {
+          promotion_id: 23,
           item_id: 7,
           item_name: "Wiertarka testowa",
           old_price: 100,
@@ -180,6 +181,7 @@ test("uruchamia promocje recznie i zwraca jej wynik", async () => {
         return {
           status: "success",
           promotion: {
+            backendPromotionId: 23,
             item: { id: 7, nazwa: "Wiertarka testowa" },
             oldPrice: 100,
             discountPercent: 20,

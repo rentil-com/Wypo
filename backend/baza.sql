@@ -213,7 +213,7 @@ CREATE TABLE promocje_kategorie (
     CONSTRAINT fk_promocje_kategorie_kategorie
         FOREIGN KEY (kategoria_id)
         REFERENCES kategorie(id)
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_promocje_kategorie_kategoria_id
@@ -234,7 +234,7 @@ CREATE TABLE promocje_sprzety (
     CONSTRAINT fk_promocje_sprzety_sprzety
         FOREIGN KEY (sprzet_id)
         REFERENCES sprzety(id)
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_promocje_sprzety_sprzet_id
@@ -255,7 +255,7 @@ CREATE TABLE promocje_uzytkownicy (
     CONSTRAINT fk_promocje_uzytkownicy_uzytkownicy
         FOREIGN KEY (uzytkownik_id)
         REFERENCES uzytkownicy(id)
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_promocje_uzytkownicy_uzytkownik_id
@@ -320,6 +320,24 @@ CREATE TABLE wypozyczenia (
             cena_bazowa >= 0
             AND cena_koncowa >= 0
             AND cena_koncowa <= cena_bazowa
+        ),
+
+    CONSTRAINT chk_wypozyczenia_snapshot_promocji
+        CHECK (
+            (
+                promocja_nazwa IS NULL
+                AND promocja_typ IS NULL
+                AND promocja_wartosc IS NULL
+            )
+            OR (
+                promocja_nazwa IS NOT NULL
+                AND promocja_typ IS NOT NULL
+                AND promocja_wartosc > 0
+                AND (
+                    promocja_typ <> 'procentowa'
+                    OR promocja_wartosc <= 100
+                )
+            )
         )
 );
 

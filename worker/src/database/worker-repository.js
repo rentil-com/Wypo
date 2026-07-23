@@ -4,7 +4,8 @@ import pg from "pg";
 const { Pool } = pg;
 const schemaUrls = [
   new URL("../../sql/001_create_worker_settings.sql", import.meta.url),
-  new URL("../../sql/002_create_worker_promotion_runs.sql", import.meta.url)
+  new URL("../../sql/002_create_worker_promotion_runs.sql", import.meta.url),
+  new URL("../../sql/003_add_backend_promotion_id.sql", import.meta.url)
 ];
 
 function nullableNumber(value) {
@@ -17,6 +18,7 @@ function mapPromotionRun(row) {
     status: row.status,
     itemId: nullableNumber(row.item_id),
     itemName: row.item_name,
+    backendPromotionId: nullableNumber(row.backend_promotion_id),
     oldPrice: nullableNumber(row.old_price),
     promotionalPrice: nullableNumber(row.promotional_price),
     discountPercent: nullableNumber(row.discount_percent),
@@ -122,6 +124,7 @@ export class WorkerRepository {
     status,
     itemId = null,
     itemName = null,
+    backendPromotionId = null,
     oldPrice = null,
     promotionalPrice = null,
     discountPercent = null,
@@ -133,18 +136,20 @@ export class WorkerRepository {
         status,
         item_id,
         item_name,
+        backend_promotion_id,
         old_price,
         promotional_price,
         discount_percent,
         error_message
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *;
       `,
       [
         status,
         itemId,
         itemName,
+        backendPromotionId,
         oldPrice,
         promotionalPrice,
         discountPercent,

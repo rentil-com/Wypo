@@ -23,27 +23,31 @@ function getErrorMessage(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
-function priceInCents(value) {
-  if (
-    value === null ||
-    value === undefined ||
-    String(value).trim() === ""
-  ) {
-    return null;
-  }
-
-  const price = Number(value);
-  return Number.isFinite(price) ? Math.round(price * 100) : null;
+function getPromotionName(item) {
+  const fallback = `sprzet ${item.id}`;
+  const itemName = String(item.nazwa ?? fallback).trim() || fallback;
+  return `Promocja dnia: ${itemName}`.slice(0, 100);
 }
 
-function hasExpectedPromotionalPrice(item, expectedPrice) {
-  const expectedPriceInCents = priceInCents(expectedPrice);
-  const currentPriceInCents = priceInCents(item?.cena_po_promocji);
-
-  return (
-    expectedPriceInCents !== null &&
-    expectedPriceInCents === currentPriceInCents
-  );
+function buildPromotion(item, discountPercent) {
+  return {
+    nazwa: getPromotionName(item),
+    opis: "Automatyczna promocja dnia utworzona przez worker.",
+    typ: "procentowa",
+    wartosc: discountPercent,
+    aktywna: true,
+    data_od: new Date().toISOString(),
+    data_do: null,
+    zakres_sprzetow: {
+      wszystkie: false,
+      kategorie_ids: [],
+      sprzety_ids: [Number(item.id)]
+    },
+    zakres_uzytkownikow: {
+      wszyscy: true,
+      uzytkownicy_ids: []
+    }
+  };
 }
 
 async function saveErrorHistory({
@@ -51,6 +55,7 @@ async function saveErrorHistory({
   selectedItem,
   oldPrice,
   promotionalPrice,
+  backendPromotionId,
   discountPercent,
   error,
   logger
@@ -64,6 +69,7 @@ async function saveErrorHistory({
       status: "error",
       itemId: selectedItem?.id ?? null,
       itemName: selectedItem?.nazwa ?? null,
+      backendPromotionId,
       oldPrice: Number.isFinite(oldPrice) ? oldPrice : null,
       promotionalPrice:
         Number.isFinite(promotionalPrice) ? promotionalPrice : null,
@@ -91,28 +97,31 @@ async function deactivateExistingPromotions({
     await historyRepository.getActivePromotionRuns();
 
   for (const run of activePromotionRuns) {
-    if (run.itemId === null) {
+    const backendPromotionId = Number(run.backendPromotionId);
+
+    if (!Number.isSafeInteger(backendPromotionId) || backendPromotionId < 1) {
       await historyRepository.deactivatePromotionRun(run.id);
       logger.warn(
-        `[daily-promotion] Pominieto dezaktywacje wpisu id=${run.id}, poniewaz nie ma identyfikatora przedmiotu.`
+        `[daily-promotion] Wpis historii id=${run.id} nie ma identyfikatora promocji backendu. Oznaczono go jako nieaktywny bez zmiany backendu.`
       );
       continue;
     }
 
-    const currentItem = await client.getItem(run.itemId);
+    try {
+      await client.deactivatePromotion(backendPromotionId);
+    } catch (error) {
+      if (error?.status !== 404) {
+        throw error;
+      }
 
-    if (!hasExpectedPromotionalPrice(currentItem, run.promotionalPrice)) {
-      await historyRepository.deactivatePromotionRun(run.id);
       logger.warn(
-        `[daily-promotion] Promocja przedmiotu id=${run.itemId} zostala zmieniona poza workerem (oczekiwana cena=${JSON.stringify(run.promotionalPrice)}, aktualna=${JSON.stringify(currentItem?.cena_po_promocji ?? null)}). Worker jej nie zmienil.`
+        `[daily-promotion] Promocja backendu id=${backendPromotionId} juz nie istnieje.`
       );
-      continue;
     }
 
-    await client.clearPromotionalPrice(run.itemId);
     await historyRepository.deactivatePromotionRun(run.id);
     logger.info(
-      `[daily-promotion] Dezaktywowano promocje workera: id=${run.itemId}, nazwa=${JSON.stringify(run.itemName ?? "")}`
+      `[daily-promotion] Dezaktywowano promocje workera: promocja_id=${backendPromotionId}, sprzet_id=${run.itemId}.`
     );
   }
 }
@@ -122,14 +131,17 @@ async function getEligibleItems(items, historyRepository) {
     ? await historyRepository.getLastSuccessfullyPromotedItemId()
     : null;
 
-  return items.filter(
-    (item) =>
-      item?.id !== null &&
-      item?.id !== undefined &&
-      item.cena_po_promocji == null &&
+  return items.filter((item) => {
+    const itemId = Number(item?.id);
+
+    return (
+      Number.isSafeInteger(itemId) &&
+      itemId > 0 &&
+      item?.czy_promocja !== true &&
       (lastPromotedItemId === null ||
         String(item.id) !== String(lastPromotedItemId))
-  );
+    );
+  });
 }
 
 export async function runDailyPromotion({
@@ -154,6 +166,7 @@ export async function runDailyPromotion({
   let oldPrice = null;
   let discountPercent = null;
   let promotionalPrice = null;
+  let backendPromotionId = null;
   let outcome;
 
   try {
@@ -215,13 +228,17 @@ export async function runDailyPromotion({
         `[daily-promotion] Nowa cena promocyjna: ${formatPrice(promotionalPrice)}`
       );
 
-      await client.updatePromotionalPrice(
-        selectedItem.id,
-        promotionalPrice
+      const promotion = await client.createPromotion(
+        buildPromotion(selectedItem, discountPercent)
       );
+      backendPromotionId = Number(promotion?.id);
+
+      if (!Number.isSafeInteger(backendPromotionId) || backendPromotionId < 1) {
+        throw new Error("Backend nie zwrocil ID utworzonej promocji.");
+      }
 
       logger.info(
-        `[daily-promotion] Zaktualizowano cene promocyjna przedmiotu id=${selectedItem.id}.`
+        `[daily-promotion] Utworzono promocje id=${backendPromotionId} dla przedmiotu id=${selectedItem.id}.`
       );
 
       outcome = {
@@ -230,6 +247,7 @@ export async function runDailyPromotion({
         itemName: selectedItem.nazwa ?? null,
         oldPrice,
         promotionalPrice,
+        backendPromotionId,
         discountPercent
       };
     }
@@ -239,6 +257,7 @@ export async function runDailyPromotion({
       selectedItem,
       oldPrice,
       promotionalPrice,
+      backendPromotionId,
       discountPercent,
       error,
       logger
@@ -258,6 +277,7 @@ export async function runDailyPromotion({
     item: selectedItem,
     oldPrice,
     discountPercent,
+    backendPromotionId,
     promotionalPrice
   };
 }

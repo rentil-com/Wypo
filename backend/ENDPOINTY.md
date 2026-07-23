@@ -438,7 +438,8 @@ Usuwa kategorię. Jeśli do kategorii jest przypisany sprzęt, endpoint zwraca `
 
 Admin only.
 
-Zwraca listę ID kategorii, które można usunąć, czyli takich, do których nie jest przypisany żaden sprzęt.
+Zwraca listę ID kategorii, które można usunąć, czyli takich, do których nie
+jest przypisany żaden sprzęt ani promocja.
 
 ## Sprzęt
 
@@ -621,7 +622,8 @@ Usuwa sprzęt. Jeśli do sprzętu jest przypisane wypożyczenie, endpoint zwraca
 
 Admin only.
 
-Zwraca listę ID sprzętów, które można usunąć, czyli takich, które nie mają żadnego wypożyczenia.
+Zwraca listę ID sprzętów, które można usunąć, czyli takich, które nie mają
+żadnego wypożyczenia ani przypisania do promocji.
 
 ## Promocje
 
@@ -934,14 +936,16 @@ Body może zawierać:
 
 ```json
 {
-  "sprzet_id": 2,
-  "uzytkownik_id": 3,
   "data_od": "2026-07-10T10:00:00.000Z",
   "data_do": "2026-07-12T10:00:00.000Z",
   "status": "aktywny",
   "data_zwrotu_rzeczywista": null
 }
 ```
+
+`sprzet_id` i `uzytkownik_id` sa niezmienne po utworzeniu wypozyczenia.
+Zapobiega to przypisaniu historycznego snapshotu ceny i promocji do innego
+sprzetu albo uzytkownika.
 
 Dozwolone statusy:
 

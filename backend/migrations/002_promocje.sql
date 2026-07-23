@@ -64,7 +64,7 @@ CREATE TABLE promocje_kategorie (
     CONSTRAINT fk_promocje_kategorie_kategorie
         FOREIGN KEY (kategoria_id)
         REFERENCES kategorie(id)
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_promocje_kategorie_kategoria_id
@@ -85,7 +85,7 @@ CREATE TABLE promocje_sprzety (
     CONSTRAINT fk_promocje_sprzety_sprzety
         FOREIGN KEY (sprzet_id)
         REFERENCES sprzety(id)
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_promocje_sprzety_sprzet_id
@@ -106,7 +106,7 @@ CREATE TABLE promocje_uzytkownicy (
     CONSTRAINT fk_promocje_uzytkownicy_uzytkownicy
         FOREIGN KEY (uzytkownik_id)
         REFERENCES uzytkownicy(id)
-        ON DELETE CASCADE
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_promocje_uzytkownicy_uzytkownik_id

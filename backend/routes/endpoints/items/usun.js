@@ -49,7 +49,7 @@ router.delete("/:id", async (req, res) => {
     if (err.code === "23503") {
       return res.status(409).json({
         error:
-          "Nie mozna usunac sprzetu, do ktorego przypisane jest wypozyczenie."
+          "Nie mozna usunac sprzetu powiazanego z wypozyczeniem lub promocja."
       });
     }
 

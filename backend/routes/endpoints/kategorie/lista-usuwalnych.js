@@ -13,6 +13,11 @@ router.get("/", async (req, res) => {
       FROM sprzety s
       WHERE s.kategoria_id = k.id
     )
+    AND NOT EXISTS (
+      SELECT 1
+      FROM promocje_kategorie pk
+      WHERE pk.kategoria_id = k.id
+    )
     ORDER BY id;
     `
   );

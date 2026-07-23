@@ -33,7 +33,8 @@ router.delete("/:id", async (req, res) => {
   } catch (err) {
     if (err.code === "23503") {
       return res.status(409).json({
-        error: "Nie mozna usunac kategorii, do ktorej przypisany jest sprzet."
+        error:
+          "Nie mozna usunac kategorii powiazanej ze sprzetem lub promocja."
       });
     }
 
