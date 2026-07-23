@@ -10,6 +10,7 @@ import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
 import { FavouritesResponse } from "@features/favourites/fav.types";
 import { pobierzUlubione } from "@features/favourites/fav.service";
+import { usunKategorie } from "@features/categories/categories.management.services";
 export default function User() {
   const { user } = useAuth();
   const isAdmin = user?.rola === "admin";
@@ -28,7 +29,7 @@ export default function User() {
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryApiItem | null>(null);
   const [produkty,setProdukty] = useState<ApiItem[]>([]);
   const [loading,setLoading] = useState(true)
-  const [error,setEror] = useState<string | null>(null)
+  const [error,setError] = useState<string | null>(null)
 
 
     useEffect (()=> {
@@ -39,7 +40,7 @@ export default function User() {
         setKategorie(response)
       }
       catch(error){
-        setEror(error instanceof Error ? error.message : "Nieznany bład")
+        setError(error instanceof Error ? error.message : "Nieznany bład")
       }
       finally {
         setLoading(false)
@@ -54,7 +55,7 @@ export default function User() {
         setProdukty(response.dane);
       }
       catch(error){
-        setEror(error instanceof Error ? error.message : "Nieznany bład")
+        setError(error instanceof Error ? error.message : "Nieznany bład")
       }
       finally {
         setLoading(false)
@@ -79,7 +80,7 @@ export default function User() {
         }
       } catch (error) {
         if (!cancelled) {
-          setEror(
+          setError(
             error instanceof Error
               ? error.message
               : "Nie udało się pobrać ulubionych",
@@ -94,6 +95,39 @@ export default function User() {
       cancelled = true;
     };
   }, []);
+
+
+  const usuniecieKategorii  = async () =>{
+    setError(null)
+    if (!categoryToDelete) {
+      return;
+    }
+    setLoading(true)
+    try {
+      const response = await usunKategorie(categoryToDelete.id);
+
+      setKategorie((aktualne) =>
+        aktualne.filter(
+          (kategoria) => kategoria.id !== response.id,
+        ),
+      );
+
+      setCategoryToDelete(null);
+      alert("Pomyślnie usunięto kategorię");
+  
+    }
+    catch(error){
+      setError(error instanceof Error ? error.message : "Nieznany bład")
+    }
+    finally {
+      setLoading(false)
+    }
+  
+  }
+  
+
+
+
 
   const calculate_time_left =()=> {
     const now = new Date()
@@ -345,7 +379,7 @@ export default function User() {
 
               <Pressable
                 style={[styles.categoryModalButton, styles.categoryModalDeleteButton]}
-                onPress={() => setCategoryToDelete(null)}
+                onPress={() => usuniecieKategorii()}
               >
                 <Text style={styles.categoryModalDeleteText}>Usuń</Text>
               </Pressable>
