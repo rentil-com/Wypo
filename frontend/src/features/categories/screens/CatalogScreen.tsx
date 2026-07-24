@@ -287,17 +287,28 @@ useEffect(() => {
               </ThemedText>
             </View>
 
-            <View style={styles.productsInfo}>
-              <View style={styles.productsInfoIcon}>
-                <ThemedText style={styles.productsInfoIconText}>
-                 <MaterialIcons name="business-center" size={32}  />
-                </ThemedText>
+            <View style={styles.pageHeadingActions}>
+              <View style={styles.productsInfo}>
+                <View style={styles.productsInfoIcon}>
+                  <ThemedText style={styles.productsInfoIconText}>
+                   <MaterialIcons name="business-center" size={32}  />
+                  </ThemedText>
+                </View>
+
+                <View>
+                  <ThemedText style={styles.productsInfoTitle}>Tysiące produktów</ThemedText>
+                  <ThemedText style={styles.productsInfoDescription}>w jednym miejscu</ThemedText>
+                </View>
               </View>
 
-              <View>
-                <ThemedText  style={styles.productsInfoTitle}>Tysiące produktów</ThemedText>
-                <ThemedText style={styles.productsInfoDescription}>w jednym miejscu</ThemedText>
-              </View>
+              {isAdmin && (
+                <Pressable style={styles.addProductButton}>
+                  <MaterialIcons name="add" size={19} color="#FFFFFF" />
+                  <ThemedText style={styles.addProductButtonText}>
+                    Dodaj produkty
+                  </ThemedText>
+                </Pressable>
+              )}
             </View>
           </View>
 
@@ -484,6 +495,7 @@ useEffect(() => {
   <ProductGrid
     ulubioneIds ={tablicaUlubionych ??  []}
     data={produkty}
+    showAdminActions={isAdmin}
     columnWrapperStyle={styles.productsRow}
     contentContainerStyle={styles.productsGrid}
     mapItem={(item)=> ({...item,opis : item.opis ?? "",cena_po_promocji : item.cena_po_promocji ?? item.cena, zdjecie_url : item.zdjecia_url["1"]})}
@@ -619,6 +631,29 @@ pageHeading: {
     fontSize: 14,
     lineHeight: 21,
     marginTop: 5,
+  },
+
+  pageHeadingActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  addProductButton: {
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    borderRadius: 13,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 18,
+  },
+
+  addProductButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
   },
 
   addCategoryButton: {

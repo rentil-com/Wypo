@@ -46,6 +46,35 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
+  adminActions: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  adminActionButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+
+  editButton: {
+    borderColor: "#BFDBFE",
+  },
+
+  deleteButton: {
+    borderColor: "#FECACA",
+    backgroundColor: "#FFF7F7",
+  },
+
   productImageBox: {
     height: 150,
 

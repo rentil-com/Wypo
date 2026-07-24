@@ -18,6 +18,7 @@ type ProductGridProps = {
   columnWrapperStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   scrollEnabled?: boolean;
+  showAdminActions?: boolean;
 };
 
 export default function ProductGrid({
@@ -28,6 +29,7 @@ export default function ProductGrid({
   columnWrapperStyle,
   contentContainerStyle,
   scrollEnabled,
+  showAdminActions = false,
 }: ProductGridProps) {
   const [ratingsByProduct, setRatingsByProduct] = useState<
     Record<number, ProductRatingSummary>
@@ -75,6 +77,7 @@ export default function ProductGrid({
           rating={ratingsByProduct[item.id] ?? null}
           ratingLoading={ratingsLoading}
           onFavouriteChange={onFavouriteChange}
+          showAdminActions={showAdminActions}
         />
       )}
     />

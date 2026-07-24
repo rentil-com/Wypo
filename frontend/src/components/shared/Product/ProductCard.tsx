@@ -75,6 +75,7 @@ type ProductCardProps = {
   rating: ProductRatingSummary | null;
   ratingLoading?: boolean;
   onFavouriteChange?: (id: number, polubione: boolean) => void;
+  showAdminActions?: boolean;
 };
 
 
@@ -86,6 +87,7 @@ export default function ProductCard({
   rating,
   ratingLoading = false,
   onFavouriteChange,
+  showAdminActions = false,
 }: ProductCardProps) {
   const status =
     statusStyles[
@@ -130,23 +132,36 @@ export default function ProductCard({
   return (
     <View style={styles.productCard}>
       {/* DODAJ DO ULUBIONYCH */}
-      <Pressable
-        style={styles.favoriteButton}
-        onPress={() => polub()}
-        disabled={loading}
-        accessibilityHint={error ?? undefined}
-      >
-      {!czyPolubione &&<MaterialIcons
-          name="favorite-border"
-          size={23}
-          color="#111827"
-        />}
-        {czyPolubione &&  <MaterialIcons
-          name="favorite"
-          size={23}
-          color="#111827"
-        />}
-      </Pressable>
+      {!showAdminActions && (
+        <Pressable
+          style={styles.favoriteButton}
+          onPress={() => polub()}
+          disabled={loading}
+          accessibilityHint={error ?? undefined}
+        >
+          {!czyPolubione && (
+            <MaterialIcons
+              name="favorite-border"
+              size={23}
+              color="#111827"
+            />
+          )}
+          {czyPolubione && (
+            <MaterialIcons name="favorite" size={23} color="#111827" />
+          )}
+        </Pressable>
+      )}
+
+      {showAdminActions && (
+        <View style={styles.adminActions}>
+          <Pressable style={[styles.adminActionButton, styles.editButton]}>
+            <MaterialIcons name="edit" size={17} color="#176BDE" />
+          </Pressable>
+          <Pressable style={[styles.adminActionButton, styles.deleteButton]}>
+            <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
+          </Pressable>
+        </View>
+      )}
 
       {/* KLIKALNA CZĘŚĆ KARTY */}
       <Pressable
