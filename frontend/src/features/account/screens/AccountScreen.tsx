@@ -299,7 +299,10 @@ const usuniecieKonta  = async () =>{
             styles.accountLinks,
             isMobile && styles.mobileAccountLinks,
           ]}>
-            <Pressable style={styles.accountLinkButton}>
+            <Pressable
+              style={styles.accountLinkButton}
+              onPress={() => router.push("/(tabs)/my_reviews")}
+            >
               <Ionicons name="star-outline" size={22} color="#1D4ED8" />
               <Text style={styles.accountLinkText}>Moje Recenzje</Text>
               <Ionicons name="chevron-forward-outline" size={20} color="#1D4ED8" />
