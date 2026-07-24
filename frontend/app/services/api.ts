@@ -80,6 +80,35 @@ export async function  apiPatch(path : string , body : object) {
 
 }
 
+
+export async function  apiPut(path : string , body : object) {
+    if(!API_URL){
+        throw new Error("Brak adresu API")
+    }
+
+    const response = await fetch(`${API_URL}${path}`,{
+        method : "PUT",
+        credentials: "include",
+        headers : { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data =await response.json()
+
+    
+    if(!response.ok){
+        throw new Error(
+            data.error || "Nie udało sie pobrac danych"  
+        );
+    }
+
+    return data;
+
+}
+
 export async function apiDelete(path : string,body? : object ) {
      if(!API_URL){
         throw new Error("Brak adresu API")

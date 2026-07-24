@@ -96,6 +96,18 @@ export type AddProductPhotosResponse = {
   specyfikacje: ProductSpecification[];
 };
 
+export type DeleteProductResponse = {
+  id: number;
+  nazwa: string;
+  opis: string | null;
+  kategoria_id: number;
+  status: ProductStatus;
+  zdjecia_url: Record<string, string>;
+  cena: number;
+  cena_po_promocji: number | null;
+  specyfikacje: ProductSpecification[];
+};
+
 export type DeleteProductPhotosBody =
   | {
       zdjecia: number[];
