@@ -152,7 +152,10 @@ export default function ProductCard({
 
       {showAdminActions && (
         <View style={styles.adminActions}>
-          <Pressable style={[styles.adminActionButton, styles.editButton]}>
+          <Pressable
+            style={[styles.adminActionButton, styles.editButton]}
+            onPress={() => router.push(`/products/${item.id}?edit=true`)}
+          >
             <MaterialIcons name="edit" size={17} color="#176BDE" />
           </Pressable>
           <Pressable style={[styles.adminActionButton, styles.deleteButton]} disabled={!moznaUsunac} onPress={onDelete}>

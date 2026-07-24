@@ -1,4 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -6,8 +8,10 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
+import { useAuth } from "@/contexts/AuthContext";
 import Breadcrumbs from "@components/shared/Breadcrumbs/Breadcrumbs";
 import PageLayout from "@components/shared/Layout/PageLayout";
 import { pobierzPojedynczyProdukt, type SingleProductApiItem } from "@features/products";
@@ -15,10 +19,15 @@ import { pobierzKategoriePoId, type CategoryApiItem } from "@features/categories
 import ProductReviewsSection from "@features/reviews/screens/ProductReviewsSection";
 import type { ProductReviewsResponse } from '@features/reviews/reviews.types';
 import { pobierzWszystkieRecenzjeProduktu } from "@features/reviews/reviews.services";
+import { dodajZdjeciaProduktu, edytujProdukt, usunZdjeciaProduktu } from "../products.management.services";
+import type { ProductSpecificationBody, ProductStatus } from "../products.management.types";
+import adminStyles from "./ProductAdminForm.styles";
 
 
 
 export default function ProductDetailedView() {
+  const { user } = useAuth();
+  const isAdmin = user?.rola === "admin";
   {/* STATUSY SPRZETU */}
   type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie" | "niedostepny";
 
@@ -62,33 +71,53 @@ export default function ProductDetailedView() {
   const [kategoria,setKategoria] = useState<CategoryApiItem>();
   const [pojedynczyProdukt,setPojedynczyProdukt] = useState<SingleProductApiItem>();
   const [loading,setLoading] = useState(true)
-  const [error,setEror] = useState<string | null>(null)
+  const [error,setError] = useState<string | null>(null)
   {/* STANY I PARAMETRY */}
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
+  const [trybEdycji,setTrybEdycji] = useState(edit === "true");
+  const [cena,setCena] = useState("");
+  const [opis,setOpis] = useState("");
+  const [statusProduktu,setStatusProduktu] = useState<ProductStatus>("dostepny");
+  const [specyfikacje,setSpecyfikacje] = useState<ProductSpecificationBody[]>([]);
+  const [noweZdjecia,setNoweZdjecia] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [zdjeciaDoUsuniecia,setZdjeciaDoUsuniecia] = useState<number[]>([]);
   {/* index = aktualne zdjecie w galerii */}
   const [indexaktualneZdjecie, setindexaktualneZdjecie] = useState(0);
-  const zdjecia = pojedynczyProdukt
-  ? Object.values(pojedynczyProdukt.zdjecia_url)
-  : [];
+  const wpisyZdjec = pojedynczyProdukt
+    ? Object.entries(pojedynczyProdukt.zdjecia_url).filter(([numer]) => !zdjeciaDoUsuniecia.includes(Number(numer)))
+    : [];
+  const zdjecia = wpisyZdjec.map(([,zdjecie]) => zdjecie);
+  const edytowanie = isAdmin && trybEdycji;
   {/* SUGESTIE WYSZUKIWANIA */}
  
     useEffect (()=> {
 
 
       async function zaladujProdukty() {
-        setEror(null);
+        setError(null);
         setLoading(true);
 
         try {
           const produkt = await pobierzPojedynczyProdukt(Number(id))
   
           setPojedynczyProdukt(produkt);
+          setCena(produkt.cena.toString());
+          setOpis(produkt.opis ?? "");
+          setStatusProduktu(produkt.status as ProductStatus);
+          setSpecyfikacje(produkt.specyfikacje.map((specyfikacja) => ({
+            nazwa_specyfikacji: specyfikacja.nazwa_specyfikacji,
+            opis_specyfikacji: specyfikacja.opis_specyfikacji,
+            emotka_specyfikacji: specyfikacja.emotka_specyfikacji ?? null,
+          })));
+          setNoweZdjecia([]);
+          setZdjeciaDoUsuniecia([]);
+          setindexaktualneZdjecie(0);
 
           const pobranaKategoria = await pobierzKategoriePoId(Number(produkt.kategoria_id))
           setKategoria(pobranaKategoria)
         }
         catch(error){
-          setEror(error instanceof Error ? error.message : "Nieznany bład")
+          setError(error instanceof Error ? error.message : "Nieznany błąd")
         }
         finally {
           setLoading(false)
@@ -100,6 +129,10 @@ export default function ProductDetailedView() {
       void zaladujProdukty();
   
     }, [id]);
+
+    useEffect(() => {
+      if (edit === "true") setTrybEdycji(true);
+    }, [edit]);
   
     useEffect(() => {
     async function zaladujRecenzje() {
@@ -145,6 +178,150 @@ export default function ProductDetailedView() {
     );
   }
 
+  const wybierzZdjecie = async () => {
+    setError(null);
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (result.assets) setNoweZdjecia([...noweZdjecia, result.assets[0]]);
+  };
+
+  const usunNoweZdjecie = (index: number) => {
+    const pozostaleZdjecia = [...noweZdjecia];
+    pozostaleZdjecia.splice(index, 1);
+    setNoweZdjecia(pozostaleZdjecia);
+  };
+
+  const usunAktualneZdjecie = () => {
+    const aktualneZdjecie = wpisyZdjec[indexaktualneZdjecie];
+    if (!aktualneZdjecie) return;
+
+    setZdjeciaDoUsuniecia([...zdjeciaDoUsuniecia, Number(aktualneZdjecie[0])]);
+    setindexaktualneZdjecie(0);
+  };
+
+  const dodajSpecyfikacje = () => {
+    setSpecyfikacje([
+      ...specyfikacje,
+      {
+        nazwa_specyfikacji: "",
+        opis_specyfikacji: "",
+        emotka_specyfikacji: null,
+      },
+    ]);
+  };
+
+  const usunSpecyfikacje = (index: number) => {
+    const noweSpecyfikacje = [...specyfikacje];
+    noweSpecyfikacje.splice(index, 1);
+    setSpecyfikacje(noweSpecyfikacje);
+  };
+
+  const anulujEdycje = () => {
+    setCena(pojedynczyProdukt.cena.toString());
+    setOpis(pojedynczyProdukt.opis ?? "");
+    setStatusProduktu(pojedynczyProdukt.status as ProductStatus);
+    setSpecyfikacje(pojedynczyProdukt.specyfikacje.map((specyfikacja) => ({
+      nazwa_specyfikacji: specyfikacja.nazwa_specyfikacji,
+      opis_specyfikacji: specyfikacja.opis_specyfikacji,
+      emotka_specyfikacji: specyfikacja.emotka_specyfikacji ?? null,
+    })));
+    setNoweZdjecia([]);
+    setZdjeciaDoUsuniecia([]);
+    setindexaktualneZdjecie(0);
+    setError(null);
+    setTrybEdycji(false);
+  };
+
+  const zapiszZmiany = async () => {
+    setError(null);
+
+    const poprawnaCena = cena.trim().replace(",", ".");
+    const poprawnyOpis = opis.trim();
+    const poprawneSpecyfikacje: ProductSpecificationBody[] = [];
+
+    if (!poprawnaCena || Number.isNaN(Number(poprawnaCena)) || Number(poprawnaCena) < 0) {
+      setError("Podaj poprawną cenę produktu");
+      return;
+    }
+
+    for (const specyfikacja of specyfikacje) {
+      const poprawnaNazwa = specyfikacja.nazwa_specyfikacji.trim();
+      const poprawnyOpisSpecyfikacji = specyfikacja.opis_specyfikacji.trim();
+      const poprawnaEmotka = specyfikacja.emotka_specyfikacji?.trim() ?? "";
+
+      if (!poprawnaNazwa || !poprawnyOpisSpecyfikacji) {
+        setError("Nazwa i opis każdej specyfikacji są wymagane");
+        return;
+      }
+
+      poprawneSpecyfikacje.push({
+        nazwa_specyfikacji: poprawnaNazwa,
+        opis_specyfikacji: poprawnyOpisSpecyfikacji,
+        emotka_specyfikacji: poprawnaEmotka || null,
+      });
+    }
+
+    setLoading(true);
+
+    try {
+      await edytujProdukt(pojedynczyProdukt.id, {
+        cena: poprawnaCena,
+        opis: poprawnyOpis || null,
+        status: statusProduktu,
+        specyfikacje: poprawneSpecyfikacje,
+      });
+
+      if (zdjeciaDoUsuniecia.length > 0) {
+        await usunZdjeciaProduktu(pojedynczyProdukt.id, { zdjecia: zdjeciaDoUsuniecia });
+      }
+
+      if (noweZdjecia.length > 0) {
+        const formData = new FormData();
+
+        for (const zdjecie of noweZdjecia) {
+          if (zdjecie.file) {
+            formData.append("zdjecia", zdjecie.file);
+          } else {
+            formData.append(
+              "zdjecia",
+              {
+                uri: zdjecie.uri,
+                name: zdjecie.fileName ?? "produkt.jpg",
+                type: zdjecie.mimeType ?? "image/jpeg",
+              } as any,
+            );
+          }
+        }
+
+        await dodajZdjeciaProduktu(pojedynczyProdukt.id, formData);
+      }
+
+      const produkt = await pobierzPojedynczyProdukt(pojedynczyProdukt.id);
+      setPojedynczyProdukt(produkt);
+      setCena(produkt.cena.toString());
+      setOpis(produkt.opis ?? "");
+      setStatusProduktu(produkt.status as ProductStatus);
+      setSpecyfikacje(produkt.specyfikacje.map((specyfikacja) => ({
+        nazwa_specyfikacji: specyfikacja.nazwa_specyfikacji,
+        opis_specyfikacji: specyfikacja.opis_specyfikacji,
+        emotka_specyfikacji: specyfikacja.emotka_specyfikacji ?? null,
+      })));
+      setNoweZdjecia([]);
+      setZdjeciaDoUsuniecia([]);
+      setindexaktualneZdjecie(0);
+      setTrybEdycji(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Nie udało się edytować produktu");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   {/* FUNKCJE GALERII */}
   const przejdzDoNastepnegoZdjecia = () => {
     let nowy_index = indexaktualneZdjecie + 1;
@@ -189,47 +366,97 @@ export default function ProductDetailedView() {
     ]}
   />
 
+          {isAdmin && (
+            <View style={styles.adminToolbar}>
+              <View style={styles.adminBadge}>
+                <MaterialIcons name="admin-panel-settings" size={18} color="#1D4ED8" />
+                <Text style={styles.adminBadgeText}>TRYB ADMINISTRATORA</Text>
+              </View>
+
+              <View style={styles.adminToolbarActions}>
+                {!edytowanie && (
+                  <Pressable style={styles.editProductButton} onPress={() => setTrybEdycji(true)}>
+                    <MaterialIcons name="edit" size={18} color="#1D4ED8" />
+                    <Text style={styles.editProductButtonText}>Edytuj produkt</Text>
+                  </Pressable>
+                )}
+
+                {edytowanie && (
+                  <>
+                    <Pressable style={styles.cancelEditButton} onPress={() => anulujEdycje()}>
+                      <Text style={styles.cancelEditButtonText}>Anuluj</Text>
+                    </Pressable>
+                    <Pressable style={styles.saveProductButton} onPress={() => zapiszZmiany()}>
+                      <MaterialIcons name="save" size={18} color="#FFFFFF" />
+                      <Text style={styles.saveProductButtonText}>Zapisz zmiany</Text>
+                    </Pressable>
+                  </>
+                )}
+              </View>
+            </View>
+          )}
+
+          {error && <Text style={styles.adminErrorText}>{error}</Text>}
 
           {/* SEKCJA PRODUKTU */}
           <View style={styles.productSection}>
             {/* GALERIA ZDJEC */}
             <View style={styles.galleryCard}>
+              {edytowanie && (
+                <View style={styles.galleryEditActions}>
+                  <Pressable style={styles.addImageButton} onPress={() => wybierzZdjecie()}>
+                    <MaterialIcons name="add-photo-alternate" size={18} color="#1D4ED8" />
+                    <Text style={styles.addImageButtonText}>Dodaj zdjęcie</Text>
+                  </Pressable>
+
+                  {zdjecia.length > 0 && (
+                    <Pressable style={styles.deleteImageButton} onPress={() => usunAktualneZdjecie()}>
+                      <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
+                      <Text style={styles.deleteImageButtonText}>Usuń to zdjęcie</Text>
+                    </Pressable>
+                  )}
+                </View>
+              )}
+
               <View style={styles.imageCounter}>
                 <Text style={styles.imageCounterText}>
                   {/* ILOSC ZDJEC NA ILE */}
-                  {indexaktualneZdjecie +1} / {zdjecia.length}
+                  {zdjecia.length > 0 ? indexaktualneZdjecie + 1 : 0} / {zdjecia.length}
                 </Text>
               </View>
 
               {/* COFNIECIE ZDJECIA */}
-              <Pressable
-                onPress={() => przejdzDoPoprzedniegoZdjecia()}
-                style={[styles.galleryArrow, styles.galleryArrowLeft]}
-              >
-                <MaterialIcons name="chevron-left" size={28} color="#0F172A" />
-              </Pressable>
+              {zdjecia.length > 1 && (
+                <Pressable
+                  onPress={() => przejdzDoPoprzedniegoZdjecia()}
+                  style={[styles.galleryArrow, styles.galleryArrowLeft]}
+                >
+                  <MaterialIcons name="chevron-left" size={28} color="#0F172A" />
+                </Pressable>
+              )}
 
               {/* GLOWNE ZDJECIE PRODUKTU */}
               <View style={styles.mainImageBox}>
-                <Image
-                  source={{ uri: zdjecia[indexaktualneZdjecie] }}
-                  style={styles.mainProductImage}
-                  resizeMode="contain"
-                />
+                {zdjecia.length > 0 ? (
+                  <Image
+                    source={{ uri: zdjecia[indexaktualneZdjecie] }}
+                    style={styles.mainProductImage}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Text style={styles.emptyGalleryText}>Brak zdjęć produktu</Text>
+                )}
               </View>
 
               {/* KOLEJNE ZDJECIE */}
-              <Pressable
-                onPress={() => przejdzDoNastepnegoZdjecia()}
-                style={[styles.galleryArrow, styles.galleryArrowRight]}
-              >
-                <MaterialIcons name="chevron-right" size={28} color="#0F172A" />
-              </Pressable>
-
-                   <View style={styles.thumbnailRow}>
-                  
-
-                   </View>
+              {zdjecia.length > 1 && (
+                <Pressable
+                  onPress={() => przejdzDoNastepnegoZdjecia()}
+                  style={[styles.galleryArrow, styles.galleryArrowRight]}
+                >
+                  <MaterialIcons name="chevron-right" size={28} color="#0F172A" />
+                </Pressable>
+              )}
 
               {/* MINIATURY ZDJEC */}
               <View style={styles.thumbnailRow}>
@@ -246,10 +473,141 @@ export default function ProductDetailedView() {
                   </Pressable>
                 ))}
               </View>
+
+              {edytowanie && noweZdjecia.length > 0 && (
+                <View style={styles.newImagesSection}>
+                  <Text style={styles.newImagesTitle}>Nowe zdjęcia do zapisania</Text>
+                  <View style={adminStyles.imagesPreview}>
+                    {noweZdjecia.map((zdjecie,index) => (
+                      <View key={`${zdjecie.uri}-${index}`} style={adminStyles.imagePreview}>
+                        <Image source={{ uri: zdjecie.uri }} style={adminStyles.image} />
+                        <Pressable style={adminStyles.removeImageButton} onPress={() => usunNoweZdjecie(index)}>
+                          <MaterialIcons name="close" size={17} color="#FFFFFF" />
+                        </Pressable>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
 
             {/* PRAWA STRONA - SZCZEGOLY */}
             <View style={styles.detailsCard}>
+              {edytowanie && (
+                <View>
+                  <Text style={styles.productTitle}>{pojedynczyProdukt.nazwa}</Text>
+
+                  <View style={adminStyles.field}>
+                    <Text style={adminStyles.fieldLabel}>Status produktu</Text>
+                    <View style={adminStyles.selectWrapper}>
+                      <Picker
+                        selectedValue={statusProduktu}
+                        onValueChange={(value) => setStatusProduktu(value as ProductStatus)}
+                        style={adminStyles.picker}
+                      >
+                        <Picker.Item label="Dostępny" value="dostepny" />
+                        <Picker.Item label="Wypożyczony" value="wypozyczony" />
+                        <Picker.Item label="W naprawie" value="w_naprawie" />
+                      </Picker>
+                    </View>
+                  </View>
+
+                  <View style={adminStyles.field}>
+                    <Text style={adminStyles.fieldLabel}>Cena</Text>
+                    <TextInput
+                      value={cena}
+                      onChangeText={setCena}
+                      style={adminStyles.input}
+                      placeholder="Np. 49.99"
+                      placeholderTextColor="#94A3B8"
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+
+                  <View style={adminStyles.field}>
+                    <Text style={adminStyles.fieldLabel}>Opis produktu</Text>
+                    <TextInput
+                      value={opis}
+                      onChangeText={setOpis}
+                      style={[adminStyles.input, adminStyles.textArea]}
+                      placeholder="Opis produktu"
+                      placeholderTextColor="#94A3B8"
+                      multiline
+                      textAlignVertical="top"
+                    />
+                  </View>
+
+                  <View style={styles.editDivider} />
+
+                  <View style={adminStyles.sectionHeadingRow}>
+                    <Text style={adminStyles.sectionTitle}>Specyfikacje</Text>
+                    <Pressable style={adminStyles.addSpecificationButton} onPress={() => dodajSpecyfikacje()}>
+                      <MaterialIcons name="add" size={17} color="#1D4ED8" />
+                      <Text style={adminStyles.addSpecificationText}>Dodaj specyfikację</Text>
+                    </Pressable>
+                  </View>
+
+                  {specyfikacje.map((specyfikacja,index) => (
+                    <View key={index} style={adminStyles.specificationCard}>
+                      <View style={adminStyles.specificationHeader}>
+                        <Text style={adminStyles.specificationTitle}>Specyfikacja {index + 1}</Text>
+                        <Pressable style={adminStyles.removeSpecificationButton} onPress={() => usunSpecyfikacje(index)}>
+                          <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
+                        </Pressable>
+                      </View>
+
+                      <View style={styles.specificationEditFields}>
+                        <TextInput
+                          value={specyfikacja.nazwa_specyfikacji}
+                          onChangeText={(value) => {
+                            const noweSpecyfikacje = [...specyfikacje];
+                            noweSpecyfikacje[index] = { ...specyfikacja, nazwa_specyfikacji: value };
+                            setSpecyfikacje(noweSpecyfikacje);
+                          }}
+                          style={adminStyles.input}
+                          placeholder="Nazwa specyfikacji"
+                          placeholderTextColor="#94A3B8"
+                        />
+                        <TextInput
+                          value={specyfikacja.opis_specyfikacji}
+                          onChangeText={(value) => {
+                            const noweSpecyfikacje = [...specyfikacje];
+                            noweSpecyfikacje[index] = { ...specyfikacja, opis_specyfikacji: value };
+                            setSpecyfikacje(noweSpecyfikacje);
+                          }}
+                          style={adminStyles.input}
+                          placeholder="Wartość specyfikacji"
+                          placeholderTextColor="#94A3B8"
+                        />
+                        <TextInput
+                          value={specyfikacja.emotka_specyfikacji ?? ""}
+                          onChangeText={(value) => {
+                            const noweSpecyfikacje = [...specyfikacje];
+                            noweSpecyfikacje[index] = { ...specyfikacja, emotka_specyfikacji: value || null };
+                            setSpecyfikacje(noweSpecyfikacje);
+                          }}
+                          style={adminStyles.input}
+                          placeholder="Ikona, opcjonalnie"
+                          placeholderTextColor="#94A3B8"
+                        />
+                      </View>
+                    </View>
+                  ))}
+
+                  {specyfikacje.length === 0 && (
+                    <Text style={styles.emptySpecificationsText}>Brak specyfikacji. Możesz dodać pierwszą powyżej.</Text>
+                  )}
+
+                  {zdjeciaDoUsuniecia.length > 0 && (
+                    <Text style={styles.imagesToDeleteText}>
+                      Zdjęcia oznaczone do usunięcia: {zdjeciaDoUsuniecia.length}
+                    </Text>
+                  )}
+                </View>
+              )}
+
+              {!edytowanie && (
+                <>
               {/* NAZWA PRODUKTU */}
               <Text style={styles.productTitle}>{pojedynczyProdukt?.nazwa}</Text>
 
@@ -367,6 +725,8 @@ export default function ProductDetailedView() {
                   <Text style={styles.secondaryButtonText}>Dodaj do koszyka</Text>
                 </Pressable>
               </View>
+                </>
+              )}
             </View>
           </View>
 
@@ -438,6 +798,86 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: "#EF4444",
     padding: 32,
+  },
+  adminToolbar: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    marginBottom: 18,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    backgroundColor: "#EFF6FF",
+  },
+  adminBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+  adminBadgeText: {
+    color: "#1D4ED8",
+    fontSize: 12,
+    fontWeight: "900",
+  },
+  adminToolbarActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  editProductButton: {
+    minHeight: 42,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+  },
+  editProductButtonText: {
+    color: "#1D4ED8",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  cancelEditButton: {
+    minHeight: 42,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    backgroundColor: "#E2E8F0",
+    paddingHorizontal: 16,
+  },
+  cancelEditButtonText: {
+    color: "#475569",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  saveProductButton: {
+    minHeight: 42,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    borderRadius: 12,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 16,
+  },
+  saveProductButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  adminErrorText: {
+    width: "100%",
+    color: "#DC2626",
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 14,
   },
 
 
@@ -524,6 +964,44 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 5,
   },
+  galleryEditActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingRight: 100,
+  },
+  addImageButton: {
+    minHeight: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 14,
+  },
+  addImageButtonText: {
+    color: "#1D4ED8",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  deleteImageButton: {
+    minHeight: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    backgroundColor: "#FFF7F7",
+    paddingHorizontal: 14,
+  },
+  deleteImageButtonText: {
+    color: "#DC2626",
+    fontSize: 13,
+    fontWeight: "800",
+  },
 
   imageCounter: {
     position: "absolute",
@@ -557,6 +1035,11 @@ const styles = StyleSheet.create({
     height: "100%",
     maxHeight: 540,
   },
+  emptyGalleryText: {
+    color: "#94A3B8",
+    fontSize: 16,
+    fontWeight: "700",
+  },
 
   thumbnailRow: {
     marginTop: 20,
@@ -585,6 +1068,14 @@ const styles = StyleSheet.create({
   thumbnailImage: {
     width: "100%",
     height: "100%",
+  },
+  newImagesSection: {
+    marginTop: 18,
+  },
+  newImagesTitle: {
+    color: "#334155",
+    fontSize: 13,
+    fontWeight: "800",
   },
 
   galleryArrow: {
@@ -648,6 +1139,25 @@ const styles = StyleSheet.create({
     elevation: 5,
     position : "relative",
     zIndex : 1,
+  },
+  editDivider: {
+    height: 1,
+    backgroundColor: "#E2E8F0",
+    marginBottom: 24,
+  },
+  specificationEditFields: {
+    gap: 10,
+  },
+  emptySpecificationsText: {
+    color: "#64748B",
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  imagesToDeleteText: {
+    color: "#DC2626",
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 10,
   },
 
   productTitle: {
