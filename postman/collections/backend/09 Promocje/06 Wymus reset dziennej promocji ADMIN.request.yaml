@@ -1,0 +1,23 @@
+$kind: http-request
+name: Wymus reset dziennej promocji (ADMIN)
+description: |-
+  Wymaga administratora. Parametr account_id jest ID uzytkownika, a nie
+  promocji. Endpoint wylacza jego aktywna dzienna promocje i natychmiast
+  losuje nowa.
+url: "{{base_url}}/promocje/losuj-dzienna-promocja/{{account_id}}"
+method: POST
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 201) {
+        const body = pm.response.json();
+        if (body.promocja && body.promocja.id) {
+          pm.environment.set("promotion_id", body.promocja.id);
+        }
+      }
+    language: text/javascript
+order: 6000

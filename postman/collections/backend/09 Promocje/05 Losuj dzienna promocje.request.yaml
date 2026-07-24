@@ -1,0 +1,24 @@
+$kind: http-request
+name: Losuj dzienna promocje
+description: |-
+  Wymaga zalogowanej sesji uzytkownika. Losuje indywidualna promocje wazna
+  przez czas ustawiony w DZIENNA_PROMOCJA_WAZNOSC_GODZIN. Gdy poprzednia
+  promocja nadal trwa, endpoint zwraca 409 razem z promocja i terminem
+  ponownego losowania.
+url: "{{base_url}}/promocje/losuj-dzienna-promocje"
+method: POST
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+scripts:
+  - type: afterResponse
+    code: |-
+      if ([201, 409].includes(pm.response.code)) {
+        const body = pm.response.json();
+        if (body.promocja && body.promocja.id) {
+          pm.environment.set("promotion_id", body.promocja.id);
+        }
+      }
+    language: text/javascript
+order: 5000

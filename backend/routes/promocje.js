@@ -3,6 +3,7 @@ import utworzRouter from "./endpoints/promocje/utworz.js";
 import listaRouter from "./endpoints/promocje/lista.js";
 import szczegolyRouter from "./endpoints/promocje/szczegoly.js";
 import edytujRouter from "./endpoints/promocje/edytuj.js";
+import losujDziennaRouter from "./endpoints/promocje/losuj-dzienna.js";
 import {
   dolaczUzytkownikaZSesji,
   tylkoAdmin,
@@ -14,9 +15,10 @@ const router = Router();
 
 router.use(
   dolaczUzytkownikaZSesji,
-  wymagajZalogowania,
-  tylkoAdmin
+  wymagajZalogowania
 );
+router.use("/", losujDziennaRouter);
+router.use(tylkoAdmin);
 router.use("/", utworzRouter);
 router.use("/", listaRouter);
 router.use("/", szczegolyRouter);

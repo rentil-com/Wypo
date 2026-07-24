@@ -627,8 +627,59 @@ Zwraca listę ID sprzętów, które można usunąć, czyli takich, które nie ma
 
 ## Promocje
 
-Wszystkie endpointy w tej sekcji wymagaja zalogowanego administratora.
-Uwierzytelnienie moze pochodzic z sesji albo klucza API administratora.
+Endpoint losowania wlasnej promocji wymaga dowolnego zalogowanego konta.
+Pozostale endpointy w tej sekcji wymagaja zalogowanego administratora.
+Uwierzytelnienie administratora moze pochodzic z sesji albo klucza API.
+
+### `POST /promocje/losuj-dzienna-promocje`
+
+Wymaga zalogowania. Losuje dla aktualnego uzytkownika indywidualna promocje
+procentowa obejmujaca wszystkie sprzety. Endpoint nie przyjmuje body. Poprawna
+odpowiedz ma status `201` i zawiera pelny obiekt promocji, termin kolejnego
+losowania oraz ID zastapionej promocji (dla zwyklego losowania `null`).
+
+```json
+{
+  "promocja": {
+    "id": 41,
+    "typ": "procentowa",
+    "wartosc": 15,
+    "data_od": "2026-07-24T10:00:00.000Z",
+    "data_do": "2026-07-25T10:00:00.000Z"
+  },
+  "ponowne_losowanie_od": "2026-07-25T10:00:00.000Z",
+  "zastapiona_promocja_id": null
+}
+```
+
+Jesli poprzednia dzienna promocja nadal trwa, endpoint nie tworzy kolejnego
+rekordu i zwraca `409` razem z aktualna promocja i polem
+`ponowne_losowanie_od`. Po uplywie `data_do` to samo wywolanie tworzy nastepna
+promocje. Losowanie jest wykonywane w transakcji z blokada rekordu uzytkownika,
+wiec rownolegle zadania nie utworza dwoch aktywnych promocji.
+
+### `POST /promocje/losuj-dzienna-promocja/:id`
+
+Admin only. Parametr `:id` jest ID uzytkownika, a nie ID promocji. Endpoint
+wymusza reset: wylacza jego trwajaca dzienna promocje i od razu losuje nowa.
+Poprawna odpowiedz ma status `201`, taki sam format jak endpoint uzytkownika i
+zwraca ID wylaczonej promocji w `zastapiona_promocja_id`. Nieprawidlowe ID
+zwraca `400`, a brak uzytkownika `404`.
+
+### Konfiguracja dziennej promocji
+
+Modyfikowalne parametry znajduja sie w env:
+
+* `DZIENNA_PROMOCJA_WAZNOSC_GODZIN` - czas waznosci, domyslnie `24`.
+* `DZIENNA_PROMOCJA_RABATY_PROCENTOWE` - lista losowanych rabatow oddzielonych
+  przecinkami, domyslnie `5,10,15,20,25`; ulamek zapisuje sie z kropka.
+* `DZIENNA_PROMOCJA_NAZWA` - nazwa promocji, maksymalnie 100 znakow.
+* `DZIENNA_PROMOCJA_OPIS` - opis promocji; pusta wartosc zapisuje `null`.
+
+Dzienne promocje korzystaja wylacznie z istniejacych tabel `promocje` i
+`promocje_uzytkownicy`. Rekord ma `obejmuje_wszystkie_sprzety = true`,
+`obejmuje_wszystkich_uzytkownikow = false` i jedno przypisanie do konta, dla
+ktorego zostal wylosowany.
 
 ### `POST /promocje`
 
