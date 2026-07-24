@@ -1,0 +1,1 @@
+docker build -f frontend/docker/Dockerfile --build-arg EXPO_PUBLIC_API_URL=url -t url/wypo-frontend:latest frontend
