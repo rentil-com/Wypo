@@ -2,10 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -13,9 +9,12 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ThemedText } from "@components/themed-text";
+import { ThemedView } from "@components/themed-view";
+import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
+import SecurityHint from "@components/shared/Feedback/SecurityHint";
+import LoadingButton from "@components/shared/Form/LoadingButton";
 import { emailChangeConfirm } from "@features/account";
 import { passwordResetConfirm } from "@features/password-reset";
 
@@ -82,22 +81,12 @@ export default function Zmiana_Maila_Kod() {
     const isMobile = width < 640;
 
     return (
-        <SafeAreaProvider style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
-                <KeyboardAvoidingView
-                    style={styles.keyboardAvoidingView}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={[
-                            styles.content,
-                            isMobile && styles.mobileContent,
-                        ]}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        automaticallyAdjustKeyboardInsets
-                    >
+        <FormScreenLayout
+            contentContainerStyle={[
+                styles.content,
+                isMobile && styles.mobileContent,
+            ]}
+        >
                         <ThemedView
                             style={[
                                 styles.card,
@@ -137,14 +126,12 @@ export default function Zmiana_Maila_Kod() {
                                 </View>
                             </View>
 
-                            {error && (
-                                <View style={styles.errorMessageWrapper}>
-                                    <Ionicons name="alert-circle-outline" size={20} color="#DC2626" />
-                                    <Text style={styles.errorMessagesText}>
-                                        {error}
-                                    </Text>
-                                </View>
-                            )}
+                            <StatusMessage
+                                message={error}
+                                containerStyle={styles.errorMessageWrapper}
+                                textStyle={styles.errorMessagesText}
+                                showIcon
+                            />
 
                             <View style={styles.form}>
                                 <ThemedText style={styles.label}>
@@ -190,62 +177,28 @@ export default function Zmiana_Maila_Kod() {
                                     editable={!loading}
                                 />
 
-                                <View style={styles.securityHint}>
-                                    <Ionicons name="time-outline" size={16} color="#7B88A4" />
-                                    <Text style={styles.securityHintText}>
-                                        Kod wygaśnie za {expires_in} s.
-                                    </Text>
-                                     <Text style={styles.securityHintText}>
-                                        Maksymalna liczba prób: {max_attempts}.
-                                    </Text>
-                                    
-                                </View>
-
-                                <TouchableOpacity
-                                    style={[
-                                        styles.sendButton,
-                                        loading && styles.sendButtonDisabled,
+                                <SecurityHint
+                                    containerStyle={styles.securityHint}
+                                    textStyle={styles.securityHintText}
+                                    messages={[
+                                        <>Kod wygaśnie za {expires_in} s.</>,
+                                        <>Maksymalna liczba prób: {max_attempts}.</>,
                                     ]}
+                                />
+
+                                <LoadingButton
+                                    loading={loading}
+                                    loadingText="Zapisywanie..."
+                                    label="Zapisz nowe hasło"
                                     onPress={() =>  sprawdzKod()}
-                                    disabled={loading}
-                                    activeOpacity={0.85}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <ActivityIndicator size="small" color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Zapisywanie...</Text>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-                                            <Text style={styles.sendButtonText}>Zapisz nowe hasło</Text>
-                                        </>
-                                    )}
-                                </TouchableOpacity>
+                                    icon={<Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />}
+                                />
                             </View>
                         </ThemedView>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </SafeAreaProvider>
+        </FormScreenLayout>
     );
 }
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    safeArea: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    keyboardAvoidingView: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
     content: {
         flexGrow: 1,
         alignItems: "center",
@@ -428,31 +381,6 @@ const styles = StyleSheet.create({
         color: "#7B88A4",
         fontSize: 12,
         lineHeight: 17,
-    },
-    sendButton: {
-        width: "100%",
-        height: 62,
-        borderRadius: 16,
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 9,
-        backgroundColor: "#2563EB",
-        marginTop: 20,
-        shadowColor: "#2563EB",
-        shadowOffset: { width: 0, height: 9 },
-        shadowOpacity: 0.3,
-        shadowRadius: 18,
-        elevation: 11,
-    },
-    sendButtonDisabled: {
-        opacity: 0.7,
-    },
-    sendButtonText: {
-        color: "#FFFFFF",
-        fontSize: 17,
-        lineHeight: 22,
-        fontWeight: "700",
     },
 })
 

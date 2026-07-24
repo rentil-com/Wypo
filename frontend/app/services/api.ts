@@ -1,4 +1,4 @@
-import type { ItemsQueryParams, ItemsSearchParams } from "@/types/product";
+import type { ItemsQueryParams, ItemsSearchParams } from "@features/products";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -80,6 +80,35 @@ export async function  apiPatch(path : string , body : object) {
 
 }
 
+
+export async function  apiPut(path : string , body : object) {
+    if(!API_URL){
+        throw new Error("Brak adresu API")
+    }
+
+    const response = await fetch(`${API_URL}${path}`,{
+        method : "PUT",
+        credentials: "include",
+        headers : { 
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+    });
+
+    const data =await response.json()
+
+    
+    if(!response.ok){
+        throw new Error(
+            data.error || "Nie udało sie pobrac danych"  
+        );
+    }
+
+    return data;
+
+}
+
 export async function apiDelete(path : string,body? : object ) {
      if(!API_URL){
         throw new Error("Brak adresu API")
@@ -107,6 +136,31 @@ export async function apiDelete(path : string,body? : object ) {
 
     return data;
 }
+
+export async function apiFormData(path: string,method: "POST" | "PATCH" | "PUT", body: FormData,) {
+  if (!API_URL) {
+    throw new Error("Brak adresu API");
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    method,
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+    },
+    body,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Nie udało się wysłać danych");
+  }
+
+  return data;
+}
+
+
 
 export function buildSearchUrl(params: ItemsSearchParams): string {
     const searchParams = new URLSearchParams();
