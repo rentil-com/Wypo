@@ -67,3 +67,32 @@ export type LoanPickupReminderBody = {
 export type LoanReturnReminderBody = {
     miejsce_zwrotu? : string
 }
+
+export type LoanReminderMail = {
+    messageId : string,
+    odbiorcy : string[]
+}
+
+export type LoanReminderResponse = {
+    message : string,
+    mail : LoanReminderMail,
+    wypozyczenie : LoanResponse
+}
+
+export type LoanOverdueReminderBody = {
+    kontakt? : string
+}
+
+export type LoanPatchBody = {
+    data_od? : string,
+    data_do? : string,
+    status? : LoanStatus,
+    data_zwrotu_rzeczywista? : string | null
+}
+
+export type LoanPutBody = {
+    data_od? : string,
+    data_do? : string,
+    status? : LoanStatus,
+    data_zwrotu_rzeczywista? : string | null
+}
