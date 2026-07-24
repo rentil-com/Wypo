@@ -28,3 +28,27 @@ export type LoanResponse = {
     promocja_id : number | null,
     promocja : Promocja  | null
 }
+
+export type LoansListParams = {
+    strona? : number,
+    uzytkownik_id? : number,
+    sprzet_id? : number,
+    status? : LoanStatus,
+    data? : string
+}
+
+export type LoansListFilters = {
+    uzytkownik_id : number | null,
+    sprzet_id : number | null,
+    data : string | null,
+    status : LoanStatus | null
+}
+
+export type LoansListResponse = {
+    strona : number,
+    limitWnioskowNaStrone : number,
+    filtry : LoansListFilters,
+    total : number,
+    liczbaStron : number,
+    dane : LoanResponse[]
+}
