@@ -10,7 +10,7 @@ import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
 import { FavouritesResponse } from "@features/favourites/fav.types";
 import { pobierzUlubione } from "@features/favourites/fav.service";
-import { usunKategorie } from "@features/categories/categories.management.services";
+import { pobierzUsuwalneKategorie, usunKategorie } from "@features/categories/categories.management.services";
 export default function User() {
   const { user } = useAuth();
   const isAdmin = user?.rola === "admin";
@@ -28,6 +28,7 @@ export default function User() {
   const [kategorie,setKategorie] = useState<CategoryApiItem[]>([]);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryApiItem | null>(null);
   const [produkty,setProdukty] = useState<ApiItem[]>([]);
+  const [usuwalneKategorieIds, setUsuwalneKategorieIds] = useState<number[]>([])
   const [loading,setLoading] = useState(true)
   const [error,setError] = useState<string | null>(null)
 
@@ -47,7 +48,7 @@ export default function User() {
       }
   
     }
-  
+
     async function zaladujProdukty() {
       try {
         const response = await pobierzProdukty()
@@ -96,6 +97,27 @@ export default function User() {
     };
   }, []);
 
+  useEffect(()=> {
+    if (!isAdmin) {
+    setUsuwalneKategorieIds([]);
+    return;
+  }
+  async function zaladujUsuwalneKategorie() {
+    setError(null)
+    try {
+      const response = await pobierzUsuwalneKategorie()
+      setUsuwalneKategorieIds(response)
+    }
+    catch(error) {
+      setError(error instanceof Error ? error.message : "Nie udalo sie pobrac")
+    }
+
+  }
+
+
+  void zaladujUsuwalneKategorie()
+  },[isAdmin])
+
 
   const usuniecieKategorii  = async () =>{
     setError(null)
@@ -110,6 +132,10 @@ export default function User() {
         aktualne.filter(
           (kategoria) => kategoria.id !== response.id,
         ),
+      );
+
+      setUsuwalneKategorieIds((aktualneIds) =>
+        aktualneIds.filter((id) => id !== response.id),
       );
 
       setCategoryToDelete(null);
@@ -292,8 +318,11 @@ export default function User() {
     data={kategorie}
     keyExtractor={(elem)=> elem.id.toString()}
     numColumns={4}
-    renderItem={({item})=> (
-      <View style={styles.categoryCardWrapper}>
+    renderItem={({item})=> {
+      const moznaUsunac = usuwalneKategorieIds.includes(item.id);
+
+      return (
+        <View style={styles.categoryCardWrapper}>
         <Pressable
           style={styles.categoryCard}
           onPress={()=> router.push(`/catalog/category/${item.id}`)}
@@ -319,15 +348,25 @@ export default function User() {
             </Pressable>
 
             <Pressable
-              style={[styles.categoryCardAdminButton, styles.categoryDeleteButton]}
+              style={[
+                styles.categoryCardAdminButton,
+                styles.categoryDeleteButton,
+                !moznaUsunac && styles.categoryDeleteButtonDisabled,
+              ]}
+              disabled={!moznaUsunac}
               onPress={() => setCategoryToDelete(item)}
             >
-              <MaterialIcons name="delete-outline" size={16} color="#DC2626" />
+              <MaterialIcons
+                name="delete-outline"
+                size={16}
+                color={moznaUsunac ? "#DC2626" : "#94A3B8"}
+              />
             </Pressable>
           </View>
         )}
-      </View>
-    )}
+        </View>
+      );
+    }}
       
       />
       </View>
@@ -637,6 +676,12 @@ const styles = StyleSheet.create({
   categoryDeleteButton: {
     borderColor: "#FECACA",
     backgroundColor: "#FFF7F7",
+  },
+
+  categoryDeleteButtonDisabled: {
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
+    opacity: 0.6,
   },
 
   categoryCardActive: {
