@@ -94,8 +94,20 @@ router.get("/", async (req, res) => {
     const result = await pool.query(
       `
       WITH katalog AS (${katalogSql})
-      SELECT *
+      SELECT
+        katalog.*,
+        COALESCE(recenzje.recenzje_srednia, 0)::double precision
+          AS recenzje_srednia
       FROM katalog
+      LEFT JOIN (
+        SELECT
+          sprzet_id,
+          ROUND(AVG(gwiazdki)::numeric, 2) AS recenzje_srednia
+        FROM recenzje
+        WHERE status = 'aktywna'
+        GROUP BY sprzet_id
+      ) recenzje
+        ON recenzje.sprzet_id = katalog.id
       ${whereSql}
       ORDER BY id
       LIMIT $${limitIndex} OFFSET $${offsetIndex};
