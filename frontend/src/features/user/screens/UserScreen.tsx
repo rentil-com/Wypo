@@ -207,6 +207,14 @@ export default function User() {
         {/*CONTROLS */}
         {/*Przenoszenie do odpowiednich widokow */}
 
+      {isAdmin && (
+        <View style={styles.adminBadge}>
+          <View style={styles.adminBadgeDot} />
+          <MaterialIcons name="admin-panel-settings" size={17} color="#176BDE" />
+          <Text style={styles.adminBadgeText}>ADMIN</Text>
+        </View>
+      )}
+
       {/* SPECIAL OFFER CARD */}
       <View style={styles.offerCardWrapper}>
         <LinearGradient
@@ -431,6 +439,34 @@ export default function User() {
 }
 
 const styles = StyleSheet.create({
+  adminBadge: {
+    alignSelf: "flex-end",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 16,
+    marginBottom: -8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+  },
+
+  adminBadgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#2563EB",
+  },
+
+  adminBadgeText: {
+    color: "#176BDE",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+
   offerCardWrapper: {
     marginTop: 24,
     width: "100%",

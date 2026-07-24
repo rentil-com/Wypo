@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import {
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -12,11 +13,16 @@ import { ThemedText } from "@components/themed-text";
 import { useEffect, useState } from "react";
 import { pobierzProdukty, type ApiItem, type ItemsQueryParams } from "@features/products";
 import { pobierzKategorie, type CategoryApiItem } from "@features/categories";
+import {
+  pobierzUsuwalneKategorie,
+  usunKategorie,
+} from "@features/categories/categories.management.services";
 import Breadcrumbs from "@components/shared/Breadcrumbs/Breadcrumbs";
 import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
 import { pobierzUlubione } from "@features/favourites/fav.service";
 import { FavouritesResponse } from "@features/favourites/fav.types";
+import { useAuth } from "@/contexts/AuthContext";
 
 type CatalogViewProps = {
   kategoriaId?: string;
@@ -29,6 +35,8 @@ export default function TabsLayout({
   tylkoPromocje,
   promocja,
 }: CatalogViewProps) {
+  const { user } = useAuth();
+  const isAdmin = user?.rola === "admin";
   const { search } = useLocalSearchParams<{ search?: string }>();
   const searchQuery = search?.trim() ?? "";
 
@@ -42,6 +50,9 @@ export default function TabsLayout({
   });
   const [tablicaUlubionych,settablicaUlubionych] = useState<FavouritesResponse | null>(null)
   const [kategorie, setKategorie] = useState<CategoryApiItem[]>([]);
+  const [categoryToDelete, setCategoryToDelete] =
+    useState<CategoryApiItem | null>(null);
+  const [usuwalneKategorieIds, setUsuwalneKategorieIds] = useState<number[]>([]);
   const [produkty, setProdukty] = useState<ApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +77,30 @@ void zaladujKategorie();
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setUsuwalneKategorieIds([]);
+      return;
+    }
+
+    async function zaladujUsuwalneKategorie() {
+      setError(null);
+
+      try {
+        const response = await pobierzUsuwalneKategorie();
+        setUsuwalneKategorieIds(response);
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Nie udało się pobrać kategorii możliwych do usunięcia",
+        );
+      }
+    }
+
+    void zaladujUsuwalneKategorie();
+  }, [isAdmin]);
 
 useEffect(() => {
   let cancelled = false;
@@ -203,6 +238,36 @@ useEffect(() => {
       }
     }
   }
+
+  const usuniecieKategorii = async () => {
+    if (!categoryToDelete) {
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await usunKategorie(categoryToDelete.id);
+      setKategorie((currentCategories) =>
+        currentCategories.filter((category) => category.id !== response.id),
+      );
+      setUsuwalneKategorieIds((currentIds) =>
+        currentIds.filter((id) => id !== response.id),
+      );
+      setCategoryToDelete(null);
+      alert("Pomyślnie usunięto kategorię");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Nie udało się usunąć kategorii",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
    <PageLayout wide>
         {/* GŁÓWNA ZAWARTOŚĆ */}
@@ -244,6 +309,18 @@ useEffect(() => {
                  <ThemedText style={styles.sidebarTitle}>
                 Kategorie
               </ThemedText>
+               {isAdmin && (
+              <Pressable
+                style={styles.addCategoryButton}
+                onPress={() => router.push("/category/addCategory")}
+              >
+                <MaterialIcons name="add" size={19} color="#FFFFFF" />
+                <ThemedText style={styles.addCategoryButtonText}>
+                  Dodaj kategorię
+                </ThemedText>
+              </Pressable>
+            )}
+
                <Pressable  onPress={()=> router.push(`/catalog/catalog`)}  style={[styles.categoryItem, !kategoriaId && !tylkoPromocje && styles.categoryItemActive]}>
                 <MaterialIcons name="grid-view" size={32} color="#176BDE" style={styles.categoryIcon} />
 
@@ -259,27 +336,77 @@ useEffect(() => {
                     {/*ikonka do kategorii */}
                    
                   </Pressable>
-                {kategorie.map((item) => (
-  <Pressable
-    key={item.id}
-    onPress={() => router.push(`/catalog/category/${item.id}`)}
-    style={[
-      styles.categoryItem,
-      String(kategoriaId) === String(item.id) &&
-        styles.categoryItemActive,
-    ]}
-  >
-    <ThemedText
-      style={[
-        styles.categoryText,
-        String(kategoriaId) === String(item.id) &&
-          styles.categoryTextActive,
-      ]}
-    >
-      {item.nazwa}
-    </ThemedText>
-  </Pressable>
-))}
+                {kategorie.map((item) => {
+                  const isActive = String(kategoriaId) === String(item.id);
+                  const moznaUsunac = usuwalneKategorieIds.includes(item.id);
+
+                  return (
+                    <View
+                      key={item.id}
+                      style={[
+                        styles.categoryItem,
+                        isActive && styles.categoryItemActive,
+                      ]}
+                    >
+                      <Pressable
+                        style={styles.categoryItemLink}
+                        onPress={() =>
+                          router.push(`/catalog/category/${item.id}`)
+                        }
+                      >
+                        <ThemedText
+                          numberOfLines={1}
+                          style={[
+                            styles.categoryText,
+                            isActive && styles.categoryTextActive,
+                          ]}
+                        >
+                          {item.nazwa}
+                        </ThemedText>
+                      </Pressable>
+
+                      {isAdmin && (
+                        <View style={styles.categoryAdminActions}>
+                          <Pressable
+                            style={[
+                              styles.categoryAdminButton,
+                              styles.categoryEditButton,
+                            ]}
+                            onPress={() =>
+                              router.push({
+                                pathname: "/category/edit/[id]",
+                                params: { id: item.id.toString() },
+                              })
+                            }
+                          >
+                            <MaterialIcons
+                              name="edit"
+                              size={14}
+                              color="#1D4ED8"
+                            />
+                          </Pressable>
+
+                          <Pressable
+                            style={[
+                              styles.categoryAdminButton,
+                              styles.categoryDeleteButton,
+                              !moznaUsunac &&
+                                styles.categoryDeleteButtonDisabled,
+                            ]}
+                            disabled={!moznaUsunac}
+                            onPress={() => setCategoryToDelete(item)}
+                          >
+                            <MaterialIcons
+                              name="delete-outline"
+                              size={15}
+                              color={moznaUsunac ? "#DC2626" : "#94A3B8"}
+                            />
+                          </Pressable>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
 
          
 
@@ -410,6 +537,52 @@ useEffect(() => {
 
 
     </View>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={isAdmin && categoryToDelete !== null}
+      onRequestClose={() => setCategoryToDelete(null)}
+    >
+      <View style={styles.categoryModalOverlay}>
+        <View style={styles.categoryModalCard}>
+          <View style={styles.categoryModalIcon}>
+            <MaterialIcons name="delete-outline" size={26} color="#DC2626" />
+          </View>
+
+          <ThemedText style={styles.categoryModalTitle}>
+            Usunąć kategorię?
+          </ThemedText>
+          <ThemedText style={styles.categoryModalDescription}>
+            Czy na pewno chcesz usunąć kategorię „{categoryToDelete?.nazwa}”?
+          </ThemedText>
+
+          <View style={styles.categoryModalActions}>
+            <Pressable
+              style={[
+                styles.categoryModalButton,
+                styles.categoryModalCancelButton,
+              ]}
+              onPress={() => setCategoryToDelete(null)}
+            >
+              <ThemedText style={styles.categoryModalCancelText}>
+                Anuluj
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.categoryModalButton,
+                styles.categoryModalDeleteButton,
+              ]}
+              onPress={() => void usuniecieKategorii()}
+            >
+              <ThemedText style={styles.categoryModalDeleteText}>
+                Usuń
+              </ThemedText>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
   </PageLayout>
   );
 }
@@ -446,6 +619,25 @@ pageHeading: {
     fontSize: 14,
     lineHeight: 21,
     marginTop: 5,
+  },
+
+  addCategoryButton: {
+    width: "100%",
+    minHeight: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    borderRadius: 13,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 18,
+    marginBottom: 10,
+  },
+
+  addCategoryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
   },
 
   productsInfo: {
@@ -536,6 +728,38 @@ pageHeading: {
   },
   categoryItemActive: {
     backgroundColor: "#EEF4FF",
+  },
+  categoryItemLink: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  categoryAdminActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  categoryAdminButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  categoryEditButton: {
+    borderColor: "#DBEAFE",
+    backgroundColor: "#F8FBFF",
+  },
+  categoryDeleteButton: {
+    borderColor: "#FECACA",
+    backgroundColor: "#FFF7F7",
+  },
+  categoryDeleteButtonDisabled: {
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
+    opacity: 0.6,
   },
    categoryText: {
     color: "#263247",
@@ -817,6 +1041,74 @@ pageHeading: {
     alignItems: "flex-end",
     justifyContent: "center",
     backgroundColor : "red"
+  },
+  categoryModalOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.5)",
+    paddingHorizontal: 20,
+  },
+  categoryModalCard: {
+    width: "100%",
+    maxWidth: 430,
+    alignItems: "center",
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    padding: 30,
+  },
+  categoryModalIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEE2E2",
+    marginBottom: 16,
+  },
+  categoryModalTitle: {
+    color: "#172033",
+    fontSize: 20,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  categoryModalDescription: {
+    color: "#64748B",
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: "center",
+    marginTop: 8,
+  },
+  categoryModalActions: {
+    width: "100%",
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+  },
+  categoryModalButton: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  categoryModalCancelButton: {
+    borderWidth: 1,
+    borderColor: "#DDE5F0",
+    backgroundColor: "#FFFFFF",
+  },
+  categoryModalDeleteButton: {
+    backgroundColor: "#DC2626",
+  },
+  categoryModalCancelText: {
+    color: "#475569",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  categoryModalDeleteText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
   },
 
 
