@@ -1,9 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -11,9 +8,11 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { ThemedView } from "./components/themed-view";
-import { ThemedText } from "./components/themed-text";
+import FormScreenLayout from "@components/shared/Form/FormScreenLayout";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
+import SecurityHint from "@components/shared/Feedback/SecurityHint";
+import { ThemedView } from "@components/themed-view";
+import { ThemedText } from "@components/themed-text";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 import { confirm2FA } from "@features/auth";
 import { registerConfirm } from "@features/registration";
@@ -25,12 +24,12 @@ export default function Rejestracja() {
     const {expires_in = "", max_attempts = ""} = useLocalSearchParams<{expires_in? : string, max_attempts? : string}>()
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const {challenge,verify2FA} = useAuth()
+    const {challenge,verify2FA,error: authError} = useAuth()
     const isMobile = width < 640;
 
 
     const sprawdzKod = async ()=> {
- 
+        setError(null)
                 setLoading(true)
         try{
             const poprawnyKod = kod.trim()
@@ -49,22 +48,12 @@ export default function Rejestracja() {
     }
 
     return (
-        <SafeAreaProvider style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
-                <KeyboardAvoidingView
-                    style={styles.keyboardAvoidingView}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <ScrollView
-                        style={styles.scrollView}
-                        contentContainerStyle={[
-                            styles.content,
-                            isMobile && styles.mobileContent,
-                        ]}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        automaticallyAdjustKeyboardInsets
-                    >
+        <FormScreenLayout
+            contentContainerStyle={[
+                styles.content,
+                isMobile && styles.mobileContent,
+            ]}
+        >
                         <ThemedView
                             style={[
                                 styles.card,
@@ -85,13 +74,11 @@ export default function Rejestracja() {
                                 
                             </View>
 
-                            {error && (
-                                <View style={styles.errorMessageWrapper}>
-                                    <Text style={styles.errorMessagesText}>
-                                        {error}
-                                    </Text>
-                                </View>
-                            )}
+                            <StatusMessage
+                                message={error || authError}
+                                containerStyle={styles.errorMessageWrapper}
+                                textStyle={styles.errorMessagesText}
+                            />
 
                             <View style={styles.form}>
                                 <ThemedText style={styles.label}>
@@ -106,16 +93,14 @@ export default function Rejestracja() {
                                     autoCapitalize="none"
                                     keyboardType="number-pad"
                                 />
-                                  <View style={styles.securityHint}>
-                                    <Ionicons name="time-outline" size={16} color="#7B88A4" />
-                                    <Text style={styles.securityHintText}>
-                                        Kod 2FA jest ważny tylko przez {expires_in} s.
-                                    </Text>
-                                     <Text style={styles.securityHintText}>
-                                        Pozostała liczba prób: {max_attempts}.
-                                    </Text>
-                                    
-                                </View>
+                                <SecurityHint
+                                    containerStyle={styles.securityHint}
+                                    textStyle={styles.securityHintText}
+                                    messages={[
+                                        <>Kod 2FA jest ważny tylko przez {expires_in} s.</>,
+                                        <>Pozostała liczba prób: {max_attempts}.</>,
+                                    ]}
+                                />
 
                                 <TouchableOpacity
                                     style={styles.sendButton}
@@ -128,28 +113,10 @@ export default function Rejestracja() {
                                 </TouchableOpacity>
                             </View>
                         </ThemedView>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </SafeAreaProvider>
+        </FormScreenLayout>
     );
 }
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    safeArea: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
-    keyboardAvoidingView: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: "#F4F8FF",
-    },
     content: {
         flexGrow: 1,
         alignItems: "center",

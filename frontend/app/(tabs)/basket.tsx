@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { View ,Text} from "react-native";
 import { Stack } from 'expo-router';
-import { ThemedText } from "@/components/themed-text";
+import { ThemedText } from "@components/themed-text";
 export default function TabsLayout() {
   return (
    

@@ -15,8 +15,9 @@ import {
   View
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { ThemedText } from "./components/themed-text";
-import { ThemedView } from "./components/themed-view";
+import { ThemedText } from "@components/themed-text";
+import { ThemedView } from "@components/themed-view";
+import StatusMessage from "@components/shared/Feedback/StatusMessage";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginScreen() {
@@ -97,13 +98,11 @@ export default function LoginScreen() {
 
           <View style={mobileStyles.loginCard}>
           {/*ERRORY */}
-          {errors !== "" && (
-                  <View style={mobileStyles.mobileErrorMessageWrapper}>
-                    <Text style={mobileStyles.mobileErrorMessagesText}>
-                      {errors}
-                    </Text>
-                  </View>
-                )}
+          <StatusMessage
+            message={errors || authError}
+            containerStyle={mobileStyles.mobileErrorMessageWrapper}
+            textStyle={mobileStyles.mobileErrorMessagesText}
+          />
 
                 <Text style={mobileStyles.mobileTitle}>Zaloguj się</Text>
 
@@ -221,11 +220,11 @@ export default function LoginScreen() {
                 />
 
       </View>
-      { errors!= "" &&
-        <View style={styles.errorMessageWrapper}>
-         <ThemedText style={styles.errorMessagesText}>  {errors !=" " && errors} </ThemedText>
-        </View>
-}
+      <StatusMessage
+        message={errors || authError}
+        containerStyle={styles.errorMessageWrapper}
+        textStyle={styles.errorMessagesText}
+      />
          <ThemedText type="title" style={styles.title} >Zaloguj sie</ThemedText>
 
           <View style={styles.form}>
