@@ -245,7 +245,7 @@ useEffect(() => {
   };
 
   const getFinalPrice = (product : ApiItem) => {
-    return product.cena_po_promocji ?? product.cena
+    return product.cena_aktualna ?? product.cena
   }
  
   const handleSort = (value : string) => {
@@ -546,7 +546,7 @@ useEffect(() => {
     showAdminActions={isAdmin}
     columnWrapperStyle={styles.productsRow}
     contentContainerStyle={styles.productsGrid}
-    mapItem={(item)=> ({...item,opis : item.opis ?? "",cena_po_promocji : item.cena_po_promocji ?? item.cena, zdjecie_url : item.zdjecia_url["1"]})}
+    mapItem={(item)=> ({...item,opis : item.opis ?? "",cena_po_promocji : item.czy_promocja ? item.cena_aktualna : null, zdjecie_url : item.zdjecia_url["1"]})}
 />
 
 

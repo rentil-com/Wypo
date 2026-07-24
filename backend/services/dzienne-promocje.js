@@ -108,10 +108,20 @@ async function pobierzAktualnaDziennaPromocje(client, uzytkownikId) {
     JOIN promocje_uzytkownicy dzienny_uzytkownik
       ON dzienny_uzytkownik.promocja_id = p.id
     WHERE dzienny_uzytkownik.uzytkownik_id = $1
-      AND p.obejmuje_wszystkie_sprzety = TRUE
+      AND p.obejmuje_wszystkie_sprzety = FALSE
       AND p.obejmuje_wszystkich_uzytkownikow = FALSE
       AND p.typ = 'procentowa'
       AND p.data_do IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM promocje_kategorie dzienna_kategoria
+        WHERE dzienna_kategoria.promocja_id = p.id
+      )
+      AND (
+        SELECT COUNT(*)
+        FROM promocje_sprzety dzienny_sprzet
+        WHERE dzienny_sprzet.promocja_id = p.id
+      ) = 1
       AND NOT EXISTS (
         SELECT 1
         FROM promocje_uzytkownicy inny_uzytkownik
@@ -168,6 +178,25 @@ export async function utworzDziennaPromocje(
     );
   }
 
+  const sprzetResult = await client.query(
+    `
+    SELECT id
+    FROM sprzety
+    WHERE status = 'dostepny'
+    ORDER BY RANDOM()
+    LIMIT 1;
+    `
+  );
+
+  if (sprzetResult.rows.length === 0) {
+    throw new BladPromocji(
+      "Brak dostepnego sprzetu do objecia dzienna promocja.",
+      409
+    );
+  }
+
+  const sprzetId = Number(sprzetResult.rows[0].id);
+
   const dataOd = new Date(teraz);
   const dataDo = new Date(
     dataOd.getTime() + konfiguracja.czasWaznosciGodziny * 60 * 60 * 1000
@@ -195,7 +224,7 @@ export async function utworzDziennaPromocje(
       data_do,
       utworzona_przez
     )
-    VALUES ($1, $2, 'procentowa', $3, TRUE, FALSE, TRUE, $4, $5, $6)
+    VALUES ($1, $2, 'procentowa', $3, FALSE, FALSE, TRUE, $4, $5, $6)
     RETURNING id;
     `,
     [
@@ -215,6 +244,14 @@ export async function utworzDziennaPromocje(
     VALUES ($1, $2);
     `,
     [promocjaId, uzytkownikId]
+  );
+
+  await client.query(
+    `
+    INSERT INTO promocje_sprzety (promocja_id, sprzet_id)
+    VALUES ($1, $2);
+    `,
+    [promocjaId, sprzetId]
   );
 
   const promocja = await pobierzPromocjePoId(client, promocjaId);

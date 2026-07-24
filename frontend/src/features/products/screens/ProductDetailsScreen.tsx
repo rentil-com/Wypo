@@ -654,15 +654,19 @@ export default function ProductDetailedView() {
 
                 {/* CENA PRODUKTU */}
                 <View style={styles.priceRow}>
-                  <Text style={styles.price}>{pojedynczyProdukt?.cena_po_promocji !=null ? pojedynczyProdukt.cena_po_promocji : pojedynczyProdukt?.cena}</Text>
+                  <Text style={styles.price}>{pojedynczyProdukt?.cena_aktualna ?? pojedynczyProdukt?.cena}</Text>
                   <Text style={styles.pricePeriod}>/ za okres</Text>
                 </View>
-                
-                {pojedynczyProdukt?.cena_po_promocji !=null && 
+
+                {pojedynczyProdukt?.czy_promocja && pojedynczyProdukt.promocja &&
                 <View style={styles.oldPriceRow}>
-                  <Text style={styles.oldPrice}>{pojedynczyProdukt?.cena}</Text>
+                  <Text style={styles.oldPrice}>{pojedynczyProdukt.cena}</Text>
                   <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>-28%</Text>
+                    <Text style={styles.discountText}>
+                      {pojedynczyProdukt.promocja.typ === "procentowa"
+                        ? `-${pojedynczyProdukt.promocja.wartosc}%`
+                        : `-${pojedynczyProdukt.promocja.wartosc} zł`}
+                    </Text>
                   </View>
                 </View>
                     }

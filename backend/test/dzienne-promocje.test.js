@@ -20,7 +20,7 @@ function rekordPromocji(overrides = {}) {
     opis: "Indywidualna promocja wylosowana dla uzytkownika.",
     typ: "procentowa",
     wartosc: "15.00",
-    obejmuje_wszystkie_sprzety: true,
+    obejmuje_wszystkie_sprzety: false,
     obejmuje_wszystkich_uzytkownikow: false,
     aktywna: true,
     data_od: "2026-07-24T10:00:00.000Z",
@@ -29,7 +29,7 @@ function rekordPromocji(overrides = {}) {
     data_utworzenia: "2026-07-24T10:00:00.000Z",
     stan: "aktywna",
     kategorie_ids: [],
-    sprzety_ids: [],
+    sprzety_ids: [5],
     uzytkownicy_ids: [10],
     ...overrides
   };
@@ -135,6 +135,9 @@ test("uzytkownik losuje skonfigurowana promocje i dostaje termin kolejnego losow
       if (tekst.startsWith("SELECT id FROM uzytkownicy")) {
         return { rows: [{ id: 10 }] };
       }
+      if (tekst.startsWith("SELECT id FROM sprzety")) {
+        return { rows: [{ id: 5 }] };
+      }
       if (tekst.includes("JOIN promocje_uzytkownicy dzienny_uzytkownik")) {
         return { rows: [] };
       }
@@ -181,7 +184,8 @@ test("uzytkownik losuje skonfigurowana promocje i dostaje termin kolejnego losow
           assert.equal(response.status, 201);
           assert.equal(body.promocja.id, 11);
           assert.equal(body.promocja.wartosc, 17.5);
-          assert.equal(body.promocja.zakres_sprzetow.wszystkie, true);
+          assert.equal(body.promocja.zakres_sprzetow.wszystkie, false);
+          assert.deepEqual(body.promocja.zakres_sprzetow.sprzety_ids, [5]);
           assert.deepEqual(
             body.promocja.zakres_uzytkownikow.uzytkownicy_ids,
             [10]
@@ -209,13 +213,23 @@ test("uzytkownik losuje skonfigurowana promocje i dostaje termin kolejnego losow
       ),
       true
     );
+    assert.equal(
+      wywolania.some(([sql, params]) =>
+        sql.startsWith("INSERT INTO promocje_sprzety") &&
+        params[0] === 11 &&
+        params[1] === 5
+      ),
+      true
+    );
     const wyszukanieAktualnej = wywolania.find(([sql]) =>
       sql.includes("JOIN promocje_uzytkownicy dzienny_uzytkownik")
     );
 
     assert.ok(wyszukanieAktualnej);
-    assert.match(wyszukanieAktualnej[0], /obejmuje_wszystkie_sprzety = TRUE/);
+    assert.match(wyszukanieAktualnej[0], /obejmuje_wszystkie_sprzety = FALSE/);
     assert.match(wyszukanieAktualnej[0], /obejmuje_wszystkich_uzytkownikow = FALSE/);
+    assert.match(wyszukanieAktualnej[0], /FROM promocje_sprzety dzienny_sprzet/);
+    assert.match(wyszukanieAktualnej[0], /FROM promocje_kategorie dzienna_kategoria/);
     assert.match(wyszukanieAktualnej[0], /NOT EXISTS/);
     assert.equal(wywolania.at(-1)[0], "COMMIT");
   } finally {
@@ -234,6 +248,9 @@ test("aktywna promocja blokuje kolejne losowanie uzytkownika", async () => {
 
       if (tekst.startsWith("SELECT id FROM uzytkownicy")) {
         return { rows: [{ id: 10 }] };
+      }
+      if (tekst.startsWith("SELECT id FROM sprzety")) {
+        return { rows: [{ id: 5 }] };
       }
       if (tekst.includes("JOIN promocje_uzytkownicy dzienny_uzytkownik")) {
         return { rows: [aktywna] };
@@ -291,6 +308,9 @@ test("po wygasnieciu uzytkownik moze wylosowac nastepna promocje", async () => {
       if (tekst.startsWith("SELECT id FROM uzytkownicy")) {
         return { rows: [{ id: 10 }] };
       }
+      if (tekst.startsWith("SELECT id FROM sprzety")) {
+        return { rows: [{ id: 5 }] };
+      }
       if (tekst.includes("JOIN promocje_uzytkownicy dzienny_uzytkownik")) {
         return { rows: [wygasla] };
       }
@@ -335,6 +355,54 @@ test("po wygasnieciu uzytkownik moze wylosowac nastepna promocje", async () => {
   }
 });
 
+test("brak dostepnego sprzetu nie tworzy dziennej promocji", async () => {
+  const poprzednieConnect = pool.connect;
+  const wywolania = [];
+  const client = {
+    async query(sql) {
+      const tekst = normalizujSql(sql);
+      wywolania.push(tekst);
+
+      if (tekst.startsWith("SELECT id FROM uzytkownicy")) {
+        return { rows: [{ id: 10 }] };
+      }
+      if (tekst.includes("JOIN promocje_uzytkownicy dzienny_uzytkownik")) {
+        return { rows: [] };
+      }
+      if (tekst.startsWith("SELECT id FROM sprzety")) {
+        return { rows: [] };
+      }
+
+      return { rows: [] };
+    },
+    release() {}
+  };
+  pool.connect = async () => client;
+
+  try {
+    await zRouterem(
+      { id: 10, rola: "uzytkownik" },
+      async (baseUrl) => {
+        const response = await fetch(
+          `${baseUrl}/promocje/losuj-dzienna-promocje`,
+          { method: "POST" }
+        );
+        const body = await response.json();
+
+        assert.equal(response.status, 409);
+        assert.match(body.error, /Brak dostepnego sprzetu/);
+      }
+    );
+
+    assert.equal(
+      wywolania.some((sql) => sql.startsWith("INSERT INTO promocje (")),
+      false
+    );
+    assert.equal(wywolania.at(-1), "ROLLBACK");
+  } finally {
+    pool.connect = poprzednieConnect;
+  }
+});
 test("administrator wymusza reset aktywnej promocji wskazanego uzytkownika", async () => {
   const poprzednieConnect = pool.connect;
   const wywolania = [];
@@ -351,6 +419,9 @@ test("administrator wymusza reset aktywnej promocji wskazanego uzytkownika", asy
 
       if (tekst.startsWith("SELECT id FROM uzytkownicy")) {
         return { rows: [{ id: 10 }] };
+      }
+      if (tekst.startsWith("SELECT id FROM sprzety")) {
+        return { rows: [{ id: 5 }] };
       }
       if (tekst.includes("JOIN promocje_uzytkownicy dzienny_uzytkownik")) {
         return { rows: [aktywna] };
@@ -397,10 +468,14 @@ test("administrator wymusza reset aktywnej promocji wskazanego uzytkownika", asy
     const przypisanie = wywolania.find(([sql]) =>
       sql.startsWith("INSERT INTO promocje_uzytkownicy")
     );
+    const przypisanieSprzetu = wywolania.find(([sql]) =>
+      sql.startsWith("INSERT INTO promocje_sprzety")
+    );
 
     assert.deepEqual(aktualizacja[1], [8]);
     assert.equal(wstawienie[1][5], 1);
     assert.deepEqual(przypisanie[1], [13, 10]);
+    assert.deepEqual(przypisanieSprzetu[1], [13, 5]);
   } finally {
     pool.connect = poprzednieConnect;
   }

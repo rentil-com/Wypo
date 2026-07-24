@@ -649,7 +649,8 @@ Uwierzytelnienie administratora moze pochodzic z sesji albo klucza API.
 ### `POST /promocje/losuj-dzienna-promocje`
 
 Wymaga zalogowania. Losuje dla aktualnego uzytkownika indywidualna promocje
-procentowa obejmujaca wszystkie sprzety. Endpoint nie przyjmuje body. Poprawna
+procentowa obejmujaca jeden losowo wybrany dostepny sprzet. Endpoint nie
+przyjmuje body. Poprawna
 odpowiedz ma status `201` i zawiera pelny obiekt promocji, termin kolejnego
 losowania oraz ID zastapionej promocji (dla zwyklego losowania `null`).
 
@@ -660,7 +661,12 @@ losowania oraz ID zastapionej promocji (dla zwyklego losowania `null`).
     "typ": "procentowa",
     "wartosc": 15,
     "data_od": "2026-07-24T10:00:00.000Z",
-    "data_do": "2026-07-25T10:00:00.000Z"
+    "data_do": "2026-07-25T10:00:00.000Z",
+    "zakres_sprzetow": {
+      "wszystkie": false,
+      "kategorie_ids": [],
+      "sprzety_ids": [12]
+    }
   },
   "ponowne_losowanie_od": "2026-07-25T10:00:00.000Z",
   "zastapiona_promocja_id": null
@@ -670,8 +676,10 @@ losowania oraz ID zastapionej promocji (dla zwyklego losowania `null`).
 Jesli poprzednia dzienna promocja nadal trwa, endpoint nie tworzy kolejnego
 rekordu i zwraca `409` razem z aktualna promocja i polem
 `ponowne_losowanie_od`. Po uplywie `data_do` to samo wywolanie tworzy nastepna
-promocje. Losowanie jest wykonywane w transakcji z blokada rekordu uzytkownika,
-wiec rownolegle zadania nie utworza dwoch aktywnych promocji.
+promocje. Jesli nie ma zadnego sprzetu ze statusem `dostepny`, endpoint zwraca
+`409` bez tworzenia promocji. Losowanie jest wykonywane w transakcji z blokada
+rekordu uzytkownika, wiec rownolegle zadania nie utworza dwoch aktywnych
+promocji.
 
 ### `POST /promocje/losuj-dzienna-promocja/:id`
 
@@ -691,10 +699,11 @@ Modyfikowalne parametry znajduja sie w env:
 * `DZIENNA_PROMOCJA_NAZWA` - nazwa promocji, maksymalnie 100 znakow.
 * `DZIENNA_PROMOCJA_OPIS` - opis promocji; pusta wartosc zapisuje `null`.
 
-Dzienne promocje korzystaja wylacznie z istniejacych tabel `promocje` i
-`promocje_uzytkownicy`. Rekord ma `obejmuje_wszystkie_sprzety = true`,
-`obejmuje_wszystkich_uzytkownikow = false` i jedno przypisanie do konta, dla
-ktorego zostal wylosowany.
+Dzienne promocje korzystaja wylacznie z istniejacych tabel `promocje`,
+`promocje_uzytkownicy` i `promocje_sprzety`. Rekord ma
+`obejmuje_wszystkie_sprzety = false`,
+`obejmuje_wszystkich_uzytkownikow = false`, jedno przypisanie do konta i jedno
+przypisanie do losowo wybranego dostepnego sprzetu.
 
 ### `POST /promocje`
 

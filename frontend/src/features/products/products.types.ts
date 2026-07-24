@@ -1,4 +1,4 @@
-
+import type { ProductPromotion } from "./singleproduct.types";
 export type ApiItem = {
   id: number;
   nazwa: string;
@@ -7,7 +7,10 @@ export type ApiItem = {
   status: string;
   zdjecia_url: Record<string, string>;
   cena: number;
+  cena_aktualna: number;
   cena_po_promocji: number | null;
+  czy_promocja: boolean;
+  promocja: ProductPromotion | null;
   recenzje_srednia : string  | null
 };
 
@@ -27,8 +30,10 @@ export type ItemsSearchResult = {
   nazwa_przedmiotu: string;
   zdjecie_url: string | null;
   cena: number;
+  cena_aktualna: number;
   cena_po_promocji: number | null;
   czy_promocja: boolean;
+  promocja: ProductPromotion | null;
 };
 
 

@@ -71,6 +71,7 @@ export default function FavouritesScreen() {
             mapItem={(item) => ({
               ...item,
               opis: item.opis ?? '',
+              cena_po_promocji: item.czy_promocja ? item.cena_aktualna : null,
               zdjecie_url:
                 item.zdjecia_url['1'] ??
                 Object.values(item.zdjecia_url)[0] ??

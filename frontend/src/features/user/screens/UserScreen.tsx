@@ -4,26 +4,139 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
-import { pobierzProdukty, type ApiItem } from "@features/products";
+import {
+  pobierzPojedynczyProdukt,
+  pobierzProdukty,
+  type ApiItem,
+  type SingleProductApiItem,
+} from "@features/products";
 import { pobierzKategorie, type CategoryApiItem } from "@features/categories";
 import ProductGrid from "@components/shared/Product/ProductGrid";
 import PageLayout from "@components/shared/Layout/PageLayout";
 import { FavouritesResponse } from "@features/favourites/fav.types";
 import { pobierzUlubione } from "@features/favourites/fav.service";
 import { pobierzUsuwalneKategorie, usunKategorie } from "@features/categories/categories.management.services";
+import {
+  czyOdpowiedzDziennejPromocji,
+  losujDziennaPromocje,
+  type DailyPromotionResponse,
+} from "@features/promotions";
+
+const DAILY_PROMOTION_STORAGE_PREFIX = "rentil_daily_promotion_";
+const EMPTY_TIME_LEFT = { hours: 0, minutes: 0, seconds: 0 };
+
+type TimeLeft = {
+  hours: number;
+  minutes: number;
+  seconds: number;
+};
+
+function pobierzTerminPromocji(response: DailyPromotionResponse) {
+  return response.ponowne_losowanie_od || response.promocja.data_do;
+}
+
+function czyPromocjaAktywna(response: DailyPromotionResponse) {
+  const expiration = new Date(pobierzTerminPromocji(response)).getTime();
+
+  return (
+    Number.isFinite(expiration) &&
+    expiration > Date.now() &&
+    response.promocja.aktywna !== false &&
+    response.promocja.stan !== "wygasla" &&
+    response.promocja.stan !== "wylaczona"
+  );
+}
+
+function kluczDziennejPromocji(userId: number) {
+  return `${DAILY_PROMOTION_STORAGE_PREFIX}${userId}`;
+}
+
+function pobierzZapamietanaPromocje(userId: number) {
+  if (typeof localStorage === "undefined") {
+    return null;
+  }
+
+  try {
+    const storedPromotion = localStorage.getItem(kluczDziennejPromocji(userId));
+
+    if (!storedPromotion) {
+      return null;
+    }
+
+    const parsedPromotion: unknown = JSON.parse(storedPromotion);
+
+    if (
+      !czyOdpowiedzDziennejPromocji(parsedPromotion) ||
+      !czyPromocjaAktywna(parsedPromotion)
+    ) {
+      localStorage.removeItem(kluczDziennejPromocji(userId));
+      return null;
+    }
+
+    return parsedPromotion;
+  } catch {
+    return null;
+  }
+}
+
+function zapiszPromocje(
+  userId: number,
+  promotionResponse: DailyPromotionResponse,
+) {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      kluczDziennejPromocji(userId),
+      JSON.stringify(promotionResponse),
+    );
+  } catch {
+    // Brak dostepu do pamieci przegladarki nie blokuje losowania.
+  }
+}
+
+function usunZapamietanaPromocje(userId: number) {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(kluczDziennejPromocji(userId));
+  } catch {
+    // Brak dostepu do pamieci przegladarki nie blokuje ekranu.
+  }
+}
+
+function formatujRabat(value: number) {
+  return value.toString().replace(".", ",");
+}
+
+function obliczCenePoRabacie(price: number, discount: number) {
+  return Math.round(price * (100 - discount)) / 100;
+}
+
+function formatujCene(value: number) {
+  return value.toFixed(2).replace(".", ",");
+}
+
+function uzupelnijZero(value: number) {
+  return value.toString().padStart(2, "0");
+}
+
 export default function User() {
-  const { user } = useAuth();
+  const { status, user } = useAuth();
   const isAdmin = user?.rola === "admin";
+  const isAuthenticated = status === "authenticated" && user !== null;
+  const isOfferLocked = status !== "authenticated";
 
-  {/* CZAS RESETU */}
-  const RESET_HOUR = 10
-  const RESET_MINUTE = 0
-  
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(EMPTY_TIME_LEFT);
+  const [dailyPromotion, setDailyPromotion] = useState<DailyPromotionResponse | null>(null);
+  const [dailyProduct, setDailyProduct] = useState<SingleProductApiItem | null>(null);
+  const [promotionLoading, setPromotionLoading] = useState(false);
+  const [promotionError, setPromotionError] = useState<string | null>(null);
 
-  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
-  const [lastResetDate,setLastResetDate] = useState<string | null>(null);
-
-  const [randomIndex,setRandomIndex] = useState(0)
   const [ulubioneIds, setUlubioneIds] = useState<FavouritesResponse | null>(null);
   const [kategorie,setKategorie] = useState<CategoryApiItem[]>([]);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryApiItem | null>(null);
@@ -31,6 +144,9 @@ export default function User() {
   const [usuwalneKategorieIds, setUsuwalneKategorieIds] = useState<number[]>([])
   const [loading,setLoading] = useState(true)
   const [error,setError] = useState<string | null>(null)
+
+  const promotedProductId =
+    dailyPromotion?.promocja.zakres_sprzetow.sprzety_ids[0] ?? null;
 
 
     useEffect (()=> {
@@ -155,50 +271,114 @@ export default function User() {
 
 
 
-  const calculate_time_left =()=> {
-    const now = new Date()
-    let target = new Date(now)
-    const todayString = now.toDateString();
-    {/* ustawienie timera na reset nowej oferty */}
-    target.setHours(RESET_HOUR,RESET_MINUTE,0,0)
+  useEffect(() => {
+    setPromotionError(null);
 
-    if(now >= target ) {
-      {/*Ustawienie nowego licznika jak poprzedni sie skonczyl */}
-      target.setDate(target.getDate() +1)
+    if (!user) {
+      setDailyPromotion(null);
+      setTimeLeft(EMPTY_TIME_LEFT);
+      return;
     }
 
+    setDailyPromotion(pobierzZapamietanaPromocje(user.id));
+  }, [user]);
 
-    
-   const shouldResetToday = now.getHours() > RESET_HOUR || 
-                          (now.getHours() === RESET_HOUR && now.getMinutes() >= RESET_MINUTE);
+  useEffect(() => {
+    if (promotedProductId === null) {
+      setDailyProduct(null);
+      return;
+    }
+    const productId = promotedProductId;
 
+    let cancelled = false;
 
-  if (shouldResetToday && lastResetDate !== todayString) {
-    const new_random_index = Math.floor(Math.random() * produkty.length);
-    setRandomIndex(new_random_index);
-    
-    console.log("Reset oferty - nowy indeks:", new_random_index);
-    setLastResetDate(todayString);
-  }
+    async function zaladujPromowanyProdukt() {
+      try {
+        const response = await pobierzPojedynczyProdukt(productId);
 
-    const diffMs = target.getTime() - now.getTime();
-    
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        if (!cancelled) {
+          setDailyProduct(response);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDailyProduct(null);
+          setPromotionError(
+            error instanceof Error
+              ? error.message
+              : "Nie udało się pobrać wylosowanego sprzętu",
+          );
+        }
+      }
+    }
 
-    setTimeLeft({ hours, minutes, seconds });
+    void zaladujPromowanyProdukt();
 
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [promotedProductId]);
 
+  useEffect(() => {
+    if (!dailyPromotion || !user) {
+      setTimeLeft(EMPTY_TIME_LEFT);
+      return;
+    }
 
-  useEffect(()=> {
-      calculate_time_left();
-      const interval = setInterval(calculate_time_left,1000)
-        
-      return () => clearInterval(interval);
-  },[lastResetDate])
-  
+    const updateTimer = () => {
+      const expiration = new Date(
+        pobierzTerminPromocji(dailyPromotion),
+      ).getTime();
+      const difference = expiration - Date.now();
+
+      if (!Number.isFinite(expiration) || difference <= 0) {
+        setDailyPromotion(null);
+        setTimeLeft(EMPTY_TIME_LEFT);
+        usunZapamietanaPromocje(user.id);
+        return;
+      }
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ hours, minutes, seconds });
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [dailyPromotion, user]);
+
+  const wylosujPromocje = async () => {
+    if (!isAuthenticated || !user || promotionLoading) {
+      return;
+    }
+
+    setPromotionLoading(true);
+    setPromotionError(null);
+
+    try {
+      const response = await losujDziennaPromocje();
+
+      setDailyPromotion(response);
+      zapiszPromocje(user.id, response);
+
+      try {
+        const productsResponse = await pobierzProdukty();
+        setProdukty(productsResponse.dane);
+      } catch {
+        // Promocja pozostaje aktywna, nawet gdy odswiezenie produktow sie nie uda.
+      }
+    } catch (error) {
+      setPromotionError(
+        error instanceof Error ? error.message : "Nie udało się wylosować promocji",
+      );
+    } finally {
+      setPromotionLoading(false);
+    }
+  };
+
   return (
   
     <PageLayout> 
@@ -221,66 +401,182 @@ export default function User() {
           colors={["#2537D9", "#2F80ED", "#65DDE0"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.offerCard}
+          style={[
+            styles.offerCard,
+            isOfferLocked && styles.offerCardBlurred,
+          ]}
         >
           <View style={styles.offerBubbleOne} />
           <View style={styles.offerBubbleTwo} />
 
           <View style={styles.offerLeft}>
+            {dailyPromotion ? (
+              <>
+                <View style={styles.offerTimerWrapper}>
+                  <Text style={styles.offerTimerLabel}>PROMOCJA WYGASA ZA</Text>
 
-            <View style={styles.offerTimerWrapper}>
-        <Text style={styles.offerTimerLabel}>NOWA OFERTA JUŻ ZA</Text>
-        
-        <View style={styles.timerRow}>
-          <View style={styles.timerSegment}>
-            <Text style={styles.timerValue}>{timeLeft.hours}</Text>
-            <Text style={styles.timerLabel}>GODZ</Text>
+                  <View style={styles.timerRow}>
+                    <View style={styles.timerSegment}>
+                      <Text style={styles.timerValue}>
+                        {uzupelnijZero(timeLeft.hours)}
+                      </Text>
+                      <Text style={styles.timerLabel}>GODZ</Text>
+                    </View>
+
+                    <Text style={styles.timerColon}>:</Text>
+
+                    <View style={styles.timerSegment}>
+                      <Text style={styles.timerValue}>
+                        {uzupelnijZero(timeLeft.minutes)}
+                      </Text>
+                      <Text style={styles.timerLabel}>MIN</Text>
+                    </View>
+
+                    <Text style={styles.timerColon}>:</Text>
+
+                    <View style={styles.timerSegment}>
+                      <Text style={styles.timerValue}>
+                        {uzupelnijZero(timeLeft.seconds)}
+                      </Text>
+                      <Text style={styles.timerLabel}>SEK</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <Text style={styles.offerTopText}>Twój wylosowany sprzęt</Text>
+                <Text style={styles.offerTitle}>
+                  {dailyProduct?.nazwa || "Dzienna promocja"} -{formatujRabat(dailyPromotion.promocja.wartosc)}%
+                </Text>
+                <Text style={styles.offerSubtitle} numberOfLines={2}>
+                  {dailyProduct?.opis ||
+                    dailyPromotion.promocja.opis ||
+                    "Indywidualny rabat na wylosowany sprzęt."}
+                </Text>
+
+                {dailyProduct && (
+                  <View style={styles.offerPriceRow}>
+                    <Text style={styles.offerPrice}>
+                      {formatujCene(
+                        obliczCenePoRabacie(
+                          dailyProduct.cena,
+                          dailyPromotion.promocja.wartosc,
+                        ),
+                      )} zł / dzień
+                    </Text>
+                    <Text style={styles.offerOldPrice}>
+                      {formatujCene(dailyProduct.cena)} zł
+                    </Text>
+                  </View>
+                )}
+
+                {promotionError && (
+                  <Text style={styles.offerError}>{promotionError}</Text>
+                )}
+
+                <Pressable
+                  style={[
+                    styles.offerButton,
+                    promotedProductId === null && styles.offerButtonDisabled,
+                  ]}
+                  disabled={promotedProductId === null}
+                  onPress={() =>
+                    promotedProductId !== null &&
+                    router.push(`/products/${promotedProductId}`)
+                  }
+                >
+                  <Text style={styles.offerButtonText}>Zobacz ofertę</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.offerTopText}>Specjalna oferta dla Ciebie</Text>
+                <Text style={styles.offerTitle}>Wylosuj dzienny rabat</Text>
+                <Text style={styles.offerSubtitle} numberOfLines={2}>
+                  Wylosuj indywidualny rabat na jeden dostępny sprzęt. Promocja
+                  będzie ważna przez czas wskazany po losowaniu.
+                </Text>
+
+                <Pressable
+                  style={[
+                    styles.offerButton,
+                    (!isAuthenticated || promotionLoading) &&
+                      styles.offerButtonDisabled,
+                  ]}
+                  disabled={!isAuthenticated || promotionLoading}
+                  onPress={() => void wylosujPromocje()}
+                >
+                  <Text style={styles.offerButtonText}>
+                    {promotionLoading ? "Losowanie..." : "Wylosuj promocję"}
+                  </Text>
+                </Pressable>
+
+                {promotionError && (
+                  <Text style={styles.offerError}>{promotionError}</Text>
+                )}
+              </>
+            )}
           </View>
 
-          <Text style={styles.timerColon}>:</Text>
-
-          <View style={styles.timerSegment}>
-            <Text style={styles.timerValue}>{timeLeft.minutes}</Text>
-            <Text style={styles.timerLabel}>MIN</Text>
-          </View>
-
-          <Text style={styles.timerColon}>:</Text>
-
-          <View style={styles.timerSegment}>
-            <Text style={styles.timerValue}>{timeLeft.seconds}</Text>
-            <Text style={styles.timerLabel}>SEK</Text>
-          </View>
-        </View>
-      </View>
-
-            <Text style={styles.offerTopText}>Specjalna oferta dla Ciebie</Text>
-
-            <Text style={styles.offerTitle}>Wypożycz sprzęt taniej</Text>
-
-            <Text style={styles.offerSubtitle} numberOfLines={2}>
-              {produkty[randomIndex]?.nazwa ||
-                "Wybrany produkt dostępny już dziś"}
+          <View style={styles.offerVisual}>
+            {dailyProduct?.zdjecia_url["1"] ? (
+              <>
+                <Image
+                  source={{ uri: dailyProduct.zdjecia_url["1"] }}
+                  style={styles.offerProductImage}
+                  resizeMode="contain"
+                />
+                <View style={styles.offerDiscountBadge}>
+                  <Text style={styles.offerDiscountBadgeText}>
+                    -{formatujRabat(dailyPromotion?.promocja.wartosc ?? 0)}%
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <MaterialIcons
+                  name="local-offer"
+                  size={112}
+                  color="rgba(255,255,255,0.28)"
+                />
+                <Text style={styles.offerVisualValue}>
+                  {dailyPromotion
+                    ? `-${formatujRabat(dailyPromotion.promocja.wartosc)}%`
+                    : "?%"}
+                </Text>
+              </>
+            )}
+            <Text style={styles.offerVisualLabel}>
+              {dailyProduct ? "WYLOSOWANY SPRZĘT" : "TWÓJ DZIENNY RABAT"}
             </Text>
-                    
+          </View>
+        </LinearGradient>
 
-          {/* TEMP CENA */}
-            <View style={styles.offerPriceRow}>
-              {/*PROMOCJA 5% */}
-              <Text style={styles.offerPrice}>{produkty?.[randomIndex]?.cena_po_promocji !=undefined && produkty?.[randomIndex]?.cena_po_promocji} </Text>
-              <Text style={styles.offerOldPrice}>{produkty?.[randomIndex]?.cena}</Text>
+        {isOfferLocked && (
+          <View style={styles.offerLockedOverlay}>
+            <View style={styles.offerLockedIcon}>
+              <MaterialIcons name="lock-outline" size={30} color="#FFFFFF" />
             </View>
 
-            <Pressable style={styles.offerButton} onPress={()=> router.replace(`../products/${produkty[randomIndex]?.id}`)}>
-              <Text style={styles.offerButtonText}>Zobacz ofertę</Text>
-            </Pressable>
+            {status === "loading" ? (
+              <Text style={styles.offerLockedTitle}>Sprawdzamy sesję...</Text>
+            ) : (
+              <>
+                <Text style={styles.offerLockedTitle}>
+                  Zaloguj się, żeby wylosować dzienną promocję
+                </Text>
+                <Text style={styles.offerLockedDescription}>
+                  Rabaty na losowy sprzęt są dostępne tylko dla zalogowanych użytkowników.
+                </Text>
+                <Pressable
+                  style={styles.offerLoginButton}
+                  onPress={() => router.push("/")}
+                >
+                  <Text style={styles.offerLoginButtonText}>Zaloguj się</Text>
+                </Pressable>
+              </>
+            )}
           </View>
-
-          <Image
-            source={{ uri: produkty[randomIndex]?.zdjecia_url["1"] }}
-            style={styles.offerImage}
-            resizeMode="contain"
-          />
-        </LinearGradient>
+        )}
       </View>
 
       {/* KATEGORIE HEADER */}
@@ -396,7 +692,7 @@ export default function User() {
         scrollEnabled={false}
         columnWrapperStyle={styles.productRow}
         contentContainerStyle={styles.productsList}
-        mapItem={(item) => ({...item,opis : item.opis ?? "", zdjecie_url : item.zdjecia_url["1"]})}
+        mapItem={(item) => ({...item,opis : item.opis ?? "", cena_po_promocji: item.czy_promocja ? item.cena_aktualna : null, zdjecie_url : item.zdjecia_url["1"]})}
       />
 
       <Modal
@@ -471,6 +767,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     width: "100%",
     borderRadius: 28,
+    position: "relative",
 
     shadowColor: "#2F80ED",
     shadowOffset: { width: 0, height: 16 },
@@ -492,6 +789,11 @@ const styles = StyleSheet.create({
     zIndex : 1,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.65)",
+  },
+
+  offerCardBlurred: {
+    filter: "blur(7px)",
+    opacity: 0.68,
   },
 
   offerBubbleOne: {
@@ -547,20 +849,81 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    marginTop: 24,
+    marginTop: 22,
   },
 
   offerPrice: {
     color: "#FFFFFF",
-    fontSize: 31,
+    fontSize: 29,
     fontWeight: "900",
   },
 
   offerOldPrice: {
-    color: "rgba(255,255,255,0.55)",
-    fontSize: 20,
+    color: "rgba(255,255,255,0.58)",
+    fontSize: 18,
     fontWeight: "700",
     textDecorationLine: "line-through",
+  },
+
+  offerVisual: {
+    width: 330,
+    minHeight: 270,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    zIndex: 2,
+  },
+
+  offerProductImage: {
+    width: 310,
+    height: 245,
+  },
+
+  offerDiscountBadge: {
+    position: "absolute",
+    top: 20,
+    right: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+
+  offerDiscountBadgeText: {
+    color: "#176BDE",
+    fontSize: 24,
+    fontWeight: "900",
+  },
+
+  offerVisualValue: {
+    position: "absolute",
+    color: "#FFFFFF",
+    fontSize: 60,
+    fontWeight: "900",
+    textShadowColor: "rgba(15,23,42,0.18)",
+    textShadowOffset: { width: 0, height: 4 },
+    textShadowRadius: 10,
+  },
+
+  offerVisualLabel: {
+    position: "absolute",
+    bottom: 30,
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    backgroundColor: "rgba(15,23,42,0.28)",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    overflow: "hidden",
   },
 
   offerButton: {
@@ -578,16 +941,80 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
+  offerButtonDisabled: {
+    opacity: 0.65,
+  },
+
   offerButtonText: {
     color: "#176BDE",
     fontSize: 16,
     fontWeight: "900",
   },
 
-  offerImage: {
-    width: 380,
-    height: 340,
-    zIndex: 2,
+  offerError: {
+    maxWidth: 520,
+    marginTop: 14,
+    color: "#FEE2E2",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  offerLockedOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 28,
+    backgroundColor: "rgba(15,23,42,0.46)",
+    padding: 32,
+  },
+
+  offerLockedIcon: {
+    width: 58,
+    height: 58,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    marginBottom: 16,
+  },
+
+  offerLockedTitle: {
+    maxWidth: 580,
+    color: "#FFFFFF",
+    fontSize: 27,
+    lineHeight: 34,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+
+  offerLockedDescription: {
+    maxWidth: 520,
+    color: "rgba(255,255,255,0.86)",
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 10,
+  },
+
+  offerLoginButton: {
+    minWidth: 150,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 24,
+    paddingVertical: 13,
+    marginTop: 20,
+  },
+
+  offerLoginButtonText: {
+    color: "#176BDE",
+    fontSize: 15,
+    fontWeight: "900",
   },
    sectionHeader: {
     marginTop: 34,

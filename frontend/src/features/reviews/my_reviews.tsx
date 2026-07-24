@@ -73,6 +73,7 @@ export default function MyReviewsScreen() {
                   item={{
                     ...produkt,
                     opis: produkt.opis ?? "",
+                    cena_po_promocji: produkt.czy_promocja ? produkt.cena_aktualna : null,
                     zdjecie_url: produkt.zdjecia_url["1"] ?? Object.values(produkt.zdjecia_url)[0] ?? "",
                   }}
                   initialCzyPolubione={ulubioneIds.includes(produkt.id)}

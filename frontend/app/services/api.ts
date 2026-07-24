@@ -2,6 +2,18 @@ import type { ItemsQueryParams, ItemsSearchParams } from "@features/products";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+export class ApiError extends Error {
+    status: number;
+    data: unknown;
+
+    constructor(message: string, status: number, data: unknown) {
+        super(message);
+        this.name = "ApiError";
+        this.status = status;
+        this.data = data;
+    }
+}
+
 export async function apiGet(path : string) {
     if(!API_URL){
         throw new Error("Brak adresu API")
@@ -43,8 +55,10 @@ export async function apiPost(path : string, body? : object) {
 
     
     if(!response.ok){
-        throw new Error(
-            data.error || "Nie udało sie pobrac danych"  
+        throw new ApiError(
+            data.error || "Nie udało sie pobrac danych",
+            response.status,
+            data,
         );
     }
 
