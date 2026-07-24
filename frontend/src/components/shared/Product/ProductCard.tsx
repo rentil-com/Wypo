@@ -76,6 +76,8 @@ type ProductCardProps = {
   ratingLoading?: boolean;
   onFavouriteChange?: (id: number, polubione: boolean) => void;
   showAdminActions?: boolean;
+  moznaUsunac?: boolean;
+  onDelete?: () => void;
 };
 
 
@@ -88,6 +90,8 @@ export default function ProductCard({
   ratingLoading = false,
   onFavouriteChange,
   showAdminActions = false,
+  moznaUsunac = false,
+  onDelete,
 }: ProductCardProps) {
   const status =
     statusStyles[
@@ -157,8 +161,8 @@ export default function ProductCard({
           <Pressable style={[styles.adminActionButton, styles.editButton]}>
             <MaterialIcons name="edit" size={17} color="#176BDE" />
           </Pressable>
-          <Pressable style={[styles.adminActionButton, styles.deleteButton]}>
-            <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
+          <Pressable style={[styles.adminActionButton, styles.deleteButton]} disabled={!moznaUsunac} onPress={onDelete}>
+            <MaterialIcons name="delete-outline" size={18} color={moznaUsunac ? "#DC2626" : "#94A3B8"} />
           </Pressable>
         </View>
       )}

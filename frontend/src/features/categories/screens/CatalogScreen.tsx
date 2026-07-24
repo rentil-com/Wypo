@@ -23,6 +23,7 @@ import PageLayout from "@components/shared/Layout/PageLayout";
 import { pobierzUlubione } from "@features/favourites/fav.service";
 import { FavouritesResponse } from "@features/favourites/fav.types";
 import { useAuth } from "@/contexts/AuthContext";
+import { pobierzUsuwalneProdukty, usunProdukt } from "@features/products/products.management.services";
 
 type CatalogViewProps = {
   kategoriaId?: string;
@@ -53,6 +54,8 @@ export default function TabsLayout({
   const [categoryToDelete, setCategoryToDelete] =
     useState<CategoryApiItem | null>(null);
   const [usuwalneKategorieIds, setUsuwalneKategorieIds] = useState<number[]>([]);
+  const [usuwalneProduktyIds,setUsuwalneProduktyIds] = useState<number[]>([])
+  const [productToDelete,setProductToDelete] = useState<ApiItem | null>(null)
   const [produkty, setProdukty] = useState<ApiItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +84,7 @@ void zaladujKategorie();
   useEffect(() => {
     if (!isAdmin) {
       setUsuwalneKategorieIds([]);
+      setUsuwalneProduktyIds([])
       return;
     }
 
@@ -99,8 +103,27 @@ void zaladujKategorie();
       }
     }
 
+    async function zaladujUsuwalneProdukty() {
+       setError(null);
+
+        try {
+          const response = await pobierzUsuwalneProdukty();
+          setUsuwalneProduktyIds(response);
+        } catch (error) {
+          setError(
+            error instanceof Error
+              ? error.message
+              : "Nie udało się pobrać produktow możliwych do usunięcia",
+          );
+        }
+
+    }
+
     void zaladujUsuwalneKategorie();
+    void zaladujUsuwalneProdukty();
   }, [isAdmin]);
+
+
 
 useEffect(() => {
   let cancelled = false;
@@ -267,6 +290,26 @@ useEffect(() => {
       setLoading(false);
     }
   };
+
+  const usuniecieProduktu = async () => {
+    setError(null)
+    if (!productToDelete) return;
+    setLoading(true)
+
+    try {
+      const response = await usunProdukt(productToDelete.id)
+      setProdukty(produkty.filter((produkt)=> produkt.id !== response.id))
+      setUsuwalneProduktyIds(usuwalneProduktyIds.filter((id)=> id !== response.id))
+      setProductToDelete(null)
+      alert("Pomyślnie usunięto produkt")
+    }
+    catch(error){
+      setError(error instanceof Error ? error.message : "Nie udało się usunąć produktu")
+    }
+    finally{
+      setLoading(false)
+    }
+  }
 
   return (
    <PageLayout wide>
@@ -496,6 +539,8 @@ useEffect(() => {
        {error && <Text>{error}</Text>}
 
   <ProductGrid
+    usuwalneProduktyIds={usuwalneProduktyIds}
+    onDeleteProduct={(produkt)=> setProductToDelete(produkt)}
     ulubioneIds ={tablicaUlubionych ??  []}
     data={produkty}
     showAdminActions={isAdmin}
@@ -593,6 +638,34 @@ useEffect(() => {
               <ThemedText style={styles.categoryModalDeleteText}>
                 Usuń
               </ThemedText>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={isAdmin && productToDelete !== null}
+      onRequestClose={() => setProductToDelete(null)}
+    >
+      <View style={styles.categoryModalOverlay}>
+        <View style={styles.categoryModalCard}>
+          <View style={styles.categoryModalIcon}>
+            <MaterialIcons name="delete-outline" size={26} color="#DC2626" />
+          </View>
+
+          <ThemedText style={styles.categoryModalTitle}>Usunąć produkt?</ThemedText>
+          <ThemedText style={styles.categoryModalDescription}>
+            Czy na pewno chcesz usunąć produkt „{productToDelete?.nazwa}”?
+          </ThemedText>
+
+          <View style={styles.categoryModalActions}>
+            <Pressable style={[styles.categoryModalButton,styles.categoryModalCancelButton]} onPress={() => setProductToDelete(null)}>
+              <ThemedText style={styles.categoryModalCancelText}>Anuluj</ThemedText>
+            </Pressable>
+            <Pressable style={[styles.categoryModalButton,styles.categoryModalDeleteButton]} onPress={()=> usuniecieProduktu()}>
+              <ThemedText style={styles.categoryModalDeleteText}>Usuń</ThemedText>
             </Pressable>
           </View>
         </View>

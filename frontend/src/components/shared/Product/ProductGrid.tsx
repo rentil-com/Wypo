@@ -19,6 +19,8 @@ type ProductGridProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
   scrollEnabled?: boolean;
   showAdminActions?: boolean;
+  usuwalneProduktyIds?: number[];
+  onDeleteProduct?: (produkt: ApiItem) => void;
 };
 
 export default function ProductGrid({
@@ -30,6 +32,8 @@ export default function ProductGrid({
   contentContainerStyle,
   scrollEnabled,
   showAdminActions = false,
+  usuwalneProduktyIds = [],
+  onDeleteProduct,
 }: ProductGridProps) {
   const [ratingsByProduct, setRatingsByProduct] = useState<
     Record<number, ProductRatingSummary>
@@ -78,6 +82,8 @@ export default function ProductGrid({
           ratingLoading={ratingsLoading}
           onFavouriteChange={onFavouriteChange}
           showAdminActions={showAdminActions}
+          moznaUsunac={usuwalneProduktyIds.includes(item.id)}
+          onDelete={() => onDeleteProduct?.(item)}
         />
       )}
     />
