@@ -13,6 +13,7 @@ export type SingleProductApiItem = {
   zdjecia_url: Record<string, string>;
   cena: number;
   cena_po_promocji: number | null;
+  recenzje_srednia : string | null,
   specyfikacje : ProductSpecification[];
 };
 

@@ -8,6 +8,7 @@ export type ApiItem = {
   zdjecia_url: Record<string, string>;
   cena: number;
   cena_po_promocji: number | null;
+  recenzje_srednia : string  | null
 };
 
 export type ItemsResponse = {

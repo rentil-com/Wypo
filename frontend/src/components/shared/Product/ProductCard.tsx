@@ -62,18 +62,14 @@ export type ProductCardItem = {
   status: string;
   cena: number;
   cena_po_promocji: number | null;
+  recenzje_srednia : string | null
 };
 
-export type ProductRatingSummary = {
-  srednia_ocen: number;
-  liczba_recenzji: number;
-};
+
 
 type ProductCardProps = {
   item: ProductCardItem;
   initialCzyPolubione: boolean;
-  rating: ProductRatingSummary | null;
-  ratingLoading?: boolean;
   onFavouriteChange?: (id: number, polubione: boolean) => void;
   showAdminActions?: boolean;
   moznaUsunac?: boolean;
@@ -86,8 +82,6 @@ type ProductCardProps = {
 export default function ProductCard({
   item,
   initialCzyPolubione,
-  rating,
-  ratingLoading = false,
   onFavouriteChange,
   showAdminActions = false,
   moznaUsunac = false,
@@ -248,11 +242,7 @@ export default function ProductCard({
             />
 
             <Text style={styles.ratingText}>
-              {ratingLoading
-                ? "..."
-                : rating && rating.liczba_recenzji > 0
-                  ? `${rating.srednia_ocen.toFixed(1)} (${rating.liczba_recenzji})`
-                  : "Brak opinii"}
+              {item.recenzje_srednia ?? "Brak opinii"}
             </Text>
           </View>
         </View>
