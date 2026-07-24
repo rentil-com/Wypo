@@ -1,5 +1,5 @@
 import { apiDelete, apiFormData, apiGet, apiPatch, apiPut } from "@/services/api";
-import { AddProductResponse, DeleteProductPhotosBody, DeleteProductResponse, GetDeletableProductsResponse, PatchProductBody, PatchProductResponse, PutProductBody } from "./products-admin.types";
+import { AddProductResponse, DeleteProductPhotosBody, DeleteProductResponse, GetDeletableProductsResponse, PatchProductBody, PatchProductResponse, PutProductBody } from "./products.management.types";
 
 export async function dodajProdukt(formData : FormData) {
     const response = await apiFormData("/items/dodaj","POST",formData)

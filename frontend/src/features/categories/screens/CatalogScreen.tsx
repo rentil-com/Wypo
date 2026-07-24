@@ -302,7 +302,10 @@ useEffect(() => {
               </View>
 
               {isAdmin && (
-                <Pressable style={styles.addProductButton}>
+                <Pressable
+                  style={styles.addProductButton}
+                  onPress={() => router.push("/products/AddProduct")}
+                >
                   <MaterialIcons name="add" size={19} color="#FFFFFF" />
                   <ThemedText style={styles.addProductButtonText}>
                     Dodaj produkty
