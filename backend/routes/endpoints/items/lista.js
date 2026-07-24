@@ -96,8 +96,10 @@ router.get("/", async (req, res) => {
       WITH katalog AS (${katalogSql})
       SELECT
         katalog.*,
-        COALESCE(recenzje.recenzje_srednia, 0)::double precision
-          AS recenzje_srednia
+        TO_CHAR(
+          COALESCE(recenzje.recenzje_srednia, 0),
+          'FM999999990.00'
+        ) AS recenzje_srednia
       FROM katalog
       LEFT JOIN (
         SELECT

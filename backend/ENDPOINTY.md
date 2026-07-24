@@ -501,6 +501,21 @@ selektora promocji i nie sumuja rabatow.
 
 Dla admina zwracany jest rzeczywisty status sprzętu. Dla zwykłego użytkownika status inny niż `dostepny` jest mapowany na `niedostepny`.
 
+Każdy obiekt w polu `dane` zawiera `recenzje_srednia`, czyli średnią ocen z
+aktywnych recenzji danego sprzętu. Wartość jest tekstem z dokładnie dwiema
+cyframi po separatorze dziesiętnym, na przykład `"4.50"`. Jeśli sprzęt nie ma
+aktywnych recenzji, `recenzje_srednia` wynosi `"0.00"`.
+
+Przykładowy fragment elementu listy:
+
+```json
+{
+  "id": 1,
+  "nazwa": "Wiertarka",
+  "recenzje_srednia": "4.67"
+}
+```
+
 Lista nie zawiera pola `specyfikacje`. Specyfikacje sprzętu można pobrać przez `GET /items/:id`.
 
 ### `GET /items/:id`
