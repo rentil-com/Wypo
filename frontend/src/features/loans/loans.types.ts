@@ -52,3 +52,18 @@ export type LoansListResponse = {
     liczbaStron : number,
     dane : LoanResponse[]
 }
+
+export type LoanDecision = "zaakceptowany" | "odrzucony"
+
+export type LoanDecisionBody = {
+    decyzja : LoanDecision
+}
+
+export type LoanPickupReminderBody = {
+    miejsce_odbioru? : string,
+    godziny_odbioru? : string
+}
+
+export type LoanReturnReminderBody = {
+    miejsce_zwrotu? : string
+}
