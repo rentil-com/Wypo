@@ -2,7 +2,7 @@ import { apiPost } from "@/services/api";
 
 import { PasswordResetConfirmResponse, PasswordResetBody, PasswordReset, PasswordResetConfirm } from "./password-reset.types";
 
-
+// POST /auth/password-reset
 export async function startPasswordReset(email : string) {
     const poprawnyEmail = email.trim().toLowerCase()
     if(!poprawnyEmail){
@@ -16,6 +16,7 @@ export async function startPasswordReset(email : string) {
     return response as PasswordReset
 }
 
+// POST /auth/password-reset/confirm
 export async function passwordResetConfirm(challenge : string, code : string, password : string) {
     const poprawnyKod = code.trim()
     if(!/^[0-9]{6}$/.test(poprawnyKod)){

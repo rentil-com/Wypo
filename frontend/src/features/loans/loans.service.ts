@@ -1,13 +1,13 @@
 import { apiGet, apiPatch, apiPost, apiPut } from "@/services/api";
 import { LoanBody, LoanDecisionBody, LoanOverdueReminderBody, LoanPatchBody, LoanPickupReminderBody, LoanPutBody, LoanReminderResponse, LoanResponse, LoanReturnReminderBody, LoansListResponse } from "./loans.types";
 
-//  POST/wypozyczenia/wypozycz
+// POST /wypozyczenia/wypozycz
 export async function zlozWniosekOWypozyczenie(body : LoanBody) {
     const response = await apiPost("/wypozyczenia/wypozycz",body)
     return response as LoanResponse
 }
 
-// GET/wypozyczenia/wnioski
+// GET /wypozyczenia/wnioski
 
 
 export async function pobierzWnioski() {

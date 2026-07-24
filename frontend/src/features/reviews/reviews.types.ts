@@ -1,8 +1,11 @@
+// Status recenzji
 export type ReviewsStatus = "aktywna" |
 "ukryta" | "usunieta"
 
+// Dozwolona ocena produktu
 export type  Review_Rating = 1 | 2 | 3 | 4 | 5
 
+// Recenzja zwracana przez API
 export type ReviewResponse=  {
     id : number,
     uzytkownik_id : number,
@@ -17,6 +20,7 @@ export type ReviewResponse=  {
     nazwa_sprzetu? : string
 }
 
+// Odpowiedz listy recenzji produktu
 export type ProductReviewsResponse = {
   strona: number;
   limitRecenzjiNaStrone: number;
@@ -28,7 +32,7 @@ export type ProductReviewsResponse = {
   dane: ReviewResponse[];
 };
 
-
+// Odpowiedz pojedynczej recenzji
 export type SingleReviewResponse = {
     id : number,
     uzytkownik_id : number,
@@ -44,7 +48,7 @@ export type SingleReviewResponse = {
 
 }
 
-
+// Odpowiedz listy recenzji uzytkownika
 export type MyReviewsResponse = {
     strona: number;
     limitRecenzjiNaStrone: number;
@@ -53,6 +57,7 @@ export type MyReviewsResponse = {
     dane: ReviewResponse[];
 }
 
+// Body dodania recenzji
 export type AddReviewBody = {
   sprzet_id: number;
   wypozyczenie_id?: number | null;

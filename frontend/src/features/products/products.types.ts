@@ -1,4 +1,4 @@
-
+// Produkt zwracany na liscie
 export type ApiItem = {
   id: number;
   nazwa: string;
@@ -11,6 +11,7 @@ export type ApiItem = {
   recenzje_srednia : string  | null
 };
 
+// Odpowiedz listy produktow
 export type ItemsResponse = {
   strona: number;
   total: number;
@@ -18,10 +19,12 @@ export type ItemsResponse = {
   dane: ApiItem[];
 };
 
+// Parametry wyszukiwania produktow
 export type ItemsSearchParams = {
   q: string;
 };
 
+// Wynik wyszukiwania produktu
 export type ItemsSearchResult = {
   id: number;
   nazwa_przedmiotu: string;
@@ -31,7 +34,7 @@ export type ItemsSearchResult = {
   czy_promocja: boolean;
 };
 
-
+// Filtry i paginacja listy produktow
 export type ItemsQueryParams = {
   strona?: number;
   kategoria?: number | null;
