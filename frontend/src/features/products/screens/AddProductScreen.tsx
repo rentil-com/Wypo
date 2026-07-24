@@ -20,24 +20,26 @@ import {
 } from "@features/categories";
 
 import { dodajProdukt } from "../products.management.services";
-import type { ProductStatus } from "../products.management.types";
+import type { ProductSpecificationBody, ProductStatus } from "../products.management.types";
 import styles from "./ProductAdminForm.styles";
 
 export default function AddProductScreen() {
   const { status, user } = useAuth();
-  const [nazwa, setNazwa] = useState("");
-  const [opis, setOpis] = useState("");
-  const [kategoriaId, setKategoriaId] = useState("");
-  const [cena, setCena] = useState("");
-  const [cenaPoPromocji, setCenaPoPromocji] = useState("");
-  const [statusProduktu, setStatusProduktu] =
-    useState<ProductStatus>("dostepny");
-    
-  const [zdjecia, setZdjecia] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const [kategorie, setKategorie] = useState<CategoryApiItem[]>([]);
-  const [loadingKategorii, setLoadingKategorii] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [nazwa,setNazwa] = useState("");
+  const [opis,setOpis] = useState("");
+  const [kategoriaId,setKategoriaId] = useState("");
+  const [cena,setCena] = useState("");
+  const [cenaPoPromocji,setCenaPoPromocji] = useState("");
+  const [statusProduktu,setStatusProduktu] = useState<ProductStatus>("dostepny");
+  const [zdjecia,setZdjecia] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [nazwaSpecyfikacji,setNazwaSpecyfikacji] = useState("");
+  const [opisSpecyfikacji,setOpisSpecyfikacji] = useState("");
+  const [emotkaSpecyfikacji,setEmotkaSpecyfikacji] = useState("");
+  const [specyfikacje,setSpecyfikacje] = useState<ProductSpecificationBody[]>([]);
+  const [kategorie,setKategorie] = useState<CategoryApiItem[]>([]);
+  const [loadingKategorii,setLoadingKategorii] = useState(false);
+  const [loading,setLoading] = useState(false);
+  const [error,setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function zaladujKategorie() {
@@ -48,11 +50,7 @@ export default function AddProductScreen() {
         const response = await pobierzKategorie();
         setKategorie(response);
       } catch (error) {
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Nie udało się pobrać kategorii",
-        );
+        setError(error instanceof Error ? error.message : "Nie udało się pobrać kategorii");
       } finally {
         setLoadingKategorii(false);
       }
@@ -82,9 +80,36 @@ export default function AddProductScreen() {
       quality: 1,
     });
 
-    if (result.assets) {
-      setZdjecia([...zdjecia, result.assets[0]]);
+    if (result.assets) setZdjecia([...zdjecia, result.assets[0]]);
+  };
+
+  const dodajSpecyfikacje = () => {
+    setError(null);
+    const poprawnaNazwa = nazwaSpecyfikacji.trim();
+    const poprawnyOpis = opisSpecyfikacji.trim();
+    const poprawnaEmotka = emotkaSpecyfikacji.trim();
+
+    if (!poprawnaNazwa || !poprawnyOpis) {
+      setError("Nazwa i opis specyfikacji są wymagane");
+      return;
     }
+
+    const nowaSpecyfikacja: ProductSpecificationBody = {
+      nazwa_specyfikacji: poprawnaNazwa,
+      opis_specyfikacji: poprawnyOpis,
+      emotka_specyfikacji: poprawnaEmotka || null,
+    };
+
+    setSpecyfikacje([...specyfikacje, nowaSpecyfikacja]);
+    setNazwaSpecyfikacji("");
+    setOpisSpecyfikacji("");
+    setEmotkaSpecyfikacji("");
+  };
+
+  const usunSpecyfikacje = (index: number) => {
+    const noweSpecyfikacje = [...specyfikacje];
+    noweSpecyfikacje.splice(index, 1);
+    setSpecyfikacje(noweSpecyfikacje);
   };
 
   const dodaj = async () => {
@@ -93,9 +118,7 @@ export default function AddProductScreen() {
     const poprawnaNazwa = nazwa.trim();
     const poprawnyOpis = opis.trim();
     const poprawnaCena = cena.trim().replace(",", ".");
-    const poprawnaCenaPoPromocji = cenaPoPromocji
-      .trim()
-      .replace(",", ".");
+    const poprawnaCenaPoPromocji = cenaPoPromocji.trim().replace(",", ".");
 
     if (!poprawnaNazwa) {
       setError("Nazwa produktu jest wymagana");
@@ -126,6 +149,7 @@ export default function AddProductScreen() {
       formData.append("kategoria_id", kategoriaId);
       formData.append("cena", poprawnaCena);
       formData.append("status", statusProduktu);
+      formData.append("specyfikacje", JSON.stringify(specyfikacje));
 
       if (poprawnyOpis) {
         formData.append("opis", poprawnyOpis);
@@ -153,11 +177,7 @@ export default function AddProductScreen() {
       await dodajProdukt(formData);
       router.back();
     } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Nie udało się dodać produktu",
-      );
+      setError(error instanceof Error ? error.message : "Nie udało się dodać produktu");
     } finally {
       setLoading(false);
     }
@@ -239,9 +259,7 @@ export default function AddProductScreen() {
               <View style={styles.selectWrapper}>
                 <Picker
                   selectedValue={statusProduktu}
-                  onValueChange={(value) =>
-                    setStatusProduktu(value as ProductStatus)
-                  }
+                  onValueChange={(value) => setStatusProduktu(value as ProductStatus)}
                   style={styles.picker}
                 >
                   <Picker.Item label="Dostępny" value="dostepny" />
@@ -304,6 +322,56 @@ export default function AddProductScreen() {
               ))}
             </View>
           )}
+
+          <View style={styles.sectionDivider} />
+          <Text style={styles.sectionTitle}>Specyfikacje produktu</Text>
+
+          <View style={styles.specificationCard}>
+            <View style={styles.specificationFields}>
+              <TextInput
+                value={nazwaSpecyfikacji}
+                onChangeText={setNazwaSpecyfikacji}
+                style={[styles.input, styles.specificationNameInput]}
+                placeholder="Nazwa, np. Moc"
+                placeholderTextColor="#94A3B8"
+              />
+              <TextInput
+                value={opisSpecyfikacji}
+                onChangeText={setOpisSpecyfikacji}
+                style={[styles.input, styles.specificationDescriptionInput]}
+                placeholder="Opis, np. 750 W"
+                placeholderTextColor="#94A3B8"
+              />
+              <TextInput
+                value={emotkaSpecyfikacji}
+                onChangeText={setEmotkaSpecyfikacji}
+                style={[styles.input, styles.specificationIconInput]}
+                placeholder="Emotka"
+                placeholderTextColor="#94A3B8"
+              />
+            </View>
+
+            <Pressable style={styles.addSpecificationButton} onPress={dodajSpecyfikacje}>
+              <MaterialIcons name="add" size={18} color="#1D4ED8" />
+              <Text style={styles.addSpecificationText}>Dodaj specyfikację</Text>
+            </Pressable>
+          </View>
+
+          {specyfikacje.map((specyfikacja, index) => (
+            <View key={index} style={styles.specificationCard}>
+              <View style={styles.specificationHeader}>
+                <Text style={styles.specificationTitle}>
+                  {specyfikacja.nazwa_specyfikacji}: {specyfikacja.opis_specyfikacji}
+                </Text>
+                <Pressable style={styles.removeSpecificationButton} onPress={() => usunSpecyfikacje(index)}>
+                  <MaterialIcons name="delete-outline" size={18} color="#DC2626" />
+                </Pressable>
+              </View>
+              {specyfikacja.emotka_specyfikacji && (
+                <Text style={styles.sectionDescription}>{specyfikacja.emotka_specyfikacji}</Text>
+              )}
+            </View>
+          ))}
 
           {error && <Text style={styles.errorText}>{error}</Text>}
 
