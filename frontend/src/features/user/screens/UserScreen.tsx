@@ -347,19 +347,6 @@ export default function User() {
         {/*CONTROLS */}
         {/*Przenoszenie do odpowiednich widokow */}
 
-      {isAdmin && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Otwórz panel promocji"
-          style={styles.adminBadge}
-          onPress={() => router.push("/promotions/admin")}
-        >
-          <View style={styles.adminBadgeDot} />
-          <MaterialIcons name="admin-panel-settings" size={17} color="#176BDE" />
-          <Text style={styles.adminBadgeText}>ADMIN · PANEL PROMOCJI</Text>
-          <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
-        </Pressable>
-      )}
 
       {/* SPECIAL OFFER CARD */}
       <View style={styles.offerCardWrapper}>
