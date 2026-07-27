@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentUser } from "@features/account";
 export default function HeaderPanel () { 
  
-    const {signOut, status, error : authError} = useAuth()
+    const {signOut, status, user, error : authError} = useAuth()
   const [produkty,setProdukty] = useState<ApiItem[]>([])
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
@@ -233,6 +233,16 @@ useEffect(()=>{
         {/*CONTROLS */}
         {/*Przenoszenie do odpowiednich widokow */}
         <View style={styles.headerActions}>
+          {user?.rola === "admin" && (
+            <Pressable
+              style={styles.headerAction}
+              onPress={() => router.push("/(tabs)/dashboard")}
+            >
+              <MaterialIcons name="dashboard" size={24} color="#111827" />
+              <Text style={styles.headerActionText}>Dashboard</Text>
+            </Pressable>
+          )}
+
           <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/wishlist")}>
             <MaterialIcons name="favorite-border" size={24} color="#111827"/>
             <Text style={styles.headerActionText}>Ulubione</Text>
