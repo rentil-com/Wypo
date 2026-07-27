@@ -47,9 +47,9 @@ export default function Dashboard() {
 
           <Pressable
             style={styles.tile}
-            onPress={() => router.push("/(tabs)/stanbazy")}
+            onPress={() => router.push("/(tabs)/stansystemu")}
           >
-            <Text style={styles.tileText}>Stan bazy danych</Text>
+            <Text style={styles.tileText}>Stan Systemu</Text>
           </Pressable>
         </View>
       </View>
