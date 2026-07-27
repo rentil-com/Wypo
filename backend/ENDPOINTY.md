@@ -646,6 +646,22 @@ Endpoint losowania wlasnej promocji wymaga dowolnego zalogowanego konta.
 Pozostale endpointy w tej sekcji wymagaja zalogowanego administratora.
 Uwierzytelnienie administratora moze pochodzic z sesji albo klucza API.
 
+### `GET /promocje/dzienna-promocja`
+
+Wymaga zalogowania. Zwraca aktualna, nadal aktywna dzienna promocje
+przypisana do zalogowanego uzytkownika. Endpoint nie losuje ani nie tworzy
+nowej promocji. Odpowiedz aktywnej promocji ma taki sam format jak odpowiedz
+losowania.
+
+Jesli uzytkownik nie ma aktywnej dziennej promocji, zwraca `200`:
+
+```json
+{
+  "promocja": null,
+  "ponowne_losowanie_od": null
+}
+```
+
 ### `POST /promocje/losuj-dzienna-promocje`
 
 Wymaga zalogowania. Losuje dla aktualnego uzytkownika indywidualna promocje
@@ -754,10 +770,13 @@ Obslugiwane query parametry:
 * `sprzet_id`
 * `kategoria_id`
 * `uzytkownik_id`
+* `pokaz_dzienne` - `true`, aby uwzglednic rekordy o nazwie `Dzienna promocja`
 
 Odpowiedz zawiera `strona`, `limitPromocjiNaStrone`, `filtry`, `total`,
 `liczbaStron` i tablice `dane`. Stan jest wyliczany na podstawie flagi
 `aktywna` oraz aktualnego czasu.
+Bez `pokaz_dzienne=true` rekordy o nazwie `Dzienna promocja` sa domyslnie
+pomijane.
 
 ### `GET /promocje/:id`
 

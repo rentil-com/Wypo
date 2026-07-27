@@ -6,7 +6,10 @@ import {
   BladPromocji,
   mapujPromocje
 } from "../../../services/promocje.js";
-import { utworzDziennaPromocje } from "../../../services/dzienne-promocje.js";
+import {
+  pobierzAktywnaDziennaPromocje,
+  utworzDziennaPromocje
+} from "../../../services/dzienne-promocje.js";
 import { odpowiedzBleduPromocji } from "./common.js";
 
 const router = Router();
@@ -66,6 +69,29 @@ async function obsluzLosowanie(
     }
   }
 }
+
+router.get("/dzienna-promocja", async (req, res) => {
+  try {
+    const promocja = await pobierzAktywnaDziennaPromocje(
+      pool,
+      req.uzytkownik.id
+    );
+
+    if (!promocja) {
+      return res.status(200).json({
+        promocja: null,
+        ponowne_losowanie_od: null
+      });
+    }
+
+    return res.status(200).json(przygotujOdpowiedz({
+      promocja,
+      zastapionaPromocjaId: null
+    }));
+  } catch (err) {
+    return odpowiedzBleduPromocji(err, res);
+  }
+});
 
 router.post("/losuj-dzienna-promocje", async (req, res) => {
   return obsluzLosowanie(req, res, {

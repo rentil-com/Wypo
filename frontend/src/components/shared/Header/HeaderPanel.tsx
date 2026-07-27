@@ -1,7 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import {  Image, Pressable, Text, TextInput, View } from "react-native";
+import { Image, Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
 import dane from "@/dane.json"
 import {styles} from "./HeaderPanel.styles"
 import { kategorieMap, pobierzKategorie, type CategoryApiItem } from "@features/categories";
@@ -9,6 +9,8 @@ import { pobierzProdukty, szukajProdukty, type ApiItem, type ItemsSearchResult }
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentUser } from "@features/account";
 export default function HeaderPanel () { 
+  const { width } = useWindowDimensions();
+  const mobile = width < 760;
  
     const {signOut, status, error : authError} = useAuth()
   const [produkty,setProdukty] = useState<ApiItem[]>([])
@@ -105,6 +107,50 @@ useEffect(()=>{
     router.push("/")
   }
 },[status])
+
+if (mobile) {
+  return (
+    <View style={[styles.header, styles.headerMobile]}>
+      <Pressable onPress={() => router.push("/(tabs)/user")}>
+        <Image
+          source={{ uri: "https://wypozyczalnia.calantris.com/logo.svg" }}
+          style={[styles.logo, styles.logoMobile]}
+        />
+      </Pressable>
+
+      <View style={[styles.headerActions, styles.headerActionsMobile]}>
+        <Pressable
+          accessibilityLabel="Ulubione"
+          style={styles.mobileHeaderAction}
+          onPress={() => router.replace("/(tabs)/wishlist")}
+        >
+          <MaterialIcons name="favorite-border" size={23} color="#111827" />
+        </Pressable>
+        <Pressable
+          accessibilityLabel="Koszyk"
+          style={styles.mobileHeaderAction}
+          onPress={() => router.replace("/(tabs)/basket")}
+        >
+          <MaterialIcons name="shopping-cart" size={23} color="#111827" />
+        </Pressable>
+        <Pressable
+          accessibilityLabel="Konto"
+          style={styles.mobileHeaderAction}
+          onPress={szczegolyKonta}
+        >
+          <MaterialIcons name="person-outline" size={24} color="#111827" />
+        </Pressable>
+        <Pressable
+          accessibilityLabel="Wyloguj się"
+          style={styles.mobileHeaderAction}
+          onPress={() => void wylogujSie()}
+        >
+          <MaterialIcons name="logout" size={24} color="#111827" />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
 
 
 

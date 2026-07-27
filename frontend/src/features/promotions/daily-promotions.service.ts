@@ -1,4 +1,4 @@
-import { ApiError, apiPost } from "@/services/api";
+import { ApiError, apiGet, apiPost } from "@/services/api";
 import type {
   DailyPromotionResponse,
   DailyPromotionResult,
@@ -32,6 +32,25 @@ export function czyOdpowiedzDziennejPromocji(
       typeof scope.sprzety_ids[0] === "number" &&
       typeof response.ponowne_losowanie_od === "string",
   );
+}
+
+export async function pobierzDziennaPromocje(): Promise<DailyPromotionResponse | null> {
+  const response: unknown = await apiGet("/promocje/dzienna-promocja");
+
+  if (
+    typeof response === "object" &&
+    response !== null &&
+    "promocja" in response &&
+    response.promocja === null
+  ) {
+    return null;
+  }
+
+  if (!czyOdpowiedzDziennejPromocji(response)) {
+    throw new Error("Nieprawidlowa odpowiedz serwera");
+  }
+
+  return response;
 }
 
 export async function losujDziennaPromocje(): Promise<DailyPromotionResult> {

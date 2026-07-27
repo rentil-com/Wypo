@@ -137,6 +137,16 @@ async function pobierzAktualnaDziennaPromocje(client, uzytkownikId) {
   return result.rows[0] || null;
 }
 
+export async function pobierzAktywnaDziennaPromocje(
+  client,
+  uzytkownikId,
+  teraz = new Date()
+) {
+  const promocja = await pobierzAktualnaDziennaPromocje(client, uzytkownikId);
+
+  return czyPromocjaNadalTrwa(promocja, teraz) ? promocja : null;
+}
+
 export async function utworzDziennaPromocje(
   client,
   {

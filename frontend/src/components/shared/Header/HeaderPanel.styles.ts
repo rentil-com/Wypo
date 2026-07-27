@@ -244,5 +244,28 @@ categoryDescription: {
     color : "#1f2937",
     fontSize : 17,
     lineHeight : 1.4,
-  }
+  },
+  headerMobile: {
+    minHeight: 62,
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 12,
+  },
+  logoMobile: {
+    width: 42,
+    height: 42,
+  },
+  headerActionsMobile: {
+    marginLeft: "auto",
+    gap: 10,
+  },
+  mobileHeaderAction: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
+  },
 })

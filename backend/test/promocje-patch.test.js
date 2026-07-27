@@ -159,15 +159,51 @@ test("GET listy stosuje filtry i paginacje administratora", async () => {
       assert.equal(body.strona, 2);
       assert.equal(body.total, 1);
       assert.equal(body.filtry.sprzet_id, 15);
+      assert.equal(body.filtry.pokaz_dzienne, false);
       assert.equal(body.dane[0].id, 8);
     });
 
     assert.equal(wywolania.length, 2);
+    assert.match(wywolania[0][0], /p\.nazwa <>/);
     assert.match(wywolania[0][0], /p\.nazwa ILIKE/);
     assert.match(wywolania[0][0], /p\.typ =/);
     assert.match(wywolania[0][0], /obejmuje_wszystkie_sprzety/);
     assert.match(wywolania[0][0], /obejmuje_wszystkich_uzytkownikow/);
+    assert.equal(wywolania[0][1].includes("Dzienna promocja"), true);
     assert.deepEqual(wywolania[0][1].slice(-2), [20, 20]);
+  } finally {
+    pool.query = poprzednieQuery;
+  }
+});
+
+test("GET listy pokazuje dzienne promocje po wlaczeniu filtra", async () => {
+  const poprzednieQuery = pool.query;
+  const wywolania = [];
+
+  pool.query = async (sql, params) => {
+    const tekst = normalizujSql(sql);
+    wywolania.push([tekst, params]);
+
+    return tekst.includes("COUNT(*)")
+      ? { rows: [{ total: "1" }] }
+      : { rows: [rekordPromocji({ nazwa: "Dzienna promocja" })] };
+  };
+
+  try {
+    await zRouterem(async (baseUrl) => {
+      const response = await fetch(
+        `${baseUrl}/promocje?pokaz_dzienne=true`
+      );
+      const body = await response.json();
+
+      assert.equal(response.status, 200);
+      assert.equal(body.filtry.pokaz_dzienne, true);
+      assert.equal(body.dane[0].nazwa, "Dzienna promocja");
+    });
+
+    assert.equal(wywolania.length, 2);
+    assert.doesNotMatch(wywolania[0][0], /p\.nazwa <>/);
+    assert.deepEqual(wywolania[0][1], [20, 0]);
   } finally {
     pool.query = poprzednieQuery;
   }

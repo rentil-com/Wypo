@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 
 import {
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from "react-native";
 
@@ -11,12 +13,24 @@ import HeaderPanel from "../Header/HeaderPanel";
 type PageLayoutProps = {
   children: ReactNode;
   wide?: boolean;
+  scrollToTopKey?: number;
 };
 
 export default function PageLayout({
   children,
   wide = false,
+  scrollToTopKey = 0,
 }: PageLayoutProps) {
+  const { width } = useWindowDimensions();
+  const mobile = width < 760;
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (scrollToTopKey > 0) {
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }
+  }, [scrollToTopKey]);
+
   return (
     <View
       style={[
@@ -25,6 +39,7 @@ export default function PageLayout({
       ]}
     >
       <ScrollView
+        ref={scrollRef}
         style={[
           styles.scroll,
           wide && styles.scrollWide,
@@ -32,6 +47,7 @@ export default function PageLayout({
         contentContainerStyle={[
           styles.scrollContent,
           wide && styles.scrollContentWide,
+          mobile && styles.scrollContentMobile,
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -39,6 +55,8 @@ export default function PageLayout({
           style={[
             styles.page,
             wide && styles.pageWide,
+            mobile && styles.pageMobile,
+            wide && mobile && styles.pageWideMobile,
           ]}
         >
           <HeaderPanel />
@@ -91,5 +109,20 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingHorizontal: 40,
     paddingBottom: 0,
+  },
+
+  scrollContentMobile: {
+    paddingTop: 12,
+    paddingBottom: 36,
+  },
+
+  pageMobile: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+
+  pageWideMobile: {
+    paddingTop: 0,
+    paddingHorizontal: 14,
   },
 });

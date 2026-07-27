@@ -102,12 +102,16 @@ test("czyta czas, rabaty i tekst dziennej promocji z env", async () => {
 
 test("endpointy dziennej promocji wymagaja wlasciwego uwierzytelnienia", async () => {
   await zRouterem(null, async (baseUrl) => {
-    const response = await fetch(
+    const losowanieResponse = await fetch(
       `${baseUrl}/promocje/losuj-dzienna-promocje`,
       { method: "POST" }
     );
+    const odczytResponse = await fetch(
+      `${baseUrl}/promocje/dzienna-promocja`
+    );
 
-    assert.equal(response.status, 401);
+    assert.equal(losowanieResponse.status, 401);
+    assert.equal(odczytResponse.status, 401);
   });
 
   await zRouterem(
@@ -121,6 +125,70 @@ test("endpointy dziennej promocji wymagaja wlasciwego uwierzytelnienia", async (
       assert.equal(response.status, 403);
     }
   );
+});
+
+test("pobiera aktywna dzienna promocje bez tworzenia nowej", async () => {
+  const poprzednieQuery = pool.query;
+  const wywolania = [];
+  let zwracanaPromocja = rekordPromocji();
+
+  pool.query = async (sql, params) => {
+    const tekst = normalizujSql(sql);
+    wywolania.push([tekst, params]);
+
+    if (tekst.includes("JOIN promocje_uzytkownicy dzienny_uzytkownik")) {
+      return { rows: zwracanaPromocja ? [zwracanaPromocja] : [] };
+    }
+
+    return { rows: [] };
+  };
+
+  try {
+    await zRouterem(
+      { id: 10, rola: "uzytkownik" },
+      async (baseUrl) => {
+        const response = await fetch(
+          `${baseUrl}/promocje/dzienna-promocja`
+        );
+        const body = await response.json();
+
+        assert.equal(response.status, 200);
+        assert.equal(body.promocja.id, 8);
+        assert.equal(body.promocja.wartosc, 15);
+        assert.equal(
+          body.ponowne_losowanie_od,
+          body.promocja.data_do
+        );
+      }
+    );
+
+    zwracanaPromocja = rekordPromocji({
+      data_do: "2020-01-01T00:00:00.000Z",
+      stan: "wygasla"
+    });
+
+    await zRouterem(
+      { id: 10, rola: "uzytkownik" },
+      async (baseUrl) => {
+        const response = await fetch(
+          `${baseUrl}/promocje/dzienna-promocja`
+        );
+        const body = await response.json();
+
+        assert.equal(response.status, 200);
+        assert.equal(body.promocja, null);
+        assert.equal(body.ponowne_losowanie_od, null);
+      }
+    );
+
+    assert.equal(
+      wywolania.some(([sql]) => sql.startsWith("INSERT INTO promocje")),
+      false
+    );
+    assert.deepEqual(wywolania[0][1], [10]);
+  } finally {
+    pool.query = poprzednieQuery;
+  }
 });
 
 test("uzytkownik losuje skonfigurowana promocje i dostaje termin kolejnego losowania", async () => {

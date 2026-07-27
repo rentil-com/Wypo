@@ -5,6 +5,7 @@ import {
   normalizujTekst,
   parsujId
 } from "../../../helpers/common.js";
+import { parsujBoolean } from "../../../helpers/validation.js";
 import {
   BladPromocji,
   mapujPromocje,
@@ -17,6 +18,7 @@ import { odpowiedzBleduPromocji } from "./common.js";
 
 const router = Router();
 const LIMIT_PROMOCJI_NA_STRONE = 20;
+const NAZWA_DZIENNEJ_PROMOCJI = "Dzienna promocja";
 
 router.get("/", async (req, res) => {
   try {
@@ -30,6 +32,7 @@ router.get("/", async (req, res) => {
     const nazwa = normalizujTekst(req.query.nazwa);
     const typ = normalizujTekst(req.query.typ).toLowerCase();
     const stan = normalizujTekst(req.query.stan).toLowerCase();
+    const pokazDzienne = parsujBoolean(req.query.pokaz_dzienne);
     const params = [];
     const where = [];
     const filtry = {
@@ -38,7 +41,8 @@ router.get("/", async (req, res) => {
       stan: stan || null,
       sprzet_id: null,
       kategoria_id: null,
-      uzytkownik_id: null
+      uzytkownik_id: null,
+      pokaz_dzienne: pokazDzienne
     };
 
     if (typ && !TYPY_PROMOCJI.includes(typ)) {
@@ -47,6 +51,11 @@ router.get("/", async (req, res) => {
 
     if (stan && !STANY_PROMOCJI.includes(stan)) {
       throw new BladPromocji("Nieprawidlowy stan promocji.");
+    }
+
+    if (!pokazDzienne) {
+      params.push(NAZWA_DZIENNEJ_PROMOCJI);
+      where.push(`p.nazwa <> $${params.length}`);
     }
 
     if (nazwa) {

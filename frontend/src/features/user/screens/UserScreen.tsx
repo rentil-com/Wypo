@@ -1,7 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -17,12 +17,11 @@ import { FavouritesResponse } from "@features/favourites/fav.types";
 import { pobierzUlubione } from "@features/favourites/fav.service";
 import { pobierzUsuwalneKategorie, usunKategorie } from "@features/categories/categories.management.services";
 import {
-  czyOdpowiedzDziennejPromocji,
   losujDziennaPromocje,
+  pobierzDziennaPromocje,
   type DailyPromotionResponse,
 } from "@features/promotions";
 
-const DAILY_PROMOTION_STORAGE_PREFIX = "rentil_daily_promotion_";
 const EMPTY_TIME_LEFT = { hours: 0, minutes: 0, seconds: 0 };
 
 type TimeLeft = {
@@ -33,80 +32,6 @@ type TimeLeft = {
 
 function pobierzTerminPromocji(response: DailyPromotionResponse) {
   return response.ponowne_losowanie_od || response.promocja.data_do;
-}
-
-function czyPromocjaAktywna(response: DailyPromotionResponse) {
-  const expiration = new Date(pobierzTerminPromocji(response)).getTime();
-
-  return (
-    Number.isFinite(expiration) &&
-    expiration > Date.now() &&
-    response.promocja.aktywna !== false &&
-    response.promocja.stan !== "wygasla" &&
-    response.promocja.stan !== "wylaczona"
-  );
-}
-
-function kluczDziennejPromocji(userId: number) {
-  return `${DAILY_PROMOTION_STORAGE_PREFIX}${userId}`;
-}
-
-function pobierzZapamietanaPromocje(userId: number) {
-  if (typeof localStorage === "undefined") {
-    return null;
-  }
-
-  try {
-    const storedPromotion = localStorage.getItem(kluczDziennejPromocji(userId));
-
-    if (!storedPromotion) {
-      return null;
-    }
-
-    const parsedPromotion: unknown = JSON.parse(storedPromotion);
-
-    if (
-      !czyOdpowiedzDziennejPromocji(parsedPromotion) ||
-      !czyPromocjaAktywna(parsedPromotion)
-    ) {
-      localStorage.removeItem(kluczDziennejPromocji(userId));
-      return null;
-    }
-
-    return parsedPromotion;
-  } catch {
-    return null;
-  }
-}
-
-function zapiszPromocje(
-  userId: number,
-  promotionResponse: DailyPromotionResponse,
-) {
-  if (typeof localStorage === "undefined") {
-    return;
-  }
-
-  try {
-    localStorage.setItem(
-      kluczDziennejPromocji(userId),
-      JSON.stringify(promotionResponse),
-    );
-  } catch {
-    // Brak dostepu do pamieci przegladarki nie blokuje losowania.
-  }
-}
-
-function usunZapamietanaPromocje(userId: number) {
-  if (typeof localStorage === "undefined") {
-    return;
-  }
-
-  try {
-    localStorage.removeItem(kluczDziennejPromocji(userId));
-  } catch {
-    // Brak dostepu do pamieci przegladarki nie blokuje ekranu.
-  }
 }
 
 function formatujRabat(value: number) {
@@ -135,6 +60,7 @@ export default function User() {
   const [dailyPromotion, setDailyPromotion] = useState<DailyPromotionResponse | null>(null);
   const [dailyProduct, setDailyProduct] = useState<SingleProductApiItem | null>(null);
   const [promotionLoading, setPromotionLoading] = useState(false);
+  const [promotionRefreshing, setPromotionRefreshing] = useState(false);
   const [promotionError, setPromotionError] = useState<string | null>(null);
 
   const [ulubioneIds, setUlubioneIds] = useState<FavouritesResponse | null>(null);
@@ -271,17 +197,54 @@ export default function User() {
 
 
 
-  useEffect(() => {
-    setPromotionError(null);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-    if (!user) {
-      setDailyPromotion(null);
-      setTimeLeft(EMPTY_TIME_LEFT);
-      return;
-    }
+      setPromotionError(null);
 
-    setDailyPromotion(pobierzZapamietanaPromocje(user.id));
-  }, [user]);
+      if (!isAuthenticated || !user) {
+        setDailyPromotion(null);
+        setTimeLeft(EMPTY_TIME_LEFT);
+        setPromotionRefreshing(false);
+
+        return () => {
+          active = false;
+        };
+      }
+
+      setPromotionRefreshing(true);
+
+      async function zaladujDziennaPromocje() {
+        try {
+          const response = await pobierzDziennaPromocje();
+
+          if (active) {
+            setDailyPromotion(response);
+          }
+        } catch (error) {
+          if (active) {
+            setDailyPromotion(null);
+            setPromotionError(
+              error instanceof Error
+                ? error.message
+                : "Nie udało się pobrać dziennej promocji",
+            );
+          }
+        } finally {
+          if (active) {
+            setPromotionRefreshing(false);
+          }
+        }
+      }
+
+      void zaladujDziennaPromocje();
+
+      return () => {
+        active = false;
+      };
+    }, [isAuthenticated, user]),
+  );
 
   useEffect(() => {
     if (promotedProductId === null) {
@@ -319,7 +282,7 @@ export default function User() {
   }, [promotedProductId]);
 
   useEffect(() => {
-    if (!dailyPromotion || !user) {
+    if (!dailyPromotion) {
       setTimeLeft(EMPTY_TIME_LEFT);
       return;
     }
@@ -333,7 +296,6 @@ export default function User() {
       if (!Number.isFinite(expiration) || difference <= 0) {
         setDailyPromotion(null);
         setTimeLeft(EMPTY_TIME_LEFT);
-        usunZapamietanaPromocje(user.id);
         return;
       }
 
@@ -348,10 +310,10 @@ export default function User() {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [dailyPromotion, user]);
+  }, [dailyPromotion]);
 
   const wylosujPromocje = async () => {
-    if (!isAuthenticated || !user || promotionLoading) {
+    if (!isAuthenticated || !user || promotionLoading || promotionRefreshing) {
       return;
     }
 
@@ -362,8 +324,6 @@ export default function User() {
       const response = await losujDziennaPromocje();
 
       setDailyPromotion(response);
-      zapiszPromocje(user.id, response);
-
       try {
         const productsResponse = await pobierzProdukty();
         setProdukty(productsResponse.dane);
@@ -388,11 +348,17 @@ export default function User() {
         {/*Przenoszenie do odpowiednich widokow */}
 
       {isAdmin && (
-        <View style={styles.adminBadge}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Otwórz panel promocji"
+          style={styles.adminBadge}
+          onPress={() => router.push("/promotions/admin")}
+        >
           <View style={styles.adminBadgeDot} />
           <MaterialIcons name="admin-panel-settings" size={17} color="#176BDE" />
-          <Text style={styles.adminBadgeText}>ADMIN</Text>
-        </View>
+          <Text style={styles.adminBadgeText}>ADMIN · PANEL PROMOCJI</Text>
+          <MaterialIcons name="chevron-right" size={18} color="#176BDE" />
+        </Pressable>
       )}
 
       {/* SPECIAL OFFER CARD */}
@@ -499,14 +465,24 @@ export default function User() {
                 <Pressable
                   style={[
                     styles.offerButton,
-                    (!isAuthenticated || promotionLoading) &&
+                    (!isAuthenticated ||
+                      promotionLoading ||
+                      promotionRefreshing) &&
                       styles.offerButtonDisabled,
                   ]}
-                  disabled={!isAuthenticated || promotionLoading}
+                  disabled={
+                    !isAuthenticated ||
+                    promotionLoading ||
+                    promotionRefreshing
+                  }
                   onPress={() => void wylosujPromocje()}
                 >
                   <Text style={styles.offerButtonText}>
-                    {promotionLoading ? "Losowanie..." : "Wylosuj promocję"}
+                    {promotionRefreshing
+                      ? "Sprawdzanie..."
+                      : promotionLoading
+                        ? "Losowanie..."
+                        : "Wylosuj promocję"}
                   </Text>
                 </Pressable>
 
