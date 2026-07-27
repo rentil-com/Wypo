@@ -5,10 +5,15 @@ import PageLayout from "@components/shared/Layout/PageLayout";
 import ProductCard from "@components/shared/Product/ProductCard";
 import { pobierzUlubione } from "@features/favourites/fav.service";
 import { pobierzPojedynczyProdukt, type ApiItem } from "@features/products";
+import { pobierzMojeWypozyczenia } from "./loans.service";
+import type { LoanResponse } from "./loans.types";
 
+function formatujDate(data: string) {
+  return new Date(data).toLocaleDateString("pl-PL");
+}
 
 export default function MyLoansScreen() {
-  const [wypozyczenia,setWypozyczenia] = useState<[]>([]);
+  const [wypozyczenia,setWypozyczenia] = useState<LoanResponse[]>([]);
   const [produkty,setProdukty] = useState<ApiItem[]>([]);
   const [ulubioneIds,setUlubioneIds] = useState<number[]>([]);
   const [loading,setLoading] = useState(true);
@@ -20,52 +25,52 @@ export default function MyLoansScreen() {
       setLoading(true);
 
       try {
-        const response = await zzzz;
+        const response = await pobierzMojeWypozyczenia();
         const pobraneProdukty: ApiItem[] = [];
 
-        for (const recenzja of response.dane) {
-          const produkt = await pobierzPojedynczyProdukt(recenzja.sprzet_id);
+        for (const wypozyczenia of response.dane) {
+          const produkt = await pobierzPojedynczyProdukt(wypozyczenia.sprzet_id);
           pobraneProdukty.push(produkt);
         }
 
         const ulubione = await pobierzUlubione();
-        setRecenzje(response.dane);
+        setWypozyczenia(response.dane);
         setProdukty(pobraneProdukty);
         setUlubioneIds(ulubione);
       } catch (error) {
-        setError(error instanceof Error ? error.message : "Nie udało się pobrać recenzji");
+        setError(error instanceof Error ? error.message : "Nie udało się pobrać wypożyczeń");
       } finally {
         setLoading(false);
       }
     }
 
-    void zaladujRecenzje();
+    void zaladujWypozyczenia();
   }, []);
 
   return (
     <PageLayout wide>
       <View style={styles.content}>
-        <Text style={styles.title}>Moje recenzje</Text>
+        <Text style={styles.title}>Moje wypozyczenia</Text>
 
         {loading && (
           <View style={styles.message}>
             <ActivityIndicator size="large" color="#176BDE" />
-            <Text style={styles.messageText}>Ładowanie recenzji...</Text>
+            <Text style={styles.messageText}>Ładowanie wypożyczeń...</Text>
           </View>
         )}
 
         {!loading && error && <Text style={styles.errorText}>{error}</Text>}
 
-        {!loading && !error && recenzje.length === 0 && (
-          <Text style={styles.messageText}>Nie masz jeszcze żadnych recenzji.</Text>
+        {!loading && !error && wypozyczenia.length === 0 && (
+          <Text style={styles.messageText}>Nie masz jeszcze żadnych wypożyczeń.</Text>
         )}
 
-        {!loading && !error && recenzje.map((recenzja,index) => {
+        {!loading && !error && wypozyczenia.map((wypozyczenie,index) => {
           const produkt = produkty[index];
           if (!produkt) return null;
 
           return (
-            <View key={recenzja.id} style={styles.reviewRow}>
+            <View key={wypozyczenie.id} style={styles.reviewRow}>
               <View style={styles.productWrapper}>
                 <ProductCard
                   item={{
@@ -79,9 +84,19 @@ export default function MyLoansScreen() {
               </View>
 
               <View style={styles.reviewCard}>
-                <Text style={styles.reviewTitle}>Twoja recenzja</Text>
-                <Text style={styles.rating}>★ {recenzja.gwiazdki}/5</Text>
-                <Text style={styles.reviewText}>{recenzja.tresc ?? "Brak treści recenzji."}</Text>
+                <Text style={styles.reviewTitle}>
+                  Wypożyczenie #{wypozyczenie.id}
+                </Text>
+                <Text style={styles.rating}>
+                  Status: {wypozyczenie.status}
+                </Text>
+                <Text style={styles.reviewText}>
+                  Termin: {formatujDate(wypozyczenie.data_od)} –{" "}
+                  {formatujDate(wypozyczenie.data_do)}
+                </Text>
+                <Text style={styles.reviewText}>
+                  Cena: {wypozyczenie.cena_koncowa.toFixed(2)} zł
+                </Text>
               </View>
             </View>
           );
