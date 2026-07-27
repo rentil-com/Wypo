@@ -111,3 +111,15 @@ export type LoanPutBody = {
     status? : LoanStatus,
     data_zwrotu_rzeczywista? : string | null
 }
+
+export type MyLoansParams = {
+  strona?: number;
+};
+
+export type MyLoansResponse = {
+  strona: number;
+  limitWnioskowNaStrone: number;
+  total: number;
+  liczbaStron: number;
+  dane: LoanResponse[];
+};
