@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { Picker } from '@react-native-picker/picker';
@@ -36,6 +38,11 @@ export default function TabsLayout({
   tylkoPromocje,
   promocja,
 }: CatalogViewProps) {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 720;
+  const isCompact = width < 1280;
+  const productColumns =
+    width < 720 ? 1 : width < 1280 ? 2 : width < 1740 ? 3 : 4;
   const { status, user } = useAuth();
   const isAdmin = user?.rola === "admin";
   const isAuthenticated = status === "authenticated";
@@ -58,6 +65,11 @@ export default function TabsLayout({
   const [usuwalneProduktyIds,setUsuwalneProduktyIds] = useState<number[]>([])
   const [productToDelete,setProductToDelete] = useState<ApiItem | null>(null)
   const [produkty, setProdukty] = useState<ApiItem[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    total: 0,
+    totalPages: 1,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [wybraneSortowanie,setwybraneSortowanie] = useState("")
@@ -174,6 +186,11 @@ useEffect(() => {
 
         if (!cancelled) {
           setProdukty(response.dane);
+          setPagination({
+            currentPage: response.strona,
+            total: response.total,
+            totalPages: Math.max(response.liczbaStron, 1),
+          });
         }
       } catch (error) {
         if (!cancelled) {
@@ -192,6 +209,23 @@ useEffect(() => {
       cancelled = true;
     };
   }, [filters, searchQuery]);
+
+  useEffect(() => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      strona: 1,
+      kategoria: kategoriaId ? Number(kategoriaId) : null,
+      promocja: Boolean(promocja || tylkoPromocje),
+    }));
+  }, [kategoriaId, promocja, tylkoPromocje]);
+
+  useEffect(() => {
+    setFilters((currentFilters) =>
+      currentFilters.strona === 1
+        ? currentFilters
+        : { ...currentFilters, strona: 1 },
+    );
+  }, [searchQuery]);
 
   const clearFilters = () => {
     setFilters({
@@ -217,6 +251,7 @@ useEffect(() => {
     const nowyStan = !filters.promocja;
     setFilters((currentFilters) => ({
       ...currentFilters,
+      strona: 1,
       promocja: nowyStan,
     }));
     router.setParams({
@@ -232,6 +267,7 @@ useEffect(() => {
 
     setFilters((currentFilters) => ({
       ...currentFilters,
+      strona: 1,
       cena_od: value === "" ? null : Number(value),
     }));
     router.setParams({ cena_od: value === "" ? undefined : value });
@@ -245,6 +281,7 @@ useEffect(() => {
 
     setFilters((currentFilters) => ({
       ...currentFilters,
+      strona: 1,
       cena_do: value === "" ? null : Number(value),
     }));
     router.setParams({ cena_do: value === "" ? undefined : value });
@@ -256,17 +293,48 @@ useEffect(() => {
  
   const handleSort = (value : string) => {
     setwybraneSortowanie(value)
-    if(value === "asc"){ 
-      const ascending = [...produkty].sort((a,b)=> getFinalPrice(a) - getFinalPrice(b))
-      setProdukty(ascending)
-    }
-    else {
-      if(value === "desc"){
-              const descending = [...produkty].sort((a,b)=> getFinalPrice(b) - getFinalPrice(a))
-              setProdukty(descending)
-      }
-    }
   }
+
+  const sortedProducts = [...produkty].sort((a, b) => {
+    if (wybraneSortowanie === "asc") {
+      return getFinalPrice(a) - getFinalPrice(b);
+    }
+
+    if (wybraneSortowanie === "desc") {
+      return getFinalPrice(b) - getFinalPrice(a);
+    }
+
+    return 0;
+  });
+
+  const maxVisiblePages = isMobile ? 3 : 5;
+  const firstVisiblePage = Math.max(
+    1,
+    Math.min(
+      pagination.currentPage - Math.floor(maxVisiblePages / 2),
+      pagination.totalPages - (maxVisiblePages - 1),
+    ),
+  );
+  const visiblePages = Array.from(
+    { length: Math.min(maxVisiblePages, pagination.totalPages) },
+    (_, index) => firstVisiblePage + index,
+  );
+
+  const goToPage = (page: number) => {
+    if (
+      page < 1 ||
+      page > pagination.totalPages ||
+      page === pagination.currentPage ||
+      loading
+    ) {
+      return;
+    }
+
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      strona: page,
+    }));
+  };
 
   const usuniecieKategorii = async () => {
     if (!categoryToDelete) {
@@ -318,7 +386,7 @@ useEffect(() => {
   }
 
   return (
-   <PageLayout wide>
+   <PageLayout wide scrollToTopKey={pagination.currentPage}>
         {/* GŁÓWNA ZAWARTOŚĆ */}
         <View style={styles.mainContent}>
 
@@ -326,7 +394,13 @@ useEffect(() => {
         <Breadcrumbs items={[{label : "Wszystkie"}]}/>
 
         {/*NAGŁOWEK STRONY, OPISY ZACHECAJACE */}
-        <View style={styles.pageHeading}>
+        <View
+          style={[
+            styles.pageHeading,
+            isCompact && styles.pageHeadingCompact,
+            isMobile && styles.pageHeadingMobile,
+          ]}
+        >
             <View style={styles.pageHeadingContent}>
               <ThemedText style={styles.pageTitle}>Wszystkie produkty</ThemedText>
 
@@ -336,8 +410,18 @@ useEffect(() => {
               </ThemedText>
             </View>
 
-            <View style={styles.pageHeadingActions}>
-              <View style={styles.productsInfo}>
+            <View
+              style={[
+                styles.pageHeadingActions,
+                isMobile && styles.pageHeadingActionsMobile,
+              ]}
+            >
+              <View
+                style={[
+                  styles.productsInfo,
+                  isMobile && styles.productsInfoMobile,
+                ]}
+              >
                 <View style={styles.productsInfoIcon}>
                   <ThemedText style={styles.productsInfoIconText}>
                    <MaterialIcons name="business-center" size={32}  />
@@ -352,7 +436,10 @@ useEffect(() => {
 
               {isAdmin && (
                 <Pressable
-                  style={styles.addProductButton}
+                  style={[
+                    styles.addProductButton,
+                    isMobile && styles.addProductButtonMobile,
+                  ]}
                   onPress={() => router.push("/products/AddProduct")}
                 >
                   <MaterialIcons name="add" size={19} color="#FFFFFF" />
@@ -367,8 +454,18 @@ useEffect(() => {
          {/* UKŁAD KATALOGU */}
          
             {/* LEWY PANEL KATEGORII, KATEGORIE MAPOWANE Z DANYCH , NARAZIE PRZYKŁADOWE NIE WSZYSTKO */}
-            <View style={styles.catalogLayout}>
-              <View style={styles.categoriesSidebar}>   
+            <View
+              style={[
+                styles.catalogLayout,
+                isCompact && styles.catalogLayoutCompact,
+              ]}
+            >
+              <View
+                style={[
+                  styles.categoriesSidebar,
+                  isCompact && styles.categoriesSidebarCompact,
+                ]}
+              >
                  <ThemedText style={styles.sidebarTitle}>
                 Kategorie
               </ThemedText>
@@ -480,8 +577,19 @@ useEffect(() => {
               {/* PANEL FILTRÓW */}
               <View style={styles.filtersPanel}>
                 {/* GÓRNY RZĄD FILTRÓW */}
-                <View style={styles.filtersTopRow}>
-                  <View  style={styles.filterGroup}>
+                <View
+                  style={[
+                    styles.filtersTopRow,
+                    isCompact && styles.filtersTopRowCompact,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.filterGroup,
+                      isCompact && styles.filterGroupCompact,
+                      isMobile && styles.filterGroupMobile,
+                    ]}
+                  >
                     <ThemedText style={styles.filterLabel}>Cena od</ThemedText>
                     <TextInput
                       style={styles.filterInput}
@@ -494,7 +602,13 @@ useEffect(() => {
                     />
                   </View>
 
-                  <View style={styles.filterGroup}>
+                  <View
+                    style={[
+                      styles.filterGroup,
+                      isCompact && styles.filterGroupCompact,
+                      isMobile && styles.filterGroupMobile,
+                    ]}
+                  >
                     <ThemedText style={styles.filterLabel}>Cena do</ThemedText>
                     <TextInput
                     value={filters.cena_do?.toString() ?? ""}
@@ -504,7 +618,13 @@ useEffect(() => {
                       onChangeText={handlePriceChangeCenaDo}
                     />
                   </View>
-                  <View style={styles.filterGroup}>
+                  <View
+                    style={[
+                      styles.filterGroup,
+                      isCompact && styles.filterGroupCompact,
+                      isMobile && styles.filterGroupMobile,
+                    ]}
+                  >
                     <ThemedText style={styles.filterLabel}>Sortuj</ThemedText>
                   <Picker selectedValue={wybraneSortowanie?.toString() ?? ""} onValueChange={(val)=> handleSort(val)} style={styles.filterInput}
                   >
@@ -513,7 +633,14 @@ useEffect(() => {
                   </Picker>
                   </View>
 
-                  <Pressable style={styles.promotionFilter} onPress={()=> handleSwitchPromotion()}>
+                  <Pressable
+                    style={[
+                      styles.promotionFilter,
+                      isCompact && styles.promotionFilterCompact,
+                      isMobile && styles.promotionFilterMobile,
+                    ]}
+                    onPress={()=> handleSwitchPromotion()}
+                  >
                     <ThemedText style={styles.promotionIcon}>◆</ThemedText>
                     <ThemedText style={styles.promotionLabel}>Promocja</ThemedText>
                     <View style={[styles.switchTrack, promocjeAktywne && styles.switchTrack1]}>
@@ -523,78 +650,157 @@ useEffect(() => {
                 </View>
 
                 {/* DOLNY RZĄD FILTRÓW */}
-                <View style={styles.filtersBottomRow}>
-                  <View style={styles.filterActions}>
-                    <Pressable style={[styles.filterActionButton, styles.filterActionButtonPrimary]}>
-                      <ThemedText style={styles.filterActionIcon}>☷</ThemedText>
-                      <ThemedText style={styles.filterActionTextPrimary}>Więcej filtrów</ThemedText>
-                    </Pressable>
-
+                <View
+                  style={[
+                    styles.filtersBottomRow,
+                    isMobile && styles.filtersBottomRowMobile,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.filterActions,
+                      isMobile && styles.filterActionsMobile,
+                    ]}
+                  >
                     <Pressable style={styles.filterActionButton} onPress={()=> clearFilters()}>
                       <ThemedText style={styles.filterActionIconMuted}>↻</ThemedText>
                       <ThemedText style={styles.filterActionText}>Wyczyść filtry</ThemedText>
                     </Pressable>
                   </View>
 
-                  <ThemedText style={styles.resultsText}>Znaleziono: 120 produktów</ThemedText>
+                  <ThemedText style={styles.resultsText}>
+                    Znaleziono: {pagination.total} produktów
+                  </ThemedText>
                 </View>
               </View>
              {/* LISTA PRODUKTÓW */}
 
-       {loading && <Text>Ładowanie .....</Text>}
-       {error && <Text>{error}</Text>}
+       {loading && (
+         <View style={styles.catalogState}>
+           <ActivityIndicator size="large" color="#176BDE" />
+           <Text style={styles.catalogStateText}>Ładowanie produktów...</Text>
+         </View>
+       )}
+       {!loading && error && (
+         <View style={styles.catalogState}>
+           <MaterialIcons name="error-outline" size={30} color="#DC2626" />
+           <Text style={styles.catalogErrorText}>{error}</Text>
+         </View>
+       )}
+       {!loading && !error && produkty.length === 0 && (
+         <View style={styles.catalogState}>
+           <MaterialIcons name="inventory-2" size={34} color="#94A3B8" />
+           <Text style={styles.catalogStateText}>
+             Brak produktów spełniających wybrane kryteria.
+           </Text>
+         </View>
+       )}
 
-  <ProductGrid
+  {!loading && !error && produkty.length > 0 && <ProductGrid
     usuwalneProduktyIds={usuwalneProduktyIds}
     onDeleteProduct={(produkt)=> setProductToDelete(produkt)}
     ulubioneIds ={tablicaUlubionych ??  []}
-    data={produkty}
+    data={sortedProducts}
+    numColumns={productColumns}
+    scrollEnabled={false}
     showAdminActions={isAdmin}
-    columnWrapperStyle={styles.productsRow}
+    columnWrapperStyle={productColumns > 1 ? styles.productsRow : undefined}
     contentContainerStyle={styles.productsGrid}
-    mapItem={(item)=> ({...item,opis : item.opis ?? "",cena_po_promocji : item.czy_promocja ? item.cena_aktualna : null, zdjecie_url : item.zdjecia_url["1"]})}
-/>
+    mapItem={(item)=> ({
+      ...item,
+      opis: item.opis ?? "",
+      cena_po_promocji: item.czy_promocja ? item.cena_aktualna : null,
+      zdjecie_url: Object.values(item.zdjecia_url)[0] ?? "",
+    })}
+  />}
 
 
 
-              <View style={styles.pagination}>
-                <View style={styles.paginationSide} />
-
+              {!loading && !error && pagination.totalPages > 1 && (
+              <View
+                style={[
+                  styles.pagination,
+                  isMobile && styles.paginationMobile,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.paginationSide,
+                    styles.paginationSideStart,
+                    isMobile && styles.paginationSideMobile,
+                  ]}
+                >
+                  <Text style={styles.pageSizeLabel}>
+                    Strona {pagination.currentPage} z {pagination.totalPages}
+                  </Text>
+                </View>
                 <View style={styles.paginationPages}>
-                  <View style={[styles.paginationButton, styles.paginationButtonDisabled]}>
-                    <MaterialIcons name="chevron-left" size={20} color="#B8C4D6" />
-                  </View>
-                  <View style={[styles.paginationButton, styles.paginationButtonActive]}>
-                    <Text style={styles.paginationTextActive}>1</Text>
-                  </View>
-                  <View style={styles.paginationButton}>
-                    <Text style={styles.paginationText}>2</Text>
-                  </View>
-                  <View style={styles.paginationButton}>
-                    <Text style={styles.paginationText}>3</Text>
-                  </View>
-                  <View style={styles.paginationButton}>
-                    <Text style={styles.paginationText}>4</Text>
-                  </View>
-                  <View style={styles.paginationButton}>
-                    <Text style={styles.paginationText}>...</Text>
-                  </View>
-                  <View style={styles.paginationButton}>
-                    <Text style={styles.paginationText}>10</Text>
-                  </View>
-                  <View style={styles.paginationButton}>
-                    <MaterialIcons name="chevron-right" size={20} color="#172033" />
-                  </View>
-                </View>
+                  <Pressable
+                    accessibilityLabel="Poprzednia strona"
+                    disabled={pagination.currentPage === 1}
+                    style={[
+                      styles.paginationButton,
+                      pagination.currentPage === 1 &&
+                        styles.paginationButtonDisabled,
+                    ]}
+                    onPress={() => goToPage(pagination.currentPage - 1)}
+                  >
+                    <MaterialIcons
+                      name="chevron-left"
+                      size={20}
+                      color={pagination.currentPage === 1 ? "#B8C4D6" : "#172033"}
+                    />
+                  </Pressable>
+                  {visiblePages.map((page) => {
+                    const isActive = page === pagination.currentPage;
 
-                <View style={styles.paginationSide}>
-                  <Text style={styles.pageSizeLabel}>Pokaż na stronie:</Text>
-                  <View style={styles.pageSizeSelect}>
-                    <Text style={styles.pageSizeValue}>12</Text>
-                    <MaterialIcons name="expand-more" size={19} color="#172033" />
-                  </View>
+                    return (
+                      <Pressable
+                        key={page}
+                        accessibilityLabel={`Strona ${page}`}
+                        accessibilityState={{ selected: isActive }}
+                        style={[
+                          styles.paginationButton,
+                          isActive && styles.paginationButtonActive,
+                        ]}
+                        onPress={() => goToPage(page)}
+                      >
+                        <Text
+                          style={
+                            isActive
+                              ? styles.paginationTextActive
+                              : styles.paginationText
+                          }
+                        >
+                          {page}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                  <Pressable
+                    accessibilityLabel="Następna strona"
+                    disabled={pagination.currentPage === pagination.totalPages}
+                    style={[
+                      styles.paginationButton,
+                      pagination.currentPage === pagination.totalPages &&
+                        styles.paginationButtonDisabled,
+                    ]}
+                    onPress={() => goToPage(pagination.currentPage + 1)}
+                  >
+                    <MaterialIcons
+                      name="chevron-right"
+                      size={20}
+                      color={
+                        pagination.currentPage === pagination.totalPages
+                          ? "#B8C4D6"
+                          : "#172033"
+                      }
+                    />
+                  </Pressable>
                 </View>
+                {!isMobile && <View style={styles.paginationSide} />}
               </View>
+              )}
 
               </View>
 
@@ -697,6 +903,16 @@ pageHeading: {
     gap: 24,
   },
 
+  pageHeadingCompact: {
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+
+  pageHeadingMobile: {
+    gap: 16,
+    paddingHorizontal: 0,
+  },
+
   pageHeadingContent: {
     flex: 1,
   },
@@ -721,6 +937,12 @@ pageHeading: {
     gap: 10,
   },
 
+  pageHeadingActionsMobile: {
+    width: "100%",
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+
   addProductButton: {
     minHeight: 46,
     flexDirection: "row",
@@ -736,6 +958,10 @@ pageHeading: {
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "800",
+  },
+
+  addProductButtonMobile: {
+    width: "100%",
   },
 
   addCategoryButton: {
@@ -777,6 +1003,11 @@ pageHeading: {
     elevation: 2,
   },
 
+  productsInfoMobile: {
+    width: "100%",
+    minWidth: 0,
+  },
+
   productsInfoIcon: {
     width: 42,
     height: 42,
@@ -810,6 +1041,10 @@ pageHeading: {
     gap: 18,
   },
 
+  catalogLayoutCompact: {
+    flexDirection: "column",
+  },
+
   categoriesSidebar: {
     width: 218,
     backgroundColor: "#FFFFFF",
@@ -825,6 +1060,9 @@ pageHeading: {
     shadowOpacity: 0.04,
     shadowRadius: 22,
     elevation: 2,
+  },
+  categoriesSidebarCompact: {
+    width: "100%",
   },
   sidebarTitle: {
     color: "#151D2F",
@@ -937,9 +1175,19 @@ pageHeading: {
     alignItems: "flex-end",
     gap: 12,
   },
+  filtersTopRowCompact: {
+    flexWrap: "wrap",
+  },
    filterGroup: {
     flex: 1,
     minWidth: 112,
+  },
+  filterGroupCompact: {
+    flexBasis: 180,
+  },
+  filterGroupMobile: {
+    flexBasis: "100%",
+    minWidth: "100%",
   },
   filterLabel: {
     color: "#273247",
@@ -994,6 +1242,14 @@ pageHeading: {
     alignItems: "center",
     gap: 9,
   },
+  promotionFilterCompact: {
+    flex: 1,
+    minWidth: 178,
+  },
+  promotionFilterMobile: {
+    width: "100%",
+    minWidth: "100%",
+  },
   promotionIcon: {
     color: "#F43F5E",
     fontSize: 15,
@@ -1027,10 +1283,17 @@ pageHeading: {
     justifyContent: "space-between",
     gap: 16,
   },
+  filtersBottomRowMobile: {
+    alignItems: "flex-start",
+  },
   filterActions: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  filterActionsMobile: {
+    width: "100%",
+    flexWrap: "wrap",
   },
   filterActionButton: {
     minHeight: 34,
@@ -1069,6 +1332,25 @@ pageHeading: {
     color: "#7786A1",
     fontSize: 12,
   },
+  catalogState: {
+    minHeight: 220,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    padding: 24,
+  },
+  catalogStateText: {
+    color: "#64748B",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  catalogErrorText: {
+    color: "#DC2626",
+    fontSize: 14,
+    textAlign: "center",
+  },
   pagination: {
     width: "100%",
     minHeight: 44,
@@ -1079,6 +1361,10 @@ pageHeading: {
     justifyContent: "space-between",
     gap: 18,
   },
+  paginationMobile: {
+    flexDirection: "column",
+    justifyContent: "center",
+  },
   paginationSide: {
     flex: 1,
     minWidth: 190,
@@ -1086,6 +1372,14 @@ pageHeading: {
     alignItems: "center",
     justifyContent: "flex-end",
     gap: 12,
+  },
+  paginationSideStart: {
+    justifyContent: "flex-start",
+  },
+  paginationSideMobile: {
+    flex: 0,
+    minWidth: 0,
+    justifyContent: "center",
   },
   paginationPages: {
     flexDirection: "row",
