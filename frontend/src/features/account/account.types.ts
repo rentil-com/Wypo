@@ -59,3 +59,27 @@ export type DeleteAccountResponse = {
   dwuetapowe: boolean;
   data_utworzenia: string;
 }
+
+export type AccountListParams = {
+  strona?: number;
+  imie?: string;
+  nazwisko?: string;
+  email?: string;
+  rola?: UserRole;
+}
+
+export type AccountsListFilters = {
+  imie: string | null;
+  nazwisko: string | null;
+  email: string | null;
+  rola: UserRole | null;
+};
+
+export type AccountsListResponse = {
+  strona: number;
+  limitKontNaStrone: number;
+  filtry: AccountsListFilters;
+  total: number;
+  liczbaStron: number;
+  dane: AccountDetails[];
+};
