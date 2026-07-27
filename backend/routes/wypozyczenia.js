@@ -9,6 +9,7 @@ import przypomnienieOdbioruRouter from "./endpoints/wypozyczenia/przypomnienie-o
 import przypomnienieZwrotuRouter from "./endpoints/wypozyczenia/przypomnienie-zwrotu.js";
 import przeterminowanyZwrotRouter from "./endpoints/wypozyczenia/przeterminowany-zwrot.js";
 import edytujRouter from "./endpoints/wypozyczenia/edytuj.js";
+import mojeRouter from "./endpoints/wypozyczenia/moje.js";
 import {
   dolaczUzytkownikaZSesji,
   tylkoAdmin,
@@ -21,6 +22,7 @@ const zalogowany = [dolaczUzytkownikaZSesji, wymagajZalogowania];
 const administrator = [...zalogowany, tylkoAdmin];
 
 router.use("/wypozycz", ...zalogowany, wypozyczRouter);
+router.use("/moje", ...zalogowany, mojeRouter);
 router.use("/wnioski", ...administrator, listaWnioskowRouter);
 router.use("/wnioski", ...administrator, szczegolyWnioskuRouter);
 router.use("/wnioski", ...administrator, decyzjaWnioskuRouter);

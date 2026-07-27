@@ -828,6 +828,26 @@ Zwraca listę ID sprzętów polubionych przez użytkownika o podanym ID konta.
 
 ## Wypożyczenia
 
+### `GET /wypozyczenia/moje`
+
+Wymaga logowania.
+
+Zwraca paginowana liste wypozyczen aktualnie zalogowanego uzytkownika,
+niezaleznie od ich statusu. Endpoint nie przyjmuje ID uzytkownika i nie pozwala
+odczytac wypozyczen innego konta.
+
+Query parametry:
+
+* `strona` - numer strony, domyslnie `1`
+
+Odpowiedz zawiera:
+
+* `strona`
+* `limitWnioskowNaStrone`
+* `total`
+* `liczbaStron`
+* `dane`
+
 ### `POST /wypozyczenia/wypozycz`
 
 Wymaga logowania.

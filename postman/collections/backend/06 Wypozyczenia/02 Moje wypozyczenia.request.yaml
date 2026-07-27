@@ -1,0 +1,11 @@
+$kind: http-request
+name: Moje wypozyczenia
+url: "{{base_url}}/wypozyczenia/moje?strona={{page}}"
+method: GET
+queryParams:
+  strona: "{{page}}"
+headers:
+  - key: Authorization
+    value: "Bearer {{api_key}}"
+    disabled: true
+order: 1500
