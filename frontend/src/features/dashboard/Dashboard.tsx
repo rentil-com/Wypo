@@ -1,5 +1,6 @@
 import { Redirect, router } from "expo-router";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 import { useAuth } from "@/contexts/AuthContext";
 import PageLayout from "@components/shared/Layout/PageLayout";
@@ -15,8 +16,33 @@ export default function Dashboard() {
     );
   }
 
-  if (status !== "authenticated" || user?.rola !== "admin") {
-    return <Redirect href="/(tabs)/user" />;
+  if (status !== "authenticated") {
+    return (
+      <PageLayout wide>
+        <View style={styles.authGate}>
+          <View style={styles.authIcon}>
+            <MaterialIcons name="lock-outline" size={30} color="#176BDE" />
+          </View>
+          <Text style={styles.authTitle}>Dashboard wymaga konta administratora</Text>
+          <Text style={styles.authDescription}>
+            Zaloguj się na konto administratora, aby przejść do panelu zarządzania.
+          </Text>
+          <Pressable
+            style={styles.authButton}
+            onPress={() => router.push({
+              pathname: "/login",
+              params: { reason: "Zaloguj się na konto administratora, aby otworzyć Dashboard." },
+            })}
+          >
+            <Text style={styles.authButtonText}>Przejdź do logowania</Text>
+          </Pressable>
+        </View>
+      </PageLayout>
+    );
+  }
+
+  if (user?.rola !== "admin") {
+    return <Redirect href="/" />;
   }
 
   return (
@@ -67,6 +93,55 @@ export default function Dashboard() {
 }
 
 const styles = StyleSheet.create({
+  authGate: {
+    width: "100%",
+    maxWidth: 600,
+    minHeight: 320,
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 28,
+    backgroundColor: "#FFFFFF",
+    padding: 36,
+    marginTop: 48,
+  },
+  authIcon: {
+    width: 60,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 20,
+    backgroundColor: "#EEF6FF",
+    marginBottom: 18,
+  },
+  authTitle: {
+    color: "#111827",
+    fontSize: 24,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  authDescription: {
+    maxWidth: 460,
+    color: "#64748B",
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  authButton: {
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 13,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 22,
+    marginTop: 24,
+  },
+  authButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
+  },
   stateScreen: {
     flex: 1,
     alignItems: "center",

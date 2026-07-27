@@ -9,6 +9,7 @@ import {
 import { styles } from "./ProductCard.styles";
 import { useState,useEffect } from "react";
 import { polubPrzedmiot, usunPolubienie } from "@features/favourites/fav.service";
+import { useAuth } from "@/contexts/AuthContext";
 type StatusSprzetu =
   | "dostepny"
   | "niedostepny"
@@ -87,6 +88,7 @@ export default function ProductCard({
   moznaUsunac = false,
   onDelete,
 }: ProductCardProps) {
+  const { status: authStatus } = useAuth();
   const status =
     statusStyles[
       item.status as StatusSprzetu
@@ -102,6 +104,14 @@ export default function ProductCard({
     setczyPolubione(initialCzyPolubione);
   }, [initialCzyPolubione]);
     const polub = async ()=> {
+      if (authStatus !== "authenticated") {
+        router.push({
+          pathname: "/login",
+          params: { reason: "Zaloguj się, aby dodawać produkty do ulubionych." },
+        });
+        return;
+      }
+
       setError(null)
       setLoading(true)
 

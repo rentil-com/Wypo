@@ -33,7 +33,7 @@ export default function Rejestracja() {
         try {
             await registerConfirm(email,kod)
             alert("Udalo sie utworzyc konto")
-            router.replace("/")
+            router.replace("/login")
         }
         catch(error) {
             setError(error instanceof Error ? error.message : "Nieznany blad")

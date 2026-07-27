@@ -129,6 +129,11 @@ export default function User() {
   },[]);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setUlubioneIds([]);
+      return;
+    }
+
     let cancelled = false;
 
     async function zaladujUlubione() {
@@ -154,7 +159,7 @@ export default function User() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(()=> {
     if (!isAdmin) {
@@ -557,7 +562,7 @@ export default function User() {
                 </Text>
                 <Pressable
                   style={styles.offerLoginButton}
-                  onPress={() => router.push("/")}
+                  onPress={() => router.push("/login")}
                 >
                   <Text style={styles.offerLoginButtonText}>Zaloguj się</Text>
                 </Pressable>

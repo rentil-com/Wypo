@@ -209,7 +209,7 @@ const usuniecieKonta  = async () =>{
     clearSession()
     setDecyzja(false)
     alert("Pomyslnie usunieto konto")
-    router.replace("/")
+    router.replace("/login")
   }
   catch(error){
     setError(error instanceof Error ? error.message : "Nieznany bład")

@@ -36,8 +36,9 @@ export default function TabsLayout({
   tylkoPromocje,
   promocja,
 }: CatalogViewProps) {
-  const { user } = useAuth();
+  const { status, user } = useAuth();
   const isAdmin = user?.rola === "admin";
+  const isAuthenticated = status === "authenticated";
   const { search } = useLocalSearchParams<{ search?: string }>();
   const searchQuery = search?.trim() ?? "";
 
@@ -126,6 +127,11 @@ void zaladujKategorie();
 
 
 useEffect(() => {
+  if (!isAuthenticated) {
+    settablicaUlubionych([]);
+    return;
+  }
+
   let cancelled = false;
 
   async function zaladujUlubione() {
@@ -151,7 +157,7 @@ useEffect(() => {
   return () => {
     cancelled = true;
   };
-}, []);
+}, [isAuthenticated]);
 
   useEffect(() => {
     let cancelled = false;

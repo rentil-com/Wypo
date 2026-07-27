@@ -28,7 +28,7 @@ import { zlozWniosekOWypozyczenie } from "@features/loans/loans.service";
 
 
 export default function ProductDetailedView() {
-  const { user } = useAuth();
+  const { status: authStatus, user } = useAuth();
   const isAdmin = user?.rola === "admin";
   {/* STATUSY SPRZETU */}
   type StatusSprzetu = "dostepny" | "wypozyczony" | "w_naprawie" | "niedostepny";
@@ -352,6 +352,22 @@ export default function ProductDetailedView() {
   };
 
 
+  const pokazLogowanieDoWypozyczenia = () => {
+    router.push({
+      pathname: "/login",
+      params: { reason: "Zaloguj się, aby złożyć wniosek o wypożyczenie." },
+    });
+  }
+
+  const rozpocznijWniosek = () => {
+    if (authStatus !== "authenticated") {
+      pokazLogowanieDoWypozyczenia();
+      return;
+    }
+
+    setwniosekZaczety(true);
+  }
+
   const zamknijModalWniosku = () => {
     setwniosekZaczety(false)
     setwybranaDataOd("")
@@ -360,6 +376,12 @@ export default function ProductDetailedView() {
   }
 
   const wypozyczTeraz = async ()=> {
+    if (authStatus !== "authenticated") {
+      zamknijModalWniosku();
+      pokazLogowanieDoWypozyczenia();
+      return;
+    }
+
     const dataOd = wybranaDataOd.trim()
     const dataDo = wybranaDataDo.trim()
     const formatDaty = /^\d{4}-\d{2}-\d{2}$/
@@ -768,7 +790,7 @@ export default function ProductDetailedView() {
                 </View>
 
                 {/* PRZYCISKI INTERAKTYWNE */}
-                <Pressable style={styles.primaryButton} onPress={()=> setwniosekZaczety(true)}>
+                <Pressable style={styles.primaryButton} onPress={rozpocznijWniosek}>
                   <MaterialIcons name="flash-on" size={22} color="#FFFFFF" />
                   <Text style={styles.primaryButtonText}>Wypożycz teraz</Text>
                 </Pressable>

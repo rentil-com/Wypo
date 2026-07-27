@@ -67,7 +67,7 @@ export default function Zmiana_Maila_Kod() {
             setHasło("")
             setKod("")
             setpotwierdzenieHasła("")
-            router.replace("/")
+            router.replace("/login")
             
         }
         catch(error){

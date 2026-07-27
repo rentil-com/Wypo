@@ -2,18 +2,16 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
-import dane from "@/dane.json"
 import {styles} from "./HeaderPanel.styles"
-import { kategorieMap, pobierzKategorie, type CategoryApiItem } from "@features/categories";
-import { pobierzProdukty, szukajProdukty, type ApiItem, type ItemsSearchResult } from "@features/products";
+import { pobierzKategorie, type CategoryApiItem } from "@features/categories";
+import { szukajProdukty, type ItemsSearchResult } from "@features/products";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCurrentUser } from "@features/account";
 export default function HeaderPanel () { 
   const { width } = useWindowDimensions();
   const mobile = width < 760;
  
-    const {signOut, status, user, error : authError} = useAuth()
-  const [produkty,setProdukty] = useState<ApiItem[]>([])
+  const {signOut, status, user} = useAuth()
+  const isAuthenticated = status === "authenticated";
   const [searchText,setsearchText] = useState("")
   const [showcategoryPanel,setshowcategoryPanel] = useState(false)
   const [kategorie,setKategorie] = useState<CategoryApiItem[]>([])
@@ -95,23 +93,38 @@ const handleSearchSubmit = () => {
 };
 
 
-const wylogujSie = async ()=>{ 
-  await signOut()
-}
-const szczegolyKonta = ()=> {
-  router.push("/(tabs)/account")
+const pokazLogowanie = (reason: string) => {
+  router.push({
+    pathname: "/login",
+    params: { reason },
+  });
 }
 
-useEffect(()=>{ 
-  if(status === "anonymous"){
-    router.push("/")
+const przejdzDoChronionejStrefy = (destination: "/(tabs)/account" | "/(tabs)/wishlist" | "/(tabs)/basket", reason: string) => {
+  if (isAuthenticated) {
+    router.push(destination);
+    return;
   }
-},[status])
+
+  pokazLogowanie(reason);
+}
+
+const wylogujSie = async () => {
+  await signOut();
+  router.replace("/login");
+}
+
+const szczegolyKonta = () => {
+  przejdzDoChronionejStrefy(
+    "/(tabs)/account",
+    "Zaloguj się, aby przejść do swojego konta.",
+  );
+}
 
 if (mobile) {
   return (
     <View style={[styles.header, styles.headerMobile]}>
-      <Pressable onPress={() => router.push("/(tabs)/user")}>
+      <Pressable onPress={() => router.push("/")}>
         <Image
           source={{ uri: "https://wypozyczalnia.calantris.com/logo.svg" }}
           style={[styles.logo, styles.logoMobile]}
@@ -122,14 +135,14 @@ if (mobile) {
         <Pressable
           accessibilityLabel="Ulubione"
           style={styles.mobileHeaderAction}
-          onPress={() => router.replace("/(tabs)/wishlist")}
+          onPress={() => przejdzDoChronionejStrefy("/(tabs)/wishlist", "Zaloguj się, aby zobaczyć ulubione produkty.")}
         >
           <MaterialIcons name="favorite-border" size={23} color="#111827" />
         </Pressable>
         <Pressable
           accessibilityLabel="Koszyk"
           style={styles.mobileHeaderAction}
-          onPress={() => router.replace("/(tabs)/basket")}
+          onPress={() => przejdzDoChronionejStrefy("/(tabs)/basket", "Zaloguj się, aby przejść do koszyka.")}
         >
           <MaterialIcons name="shopping-cart" size={23} color="#111827" />
         </Pressable>
@@ -141,11 +154,11 @@ if (mobile) {
           <MaterialIcons name="person-outline" size={24} color="#111827" />
         </Pressable>
         <Pressable
-          accessibilityLabel="Wyloguj się"
+          accessibilityLabel={isAuthenticated ? "Wyloguj się" : "Zaloguj się"}
           style={styles.mobileHeaderAction}
-          onPress={() => void wylogujSie()}
+          onPress={() => isAuthenticated ? void wylogujSie() : pokazLogowanie("Zaloguj się, aby korzystać z funkcji konta.")}
         >
-          <MaterialIcons name="logout" size={24} color="#111827" />
+          <MaterialIcons name={isAuthenticated ? "logout" : "login"} size={24} color="#111827" />
         </Pressable>
       </View>
     </View>
@@ -156,7 +169,7 @@ if (mobile) {
 
    return ( 
    <View style={styles.header}>
-    <Pressable onPress={()=> router.push("/(tabs)/user")}>
+    <Pressable onPress={()=> router.push("/")}>
         <View>
         
          <Image source={{uri : "https://wypozyczalnia.calantris.com/logo.svg"}} style={styles.logo} />
@@ -277,7 +290,7 @@ if (mobile) {
             </Pressable>
           )}
 
-          <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/wishlist")}>
+          <Pressable style={styles.headerAction} onPress={() => przejdzDoChronionejStrefy("/(tabs)/wishlist", "Zaloguj się, aby zobaczyć ulubione produkty.")}>
             <MaterialIcons name="favorite-border" size={24} color="#111827"/>
             <Text style={styles.headerActionText}>Ulubione</Text>
           </Pressable>
@@ -287,9 +300,12 @@ if (mobile) {
             <Text style={styles.headerActionText}>Konto</Text>
           </Pressable>
 
-           <Pressable style={styles.headerAction} onPress={()=> wylogujSie()}>
-           <MaterialIcons name="logout" size={25} color="black" />
-            <Text style={styles.headerActionText}>Wyloguj sie</Text>
+          <Pressable
+            style={styles.headerAction}
+            onPress={() => isAuthenticated ? void wylogujSie() : pokazLogowanie("Zaloguj się, aby korzystać z funkcji konta.")}
+          >
+            <MaterialIcons name={isAuthenticated ? "logout" : "login"} size={25} color="black" />
+            <Text style={styles.headerActionText}>{isAuthenticated ? "Wyloguj się" : "Zaloguj się"}</Text>
           </Pressable>
 
         </View>
