@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Image,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -22,6 +23,7 @@ import { pobierzWszystkieRecenzjeProduktu } from "@features/reviews/reviews.serv
 import { dodajZdjeciaProduktu, edytujProdukt, usunZdjeciaProduktu } from "../products.management.services";
 import type { ProductSpecificationBody, ProductStatus } from "../products.management.types";
 import adminStyles from "./ProductAdminForm.styles";
+import { zlozWniosekOWypozyczenie } from "@features/loans/loans.service";
 
 
 
@@ -77,6 +79,11 @@ export default function ProductDetailedView() {
   const [trybEdycji,setTrybEdycji] = useState(edit === "true");
   const [cena,setCena] = useState("");
   const [opis,setOpis] = useState("");
+  const [wybranaDataOd,setwybranaDataOd] = useState("")
+  const [wybranaDataDo,setwybranaDataDo] = useState("")
+  const [wniosekZaczety,setwniosekZaczety] = useState(false)
+  const [wniosekLoading,setWniosekLoading] = useState(false)
+  const [wniosekError,setWniosekError] = useState<string | null>(null)
   const [statusProduktu,setStatusProduktu] = useState<ProductStatus>("dostepny");
   const [specyfikacje,setSpecyfikacje] = useState<ProductSpecificationBody[]>([]);
   const [noweZdjecia,setNoweZdjecia] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -344,6 +351,48 @@ export default function ProductDetailedView() {
 
   };
 
+
+  const zamknijModalWniosku = () => {
+    setwniosekZaczety(false)
+    setwybranaDataOd("")
+    setwybranaDataDo("")
+    setWniosekError(null)
+  }
+
+  const wypozyczTeraz = async ()=> {
+    const dataOd = wybranaDataOd.trim()
+    const dataDo = wybranaDataDo.trim()
+    const formatDaty = /^\d{4}-\d{2}-\d{2}$/
+
+    setWniosekError(null)
+
+    if (!formatDaty.test(dataOd) || !formatDaty.test(dataDo)) {
+      setWniosekError("Podaj obie daty w formacie RRRR-MM-DD")
+      return
+    }
+
+    if (dataDo < dataOd) {
+      setWniosekError("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia")
+      return
+    }
+
+    setWniosekLoading(true)
+
+    try {
+      await zlozWniosekOWypozyczenie({
+        sprzet_id: pojedynczyProdukt.id,
+        data_od: dataOd,
+        data_do: dataDo,
+      })
+      zamknijModalWniosku()
+    }
+    catch(error){
+      setWniosekError(error instanceof Error ? error.message : "Nie udało się złożyć wniosku")
+    }
+    finally {
+      setWniosekLoading(false)
+    }
+  }
 
 
   return (
@@ -715,7 +764,7 @@ export default function ProductDetailedView() {
                 </View>
 
                 {/* PRZYCISKI INTERAKTYWNE */}
-                <Pressable style={styles.primaryButton}>
+                <Pressable style={styles.primaryButton} onPress={()=> setwniosekZaczety(true)}>
                   <MaterialIcons name="flash-on" size={22} color="#FFFFFF" />
                   <Text style={styles.primaryButtonText}>Wypożycz teraz</Text>
                 </Pressable>
@@ -729,6 +778,78 @@ export default function ProductDetailedView() {
               )}
             </View>
           </View>
+
+          <Modal
+            visible={wniosekZaczety}
+            transparent
+            animationType="fade"
+            onRequestClose={zamknijModalWniosku}
+          >
+            <View style={styles.loanModalOverlay}>
+              <View style={styles.loanModalCard}>
+                <View style={styles.loanModalIcon}>
+                  <MaterialIcons name="date-range" size={28} color="#2563EB" />
+                </View>
+
+                <Text style={styles.loanModalTitle}>Wybierz termin wypożyczenia</Text>
+                <Text style={styles.loanModalDescription}>
+                  Podaj datę rozpoczęcia i zakończenia wynajmu.
+                </Text>
+
+                <View style={styles.loanModalField}>
+                  <Text style={styles.loanModalLabel}>Data od</Text>
+                  <TextInput
+                    value={wybranaDataOd}
+                    onChangeText={setwybranaDataOd}
+                    placeholder="RRRR-MM-DD"
+                    placeholderTextColor="#94A3B8"
+                    autoCapitalize="none"
+                    style={styles.loanModalInput}
+                  />
+                </View>
+
+                <View style={styles.loanModalField}>
+                  <Text style={styles.loanModalLabel}>Data do</Text>
+                  <TextInput
+                    value={wybranaDataDo}
+                    onChangeText={setwybranaDataDo}
+                    placeholder="RRRR-MM-DD"
+                    placeholderTextColor="#94A3B8"
+                    autoCapitalize="none"
+                    style={styles.loanModalInput}
+                  />
+                </View>
+
+                {wniosekError && (
+                  <Text style={styles.loanModalError}>{wniosekError}</Text>
+                )}
+
+                <View style={styles.loanModalActions}>
+                  <Pressable
+                    disabled={wniosekLoading}
+                    style={[styles.loanModalButton, styles.loanModalCancelButton]}
+                    onPress={zamknijModalWniosku}
+                  >
+                    <Text style={styles.loanModalCancelText}>Anuluj</Text>
+                  </Pressable>
+
+                  <Pressable
+                    disabled={wniosekLoading}
+                    style={[
+                      styles.loanModalButton,
+                      styles.loanModalSubmitButton,
+                      wniosekLoading && styles.loanModalButtonDisabled,
+                    ]}
+                    onPress={() => void wypozyczTeraz()}
+                  >
+                    <Text style={styles.loanModalSubmitText}>
+                      {wniosekLoading ? "Składanie..." : "Złóż wniosek"}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
 
           <ProductReviewsSection
             reviews={reviews}
@@ -1429,6 +1550,121 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "900",
     color: "#2563EB",
+  },
+
+  loanModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+
+  loanModalCard: {
+    width: "100%",
+    maxWidth: 480,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    padding: 26,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.18,
+    shadowRadius: 30,
+    elevation: 10,
+  },
+
+  loanModalIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+
+  loanModalTitle: {
+    color: "#0F172A",
+    fontSize: 22,
+    fontWeight: "900",
+  },
+
+  loanModalDescription: {
+    color: "#64748B",
+    fontSize: 14,
+    lineHeight: 21,
+    marginTop: 6,
+    marginBottom: 20,
+  },
+
+  loanModalField: {
+    gap: 7,
+    marginBottom: 14,
+  },
+
+  loanModalLabel: {
+    color: "#334155",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  loanModalInput: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    color: "#0F172A",
+    fontSize: 16,
+    paddingHorizontal: 14,
+  },
+
+  loanModalError: {
+    color: "#DC2626",
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 14,
+  },
+
+  loanModalActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+
+  loanModalButton: {
+    flex: 1,
+    minHeight: 50,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+
+  loanModalCancelButton: {
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+  },
+
+  loanModalSubmitButton: {
+    backgroundColor: "#2563EB",
+  },
+
+  loanModalButtonDisabled: {
+    opacity: 0.6,
+  },
+
+  loanModalCancelText: {
+    color: "#334155",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+
+  loanModalSubmitText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
   },
 
   /* PASEK ZALET */
