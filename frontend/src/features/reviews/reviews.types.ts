@@ -64,3 +64,26 @@ export type AddReviewBody = {
   gwiazdki: Review_Rating;
   tresc?: string | null;
 };
+
+export type ReviewsListParams = {
+  strona?: number;
+  uzytkownik_id?: number;
+  sprzet_id?: number;
+  status?: ReviewsStatus;
+  gwiazdki?: Review_Rating;
+};
+export type ReviewsListFilters = {
+  uzytkownik_id: number | null;
+  sprzet_id: number | null;
+  status: ReviewsStatus | null;
+  gwiazdki: Review_Rating | null;
+};
+
+export type ReviewsListResponse = {
+  strona: number;
+  limitRecenzjiNaStrone: number;
+  filtry: ReviewsListFilters;
+  total: number;
+  liczbaStron: number;
+  dane: ReviewResponse[];
+};
