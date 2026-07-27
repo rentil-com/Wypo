@@ -2,6 +2,7 @@ import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -9,8 +10,12 @@ import {
 
 import { useAuth } from "@/contexts/AuthContext";
 import PageLayout from "@components/shared/Layout/PageLayout";
-import { pobierzWnioski } from "@features/loans/loans.service";
-import type { LoanResponse, LoanStatus } from "@features/loans/loans.types";
+import { pobierzWnioski, rozpatrzWniosek } from "@features/loans/loans.service";
+import type {
+  LoanDecision,
+  LoanResponse,
+  LoanStatus,
+} from "@features/loans/loans.types";
 
 type StatusStyle = {
   label: string;
@@ -60,6 +65,11 @@ export default function Dashboard() {
   const [liczbaWnioskow,setLiczbaWnioskow] = useState(0);
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState<string | null>(null);
+  const [actionError,setActionError] = useState<string | null>(null);
+  const [pendingDecision,setPendingDecision] = useState<{
+    id: number;
+    decyzja: LoanDecision;
+  } | null>(null);
 
   useEffect(() => {
     if (status !== "authenticated" || user?.rola !== "admin") return;
@@ -81,6 +91,31 @@ export default function Dashboard() {
 
     void zaladujWnioski();
   }, [status, user?.rola]);
+
+  const wyslijDecyzje = async (wniosek: LoanResponse, decyzja: LoanDecision) => {
+    if (wniosek.status !== "oczekujacy" || pendingDecision) return;
+
+    setActionError(null);
+    setPendingDecision({ id: wniosek.id, decyzja });
+
+    try {
+      const zaktualizowanyWniosek = await rozpatrzWniosek(wniosek.id, { decyzja });
+
+      setWnioski((aktualneWnioski) =>
+        aktualneWnioski.map((aktualnyWniosek) =>
+          aktualnyWniosek.id === zaktualizowanyWniosek.id
+            ? zaktualizowanyWniosek
+            : aktualnyWniosek,
+        ),
+      );
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Nie udało się rozpatrzyć wniosku",
+      );
+    } finally {
+      setPendingDecision(null);
+    }
+  };
 
   if (status === "loading") {
     return (
@@ -110,6 +145,9 @@ export default function Dashboard() {
         )}
 
         {!loading && error && <Text style={styles.errorText}>{error}</Text>}
+        {!loading && actionError && (
+          <Text style={styles.actionErrorText}>{actionError}</Text>
+        )}
 
         {!loading && !error && wnioski.length === 0 && (
           <Text style={styles.messageText}>Brak wniosków do wyświetlenia.</Text>
@@ -117,6 +155,8 @@ export default function Dashboard() {
 
         {!loading && !error && wnioski.map((wniosek) => {
           const statusStyle = statusStyles[wniosek.status];
+          const czyPrzetwarzany = pendingDecision?.id === wniosek.id;
+          const przyciskiWylaczone = pendingDecision !== null;
 
           return (
             <View key={wniosek.id} style={styles.card}>
@@ -152,6 +192,42 @@ export default function Dashboard() {
                   </Text>
                 </View>
               </View>
+
+              {wniosek.status === "oczekujacy" && (
+                <View style={styles.actions}>
+                  <Pressable
+                    disabled={przyciskiWylaczone}
+                    style={[
+                      styles.actionButton,
+                      styles.acceptButton,
+                      przyciskiWylaczone && styles.actionButtonDisabled,
+                    ]}
+                    onPress={() => void wyslijDecyzje(wniosek, "zaakceptowany")}
+                  >
+                    <Text style={styles.acceptButtonText}>
+                      {czyPrzetwarzany && pendingDecision?.decyzja === "zaakceptowany"
+                        ? "Akceptowanie..."
+                        : "Zaakceptuj"}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    disabled={przyciskiWylaczone}
+                    style={[
+                      styles.actionButton,
+                      styles.rejectButton,
+                      przyciskiWylaczone && styles.actionButtonDisabled,
+                    ]}
+                    onPress={() => void wyslijDecyzje(wniosek, "odrzucony")}
+                  >
+                    <Text style={styles.rejectButtonText}>
+                      {czyPrzetwarzany && pendingDecision?.decyzja === "odrzucony"
+                        ? "Odrzucanie..."
+                        : "Odrzuć"}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
 
             </View>
           );
@@ -199,6 +275,12 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#B91C1C",
     fontSize: 16,
+  },
+  actionErrorText: {
+    color: "#B91C1C",
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 16,
   },
   card: {
     width: "100%",
@@ -256,6 +338,43 @@ const styles = StyleSheet.create({
   detailValue: {
     color: "#334155",
     fontSize: 16,
+    fontWeight: "800",
+  },
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 22,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+  },
+  actionButton: {
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 11,
+    paddingHorizontal: 18,
+  },
+  actionButtonDisabled: {
+    opacity: 0.55,
+  },
+  acceptButton: {
+    backgroundColor: "#16A34A",
+  },
+  acceptButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  rejectButton: {
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    backgroundColor: "#FFFFFF",
+  },
+  rejectButtonText: {
+    color: "#DC2626",
+    fontSize: 14,
     fontWeight: "800",
   },
 });
