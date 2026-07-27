@@ -10,7 +10,11 @@ import {
 
 import { useAuth } from "@/contexts/AuthContext";
 import PageLayout from "@components/shared/Layout/PageLayout";
-import { pobierzWnioski, rozpatrzWniosek } from "@features/loans/loans.service";
+import {
+  aktywujWypozyczenie,
+  pobierzWnioski,
+  rozpatrzWniosek,
+} from "@features/loans/loans.service";
 import type {
   LoanDecision,
   LoanResponse,
@@ -66,6 +70,7 @@ export default function Dashboard() {
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState<string | null>(null);
   const [actionError,setActionError] = useState<string | null>(null);
+  const [aktywowanyId,setAktywowanyId] = useState<number | null>(null);
   const [pendingDecision,setPendingDecision] = useState<{
     id: number;
     decyzja: LoanDecision;
@@ -114,6 +119,24 @@ export default function Dashboard() {
       );
     } finally {
       setPendingDecision(null);
+    }
+  };
+
+  const aktywuj = async (wniosek: LoanResponse) => {
+    if (wniosek.status !== "zaakceptowany" || aktywowanyId) return;
+
+    setActionError(null);
+    setAktywowanyId(wniosek.id);
+
+    try {
+      const aktywowany = await aktywujWypozyczenie(wniosek.id);
+      setWnioski((aktualne) =>
+        aktualne.map((item) => item.id === aktywowany.id ? aktywowany : item),
+      );
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Nie udało się aktywować wypożyczenia");
+    } finally {
+      setAktywowanyId(null);
     }
   };
 
@@ -224,6 +247,24 @@ export default function Dashboard() {
                       {czyPrzetwarzany && pendingDecision?.decyzja === "odrzucony"
                         ? "Odrzucanie..."
                         : "Odrzuć"}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {wniosek.status === "zaakceptowany" && (
+                <View style={styles.actions}>
+                  <Pressable
+                    disabled={aktywowanyId !== null}
+                    style={[
+                      styles.actionButton,
+                      styles.activateButton,
+                      aktywowanyId !== null && styles.actionButtonDisabled,
+                    ]}
+                    onPress={() => void aktywuj(wniosek)}
+                  >
+                    <Text style={styles.acceptButtonText}>
+                      {aktywowanyId === wniosek.id ? "Aktywowanie..." : "Aktywuj"}
                     </Text>
                   </Pressable>
                 </View>
@@ -361,6 +402,9 @@ const styles = StyleSheet.create({
   },
   acceptButton: {
     backgroundColor: "#16A34A",
+  },
+  activateButton: {
+    backgroundColor: "#2563EB",
   },
   acceptButtonText: {
     color: "#FFFFFF",
