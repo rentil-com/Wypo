@@ -21,7 +21,8 @@ export const styles = StyleSheet.create({
   },
   searchBar: {
     position : "relative",
-    flex: 1,
+    width: "100%",
+    minHeight: 48,
     height: 48,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
