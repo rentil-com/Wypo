@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   productCard: {
     flex: 1,
+    minWidth: 0,
     minHeight: 310,
 
     padding: 18,
@@ -14,6 +15,7 @@ export const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
 
     shadowColor: "#0F172A",
     shadowOffset: {

@@ -93,6 +93,7 @@ export default function ProductCard({
     statusStyles[
       item.status as StatusSprzetu
     ];
+  const finalPrice = item.cena_po_promocji ?? item.cena;
 
 
 
@@ -164,7 +165,12 @@ export default function ProductCard({
         <View style={styles.adminActions}>
           <Pressable
             style={[styles.adminActionButton, styles.editButton]}
-            onPress={() => router.push(`/products/${item.id}?edit=true`)}
+            onPress={() =>
+              router.push({
+                pathname: "/products/[id]",
+                params: { id: item.id.toString(), edit: "true" },
+              })
+            }
           >
             <MaterialIcons name="edit" size={17} color="#176BDE" />
           </Pressable>
@@ -177,19 +183,26 @@ export default function ProductCard({
       {/* KLIKALNA CZĘŚĆ KARTY */}
       <Pressable
         style={styles.productLink}
+        accessibilityRole="link"
+        accessibilityLabel={`Zobacz produkt: ${item.nazwa}`}
         onPress={() =>
-          router.push(`/products/${item.id}`)
+          router.push({
+            pathname: "/products/[id]",
+            params: { id: item.id.toString() },
+          })
         }
       >
         {/* ZDJĘCIE PRODUKTU */}
         <View style={styles.productImageBox}>
-          <Image
-            source={{
-              uri: item.zdjecie_url,
-            }}
-            style={styles.productImage}
-            resizeMode="contain"
-          />
+          {item.zdjecie_url ? (
+            <Image
+              source={{ uri: item.zdjecie_url }}
+              style={styles.productImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <MaterialIcons name="inventory-2" size={54} color="#94A3B8" />
+          )}
         </View>
 
         {/* INFORMACJE O PRODUKCIE */}
@@ -243,8 +256,10 @@ export default function ProductCard({
       <View style={styles.productBottom}>
         <View>
           <Text style={styles.productPrice}>
-            {/*dodac skreslona poprzednia cene */}
-          {item.cena_po_promocji !=null ? item.cena_po_promocji + "zł" : item.cena + "zł"}
+            {finalPrice.toLocaleString("pl-PL", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })} zł
           </Text>
 
           <View style={styles.ratingRow}>

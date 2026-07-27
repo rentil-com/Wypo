@@ -1,5 +1,5 @@
 import type { StyleProp, ViewStyle } from "react-native";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 
 import type { ApiItem } from "@features/products";
 
@@ -34,6 +34,48 @@ export default function ProductGrid({
   usuwalneProduktyIds = [],
   onDeleteProduct,
 }: ProductGridProps) {
+  const renderProductCard = (item: ApiItem) => (
+    <ProductCard
+      item={mapItem(item)}
+      initialCzyPolubione={ulubioneIds.includes(item.id)}
+      onFavouriteChange={onFavouriteChange}
+      showAdminActions={showAdminActions}
+      moznaUsunac={usuwalneProduktyIds.includes(item.id)}
+      onDelete={() => onDeleteProduct?.(item)}
+    />
+  );
+
+  if (scrollEnabled === false) {
+    const rows = Array.from(
+      { length: Math.ceil(data.length / numColumns) },
+      (_, rowIndex) =>
+        data.slice(rowIndex * numColumns, (rowIndex + 1) * numColumns),
+    );
+
+    return (
+      <View style={contentContainerStyle}>
+        {rows.map((row, rowIndex) => (
+          <View
+            key={`product-row-${rowIndex}`}
+            style={[{ flexDirection: "row" }, columnWrapperStyle]}
+          >
+            {row.map((item) => (
+              <View key={item.id} style={{ flex: 1, minWidth: 0 }}>
+                {renderProductCard(item)}
+              </View>
+            ))}
+            {Array.from({ length: numColumns - row.length }, (_, index) => (
+              <View
+                key={`product-placeholder-${rowIndex}-${index}`}
+                style={{ flex: 1 }}
+              />
+            ))}
+          </View>
+        ))}
+      </View>
+    );
+  }
+
   return (
     <FlatList
       key={`product-grid-${numColumns}`}
@@ -43,16 +85,7 @@ export default function ProductGrid({
       scrollEnabled={scrollEnabled}
       columnWrapperStyle={columnWrapperStyle}
       contentContainerStyle={contentContainerStyle}
-      renderItem={({ item }) => (
-        <ProductCard
-          item={mapItem(item)}
-          initialCzyPolubione={ulubioneIds.includes(item.id)}
-          onFavouriteChange={onFavouriteChange}
-          showAdminActions={showAdminActions}
-          moznaUsunac={usuwalneProduktyIds.includes(item.id)}
-          onDelete={() => onDeleteProduct?.(item)}
-        />
-      )}
+      renderItem={({ item }) => renderProductCard(item)}
     />
   );
 }
