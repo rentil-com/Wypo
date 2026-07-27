@@ -14,6 +14,7 @@ import {
   aktywujWypozyczenie,
   pobierzWnioski,
   rozpatrzWniosek,
+  zwrocWypozyczenie,
 } from "@features/loans/loans.service";
 import type {
   LoanDecision,
@@ -71,6 +72,7 @@ export default function Dashboard() {
   const [error,setError] = useState<string | null>(null);
   const [actionError,setActionError] = useState<string | null>(null);
   const [aktywowanyId,setAktywowanyId] = useState<number | null>(null);
+  const [zwracanyId,setZwracanyId] = useState<number | null>(null);
   const [pendingDecision,setPendingDecision] = useState<{
     id: number;
     decyzja: LoanDecision;
@@ -137,6 +139,23 @@ export default function Dashboard() {
       setActionError(error instanceof Error ? error.message : "Nie udało się aktywować wypożyczenia");
     } finally {
       setAktywowanyId(null);
+    }
+  };
+
+  const zwroc = async (wniosek: LoanResponse) => {
+    if (wniosek.status !== "aktywny" || zwracanyId) return;
+    setActionError(null);
+    setZwracanyId(wniosek.id);
+
+    try {
+      const zwrocony = await zwrocWypozyczenie(wniosek.id);
+      setWnioski((aktualne) =>
+        aktualne.map((item) => item.id === zwrocony.id ? zwrocony : item),
+      );
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Nie udało się zwrócić wypożyczenia");
+    } finally {
+      setZwracanyId(null);
     }
   };
 
@@ -265,6 +284,24 @@ export default function Dashboard() {
                   >
                     <Text style={styles.acceptButtonText}>
                       {aktywowanyId === wniosek.id ? "Aktywowanie..." : "Aktywuj"}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {wniosek.status === "aktywny" && (
+                <View style={styles.actions}>
+                  <Pressable
+                    disabled={zwracanyId !== null}
+                    style={[
+                      styles.actionButton,
+                      styles.returnButton,
+                      zwracanyId !== null && styles.actionButtonDisabled,
+                    ]}
+                    onPress={() => void zwroc(wniosek)}
+                  >
+                    <Text style={styles.acceptButtonText}>
+                      {zwracanyId === wniosek.id ? "Zwracanie..." : "Zwrot"}
                     </Text>
                   </Pressable>
                 </View>
@@ -405,6 +442,9 @@ const styles = StyleSheet.create({
   },
   activateButton: {
     backgroundColor: "#2563EB",
+  },
+  returnButton: {
+    backgroundColor: "#7C3AED",
   },
   acceptButtonText: {
     color: "#FFFFFF",
