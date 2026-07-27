@@ -38,20 +38,26 @@ export default function Dashboard() {
             style={styles.tile}
             onPress={() => router.push("/(tabs)/applications")}
           >
-            <Text style={styles.tileText}>Wnioski</Text>
+            <Text style={styles.tileText}>Panel Wniosków</Text>
           </Pressable>
 
           <Pressable
             style={styles.tile}
             onPress={() => router.push("/(tabs)/accountUsers")}
           >
-            <Text style={styles.tileText}>Użytkownicy</Text>
+            <Text style={styles.tileText}>Panel Użytkowników</Text>
           </Pressable>
             <Pressable
             style={styles.tile}
             onPress={() => router.push("/promotions/admin")}
           >
             <Text style={styles.tileText}>Panel Promocji</Text>
+          </Pressable>
+             <Pressable
+            style={styles.tile}
+            onPress={() => router.push("/promotions/admin")}
+          >
+            <Text style={styles.tileText}>Panel Recenzji</Text>
           </Pressable>
           
           <Pressable

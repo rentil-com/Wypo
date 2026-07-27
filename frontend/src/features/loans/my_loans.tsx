@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import PageLayout from "@components/shared/Layout/PageLayout";
 import ProductCard from "@components/shared/Product/ProductCard";
 import { pobierzUlubione } from "@features/favourites/fav.service";
 import { pobierzPojedynczyProdukt, type ApiItem } from "@features/products";
-import { pobierzMojeWypozyczenia } from "./loans.service";
+import { pobierzMojeWypozyczenia, zwrocWypozyczenie } from "./loans.service";
 import type { LoanResponse } from "./loans.types";
 
 function formatujDate(data: string) {
@@ -18,6 +18,8 @@ export default function MyLoansScreen() {
   const [ulubioneIds,setUlubioneIds] = useState<number[]>([]);
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState<string | null>(null);
+  const [actionError,setActionError] = useState<string | null>(null);
+  const [zwracanyId,setZwracanyId] = useState<number | null>(null);
 
   useEffect(() => {
     async function zaladujWypozyczenia() {
@@ -47,6 +49,26 @@ export default function MyLoansScreen() {
     void zaladujWypozyczenia();
   }, []);
 
+  const zwroc = async (wypozyczenie: LoanResponse) => {
+    if (wypozyczenie.status !== "aktywny" || zwracanyId !== null) return;
+
+    setActionError(null);
+    setZwracanyId(wypozyczenie.id);
+
+    try {
+      const zwrocone = await zwrocWypozyczenie(wypozyczenie.id);
+      setWypozyczenia((aktualne) =>
+        aktualne.map((item) => item.id === zwrocone.id ? zwrocone : item),
+      );
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Nie udało się zwrócić wypożyczenia",
+      );
+    } finally {
+      setZwracanyId(null);
+    }
+  };
+
   return (
     <PageLayout wide>
       <View style={styles.content}>
@@ -60,6 +82,7 @@ export default function MyLoansScreen() {
         )}
 
         {!loading && error && <Text style={styles.errorText}>{error}</Text>}
+        {actionError && <Text style={styles.errorText}>{actionError}</Text>}
 
         {!loading && !error && wypozyczenia.length === 0 && (
           <Text style={styles.messageText}>Nie masz jeszcze żadnych wypożyczeń.</Text>
@@ -97,6 +120,21 @@ export default function MyLoansScreen() {
                 <Text style={styles.reviewText}>
                   Cena: {wypozyczenie.cena_koncowa.toFixed(2)} zł
                 </Text>
+
+                {wypozyczenie.status === "aktywny" && (
+                  <Pressable
+                    disabled={zwracanyId !== null}
+                    style={[
+                      styles.returnButton,
+                      zwracanyId !== null && styles.returnButtonDisabled,
+                    ]}
+                    onPress={() => void zwroc(wypozyczenie)}
+                  >
+                    <Text style={styles.returnButtonText}>
+                      {zwracanyId === wypozyczenie.id ? "Zwracanie..." : "Zwróć"}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           );
@@ -171,5 +209,20 @@ const styles = StyleSheet.create({
     color: "#475569",
     fontSize: 15,
     lineHeight: 23,
+  },
+  returnButton: {
+    alignSelf: "flex-start",
+    marginTop: 18,
+    borderRadius: 8,
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+  },
+  returnButtonDisabled: {
+    opacity: 0.5,
+  },
+  returnButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
   },
 });
