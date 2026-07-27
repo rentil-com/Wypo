@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPost,  } from "@/services/api";
+import { apiDelete, apiGet, apiPatch, apiPost,  } from "@/services/api";
 import { AddReviewBody, MyReviewsResponse, ProductReviewsResponse,  ReviewResponse,  ReviewsListParams,  ReviewsListResponse,  SingleReviewResponse } from "./reviews.types";
 
 // GET /recenzje/sprzet/:id
@@ -58,4 +58,22 @@ export async function pobierzRecenzje(params: ReviewsListParams = {},) {
   );
 
   return response as ReviewsListResponse;
+}
+
+// PATCH /recenzje/ukryj/:id
+export async function ukryjRecenzje(id: number) {
+    const response = await apiPatch(`/recenzje/ukryj/${id}`, {})
+    return response as ReviewResponse
+}
+
+// PATCH /recenzje/odkryj/:id
+export async function odkryjRecenzje(id: number) {
+    const response = await apiPatch(`/recenzje/odkryj/${id}`, {})
+    return response as ReviewResponse
+}
+
+// DELETE /recenzje/usun/:id
+export async function usunRecenzje(id: number) {
+    const response = await apiDelete(`/recenzje/usun/${id}`)
+    return response as ReviewResponse
 }

@@ -1,4 +1,4 @@
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Picker } from "@react-native-picker/picker";
 import {
@@ -178,7 +178,19 @@ export default function ReviewsPanel() {
         )}
 
         {!loading && !error && recenzje.map((recenzja) => (
-          <View key={recenzja.id} style={styles.card}>
+          <Pressable
+            key={recenzja.id}
+            style={({ pressed }) => [
+              styles.card,
+              pressed && styles.cardPressed,
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/reviewsPanel/[id]",
+                params: { id: recenzja.id.toString() },
+              })
+            }
+          >
             <View style={styles.header}>
               <Text style={styles.cardTitle}>Recenzja #{recenzja.id}</Text>
               <Text style={styles.rating}>★ {recenzja.gwiazdki}/5</Text>
@@ -193,7 +205,7 @@ export default function ReviewsPanel() {
             <Text style={styles.line}>Status: {recenzja.status}</Text>
             <Text style={styles.line}>Dodano: {formatujDate(recenzja.data_dodania)}</Text>
             <Text style={styles.text}>{recenzja.tresc ?? "Brak treści."}</Text>
-          </View>
+          </Pressable>
         ))}
 
         {!loading && !error && liczbaStron > 1 && (
@@ -307,6 +319,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: "#FFFFFF",
     padding: 20,
+  },
+  cardPressed: {
+    opacity: 0.8,
   },
   header: {
     flexDirection: "row",
