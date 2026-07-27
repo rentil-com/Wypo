@@ -21,9 +21,15 @@ const port = pobierzDodatniaLiczbeCalkowitaEnv("SERVER_PORT", 3000);
 const host = process.env.SERVER_HOST || "0.0.0.0";
 const klientApiWorkera = utworzKlientaApiWorkeraZEnv();
 
+const allowedOrigins = (
+  process.env.FRONTEND_ORIGINS || "http://localhost:8081"
+)
+  .split(",")
+  .map((origin) => origin.trim());
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN || "http://localhost:8081",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
