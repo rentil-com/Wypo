@@ -13,6 +13,7 @@ import PageLayout from "@components/shared/Layout/PageLayout";
 import {
   aktywujWypozyczenie,
   pobierzWnioski,
+  przeterminowanyZwrot,
   przypomnienieOdbioru,
   przypomnienieZwrotu,
   rozpatrzWniosek,
@@ -78,7 +79,7 @@ export default function Dashboard() {
   const [zwracanyId,setZwracanyId] = useState<number | null>(null);
   const [pendingReminder,setPendingReminder] = useState<{
     id: number;
-    typ: "odbior" | "zwrot";
+    typ: "odbior" | "zwrot" | "przeterminowany";
   } | null>(null);
   const [pendingDecision,setPendingDecision] = useState<{
     id: number;
@@ -171,11 +172,15 @@ export default function Dashboard() {
 
   const przypomnij = async (
     wniosek: LoanResponse,
-    typ: "odbior" | "zwrot",
+    typ: "odbior" | "zwrot" | "przeterminowany",
   ) => {
+    const czyPrzeterminowany =
+      wniosek.status === "aktywny" &&
+      new Date(wniosek.data_do).getTime() < Date.now();
     const poprawnyStatus =
       (typ === "odbior" && wniosek.status === "zaakceptowany") ||
-      (typ === "zwrot" && wniosek.status === "aktywny");
+      (typ === "zwrot" && wniosek.status === "aktywny") ||
+      (typ === "przeterminowany" && czyPrzeterminowany);
 
     if (!poprawnyStatus || pendingReminder) return;
 
@@ -187,7 +192,9 @@ export default function Dashboard() {
       const response =
         typ === "odbior"
           ? await przypomnienieOdbioru(wniosek.id)
-          : await przypomnienieZwrotu(wniosek.id);
+          : typ === "zwrot"
+            ? await przypomnienieZwrotu(wniosek.id)
+            : await przeterminowanyZwrot(wniosek.id);
 
       setActionMessage(response.message);
       setWnioski((aktualne) =>
@@ -251,6 +258,9 @@ export default function Dashboard() {
           const statusStyle = statusStyles[wniosek.status];
           const czyPrzetwarzany = pendingDecision?.id === wniosek.id;
           const przyciskiWylaczone = pendingDecision !== null;
+          const czyPrzeterminowany =
+            wniosek.status === "aktywny" &&
+            new Date(wniosek.data_do).getTime() < Date.now();
 
           return (
             <View key={wniosek.id} style={styles.card}>
@@ -394,6 +404,26 @@ export default function Dashboard() {
                         : "Przypomnij o zwrocie"}
                     </Text>
                   </Pressable>
+
+                  {czyPrzeterminowany && (
+                    <Pressable
+                      disabled={pendingReminder !== null || zwracanyId !== null}
+                      style={[
+                        styles.actionButton,
+                        styles.overdueButton,
+                        (pendingReminder !== null || zwracanyId !== null) &&
+                          styles.actionButtonDisabled,
+                      ]}
+                      onPress={() => void przypomnij(wniosek, "przeterminowany")}
+                    >
+                      <Text style={styles.acceptButtonText}>
+                        {pendingReminder?.id === wniosek.id &&
+                        pendingReminder.typ === "przeterminowany"
+                          ? "Wysyłanie..."
+                          : "Informuj o opóźnieniu"}
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
               )}
 
@@ -544,6 +574,9 @@ const styles = StyleSheet.create({
   },
   reminderButton: {
     backgroundColor: "#475569",
+  },
+  overdueButton: {
+    backgroundColor: "#DC2626",
   },
   acceptButtonText: {
     color: "#FFFFFF",
