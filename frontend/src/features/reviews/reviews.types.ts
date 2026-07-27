@@ -87,3 +87,4 @@ export type ReviewsListResponse = {
   liczbaStron: number;
   dane: ReviewResponse[];
 };
+

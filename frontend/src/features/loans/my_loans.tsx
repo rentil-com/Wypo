@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -135,6 +136,23 @@ export default function MyLoansScreen() {
                     </Text>
                   </Pressable>
                 )}
+
+                {wypozyczenie.status === "zwrocony" && (
+                  <Pressable
+                    style={[styles.returnButton, styles.reviewButton]}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(tabs)/addReview",
+                        params: {
+                          sprzetId: wypozyczenie.sprzet_id.toString(),
+                          wypozyczenieId: wypozyczenie.id.toString(),
+                        },
+                      })
+                    }
+                  >
+                    <Text style={styles.returnButtonText}>Dodaj recenzję</Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           );
@@ -220,6 +238,9 @@ const styles = StyleSheet.create({
   },
   returnButtonDisabled: {
     opacity: 0.5,
+  },
+  reviewButton: {
+    backgroundColor: "#16A34A",
   },
   returnButtonText: {
     color: "#FFFFFF",
