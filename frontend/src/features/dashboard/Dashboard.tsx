@@ -55,7 +55,7 @@ export default function Dashboard() {
           </Pressable>
              <Pressable
             style={styles.tile}
-            onPress={() => router.push("/promotions/admin")}
+            onPress={() => router.push("/(tabs)/reviewsPanel")}
           >
             <Text style={styles.tileText}>Panel Recenzji</Text>
           </Pressable>
