@@ -41,9 +41,12 @@ export default function Dashboard() {
             <Text style={styles.tileText}>Wnioski</Text>
           </Pressable>
 
-          <View style={styles.tile}>
+          <Pressable
+            style={styles.tile}
+            onPress={() => router.push("/(tabs)/accountUsers")}
+          >
             <Text style={styles.tileText}>Użytkownicy</Text>
-          </View>
+          </Pressable>
 
           <Pressable
             style={styles.tile}
