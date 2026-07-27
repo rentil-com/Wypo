@@ -15,6 +15,9 @@ export type AccountDetails =  {
 export type AccountEditBody = {
   imie? : string,
   nazwisko? : string
+  email?: string;
+  password?: string;
+  rola?: UserRole;
 }
 // Body rozpoczecia zmiany adresu e-mail
 export type AccountEmailChange = {
@@ -83,3 +86,13 @@ export type AccountsListResponse = {
   liczbaStron: number;
   dane: AccountDetails[];
 };
+
+// PATCH /account/edit/:id
+export type AccountPatchBody = AccountEditBody;
+
+// PUT /account/edit/:id
+export type AccountPutBody = AccountEditBody;
+
+// GET /account/details/:id
+export type AccountDetailsByIdResponse = AccountDetails;
+
