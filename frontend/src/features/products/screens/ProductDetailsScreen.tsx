@@ -5,8 +5,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Image,
+  Modal,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -22,6 +22,8 @@ import { pobierzWszystkieRecenzjeProduktu } from "@features/reviews/reviews.serv
 import { dodajZdjeciaProduktu, edytujProdukt, usunZdjeciaProduktu } from "../products.management.services";
 import type { ProductSpecificationBody, ProductStatus } from "../products.management.types";
 import adminStyles from "./ProductAdminForm.styles";
+import { styles } from "./ProductDetailsScreen.styles";
+import { zlozWniosekOWypozyczenie } from "@features/loans/loans.service";
 
 
 
@@ -77,6 +79,11 @@ export default function ProductDetailedView() {
   const [trybEdycji,setTrybEdycji] = useState(edit === "true");
   const [cena,setCena] = useState("");
   const [opis,setOpis] = useState("");
+  const [wybranaDataOd,setwybranaDataOd] = useState("")
+  const [wybranaDataDo,setwybranaDataDo] = useState("")
+  const [wniosekZaczety,setwniosekZaczety] = useState(false)
+  const [wniosekLoading,setWniosekLoading] = useState(false)
+  const [wniosekError,setWniosekError] = useState<string | null>(null)
   const [statusProduktu,setStatusProduktu] = useState<ProductStatus>("dostepny");
   const [specyfikacje,setSpecyfikacje] = useState<ProductSpecificationBody[]>([]);
   const [noweZdjecia,setNoweZdjecia] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -344,6 +351,48 @@ export default function ProductDetailedView() {
 
   };
 
+
+  const zamknijModalWniosku = () => {
+    setwniosekZaczety(false)
+    setwybranaDataOd("")
+    setwybranaDataDo("")
+    setWniosekError(null)
+  }
+
+  const wypozyczTeraz = async ()=> {
+    const dataOd = wybranaDataOd.trim()
+    const dataDo = wybranaDataDo.trim()
+    const formatDaty = /^\d{4}-\d{2}-\d{2}$/
+
+    setWniosekError(null)
+
+    if (!formatDaty.test(dataOd) || !formatDaty.test(dataDo)) {
+      setWniosekError("Podaj obie daty w formacie RRRR-MM-DD")
+      return
+    }
+
+    if (dataDo < dataOd) {
+      setWniosekError("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia")
+      return
+    }
+
+    setWniosekLoading(true)
+
+    try {
+      await zlozWniosekOWypozyczenie({
+        sprzet_id: pojedynczyProdukt.id,
+        data_od: dataOd,
+        data_do: dataDo,
+      })
+      zamknijModalWniosku()
+    }
+    catch(error){
+      setWniosekError(error instanceof Error ? error.message : "Nie udało się złożyć wniosku")
+    }
+    finally {
+      setWniosekLoading(false)
+    }
+  }
 
 
   return (
@@ -719,20 +768,88 @@ export default function ProductDetailedView() {
                 </View>
 
                 {/* PRZYCISKI INTERAKTYWNE */}
-                <Pressable style={styles.primaryButton}>
+                <Pressable style={styles.primaryButton} onPress={()=> setwniosekZaczety(true)}>
                   <MaterialIcons name="flash-on" size={22} color="#FFFFFF" />
                   <Text style={styles.primaryButtonText}>Wypożycz teraz</Text>
                 </Pressable>
 
-                <Pressable style={styles.secondaryButton}>
-                  <MaterialIcons name="shopping-cart" size={22} color="#2563EB" />
-                  <Text style={styles.secondaryButtonText}>Dodaj do koszyka</Text>
-                </Pressable>
               </View>
                 </>
               )}
             </View>
           </View>
+
+          <Modal
+            visible={wniosekZaczety}
+            transparent
+            animationType="fade"
+            onRequestClose={zamknijModalWniosku}
+          >
+            <View style={styles.loanModalOverlay}>
+              <View style={styles.loanModalCard}>
+                <View style={styles.loanModalIcon}>
+                  <MaterialIcons name="date-range" size={28} color="#2563EB" />
+                </View>
+
+                <Text style={styles.loanModalTitle}>Wybierz termin wypożyczenia</Text>
+                <Text style={styles.loanModalDescription}>
+                  Podaj datę rozpoczęcia i zakończenia wynajmu.
+                </Text>
+
+                <View style={styles.loanModalField}>
+                  <Text style={styles.loanModalLabel}>Data od</Text>
+                  <TextInput
+                    value={wybranaDataOd}
+                    onChangeText={setwybranaDataOd}
+                    placeholder="RRRR-MM-DD"
+                    placeholderTextColor="#94A3B8"
+                    autoCapitalize="none"
+                    style={styles.loanModalInput}
+                  />
+                </View>
+
+                <View style={styles.loanModalField}>
+                  <Text style={styles.loanModalLabel}>Data do</Text>
+                  <TextInput
+                    value={wybranaDataDo}
+                    onChangeText={setwybranaDataDo}
+                    placeholder="RRRR-MM-DD"
+                    placeholderTextColor="#94A3B8"
+                    autoCapitalize="none"
+                    style={styles.loanModalInput}
+                  />
+                </View>
+
+                {wniosekError && (
+                  <Text style={styles.loanModalError}>{wniosekError}</Text>
+                )}
+
+                <View style={styles.loanModalActions}>
+                  <Pressable
+                    disabled={wniosekLoading}
+                    style={[styles.loanModalButton, styles.loanModalCancelButton]}
+                    onPress={zamknijModalWniosku}
+                  >
+                    <Text style={styles.loanModalCancelText}>Anuluj</Text>
+                  </Pressable>
+
+                  <Pressable
+                    disabled={wniosekLoading}
+                    style={[
+                      styles.loanModalButton,
+                      styles.loanModalSubmitButton,
+                      wniosekLoading && styles.loanModalButtonDisabled,
+                    ]}
+                    onPress={() => void wypozyczTeraz()}
+                  >
+                    <Text style={styles.loanModalSubmitText}>
+                      {wniosekLoading ? "Składanie..." : "Złóż wniosek"}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
 
           <ProductReviewsSection
             reviews={reviews}
@@ -792,709 +909,3 @@ export default function ProductDetailedView() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F4F8FF",
-  },
-  errorText: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: "#EF4444",
-    padding: 32,
-  },
-  adminToolbar: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-    marginBottom: 18,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    backgroundColor: "#EFF6FF",
-  },
-  adminBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-  },
-  adminBadgeText: {
-    color: "#1D4ED8",
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  adminToolbarActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  editProductButton: {
-    minHeight: 42,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-  },
-  editProductButtonText: {
-    color: "#1D4ED8",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  cancelEditButton: {
-    minHeight: 42,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 12,
-    backgroundColor: "#E2E8F0",
-    paddingHorizontal: 16,
-  },
-  cancelEditButtonText: {
-    color: "#475569",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  saveProductButton: {
-    minHeight: 42,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-    borderRadius: 12,
-    backgroundColor: "#176BDE",
-    paddingHorizontal: 16,
-  },
-  saveProductButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  adminErrorText: {
-    width: "100%",
-    color: "#DC2626",
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 14,
-  },
-
-
-  navLinks: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 28,
-  },
-
-  sideheaderAction: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-
-  sideheaderText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#111827",
-  },
-
-  headerDivider: {
-    width: 1,
-    height: 42,
-    backgroundColor: "#E2E8F0",
-  },
-
-  /* SCIEZKA KATEGORII */
-
-  category_path: {
-    marginTop: 28,
-    marginBottom: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "nowrap",
-    overflow: "hidden",
-    gap: 8,
-  },
-
-  breadcrumbItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 2,
-    zIndex : 1,
-    position : "relative",
-  },
-
-  breadcrumbText: {
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "600",
-  },
-
-  breadcrumbLast: {
-    fontSize: 14,
-    color: "#176BDE",
-    fontWeight: "700",
-  },
-
-  /* MAIN PRODUCT SECTION */
-
-  productSection: {
-    width: "100%",
-    flexDirection: "row",
-    gap: 24,
-    alignItems: "stretch",
-    position : "relative",
-    zIndex : 1,
-  },
-
-  /* LEFT GALLERY */
-
-  galleryCard: {
-    flex: 1.65,
-    minHeight: 720,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 26,
-    padding: 28,
-    position: "relative",
-
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 5,
-  },
-  galleryEditActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingRight: 100,
-  },
-  addImageButton: {
-    minHeight: 40,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: 14,
-  },
-  addImageButtonText: {
-    color: "#1D4ED8",
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  deleteImageButton: {
-    minHeight: 40,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#FECACA",
-    backgroundColor: "#FFF7F7",
-    paddingHorizontal: 14,
-  },
-  deleteImageButtonText: {
-    color: "#DC2626",
-    fontSize: 13,
-    fontWeight: "800",
-  },
-
-  imageCounter: {
-    position: "absolute",
-    top: 26,
-    right: 28,
-    zIndex: 10,
-    backgroundColor: "#F1F5F9",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-
-  imageCounterText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#64748B",
-  },
-
-  mainImageBox: {
-    flex: 1,
-    minHeight: 540,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 60,
-    paddingTop: 35,
-    paddingBottom: 20,
-  },
-
-  mainProductImage: {
-    width: "100%",
-    height: "100%",
-    maxHeight: 540,
-  },
-  emptyGalleryText: {
-    color: "#94A3B8",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  thumbnailRow: {
-    marginTop: 20,
-    flexDirection: "row",
-    gap: 12,
-  },
-
-  thumbnailBox: {
-    flex: 1,
-    height: 96,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 8,
-  },
-
-  thumbnailBoxActive: {
-    borderWidth: 2,
-    borderColor: "#176BDE",
-    backgroundColor: "#F8FBFF",
-  },
-
-  thumbnailImage: {
-    width: "100%",
-    height: "100%",
-  },
-  newImagesSection: {
-    marginTop: 18,
-  },
-  newImagesTitle: {
-    color: "#334155",
-    fontSize: 13,
-    fontWeight: "800",
-  },
-
-  galleryArrow: {
-    position: "absolute",
-    top: "48%",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-
-  galleryArrowLeft: {
-    left: 28,
-  },
-
-  galleryArrowRight: {
-    right: 28,
-  },
-
-  /* PRAWA STRONA - SZCZEGOLY */
-
-  productStatusBadge: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    marginBottom: 8,
-  },
-
-  productStatusText: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-
-
-  detailsCard: {
-    flex: 1,
-    minHeight: 720,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 26,
-    padding: 30,
-
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    elevation: 5,
-    position : "relative",
-    zIndex : 1,
-  },
-  editDivider: {
-    height: 1,
-    backgroundColor: "#E2E8F0",
-    marginBottom: 24,
-  },
-  specificationEditFields: {
-    gap: 10,
-  },
-  emptySpecificationsText: {
-    color: "#64748B",
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  imagesToDeleteText: {
-    color: "#DC2626",
-    fontSize: 13,
-    fontWeight: "700",
-    marginTop: 10,
-  },
-
-  productTitle: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: "900",
-    color: "#07163D",
-    marginBottom: 14,
-  },
-
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 18,
-    marginBottom: 18,
-  },
-
-  availableRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-
-  availableDot: {
-    width: 11,
-    height: 11,
-    borderRadius: 99,
-    backgroundColor: "#10B981",
-  },
-
-  availableText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-
-  ratingText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#64748B",
-  },
-
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-    marginTop: 4,
-  },
-
-  price: {
-    fontSize: 38,
-    lineHeight: 44,
-    fontWeight: "900",
-    color: "#2563EB",
-  },
-
-  pricePeriod: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#64748B",
-    marginBottom: 6,
-  },
-
-  oldPriceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 10,
-    marginBottom: 22,
-  },
-
-  oldPrice: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#64748B",
-    textDecorationLine: "line-through",
-  },
-
-  discountBadge: {
-    backgroundColor: "#DCFCE7",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-
-  discountText: {
-    fontSize: 14,
-    fontWeight: "900",
-    color: "#059669",
-  },
-
-  description: {
-    fontSize: 15,
-    lineHeight: 23,
-    fontWeight: "500",
-    color: "#475569",
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: "#E2E8F0",
-    marginVertical: 24,
-  },
-
-  specList: {
-    gap: 14,
-  },
-
-  specRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 16,
-  },
-
-  specLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-
-  specLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#64748B",
-  },
-
-  specValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#334155",
-    textAlign: "right",
-  },
-
-  periodHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 14,
-  },
-
-  periodTitle: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: "#0F172A",
-  },
-
-  howItWorksButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-
-  howItWorksText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#2563EB",
-  },
-
-  periodOptions: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 20,
-  },
-
-  periodOption: {
-    flex: 1,
-    minHeight: 68,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 8,
-    backgroundColor: "#FFFFFF",
-  },
-
-  periodOptionActive: {
-    borderWidth: 2,
-    borderColor: "#2563EB",
-    backgroundColor: "#F8FBFF",
-  },
-
-  periodOptionTitle: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: "#0F172A",
-    marginBottom: 6,
-  },
-
-  periodOptionTitleActive: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: "#2563EB",
-    marginBottom: 6,
-  },
-
-  periodOptionPriceActive: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#2563EB",
-  },
-
-  periodPriceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-
-  periodOldPrice: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#64748B",
-    textDecorationLine: "line-through",
-  },
-
-  periodDiscount: {
-    fontSize: 12,
-    fontWeight: "900",
-    color: "#059669",
-    backgroundColor: "#DCFCE7",
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 999,
-  },
-
-  primaryButton: {
-    height: 56,
-    borderRadius: 10,
-    backgroundColor: "#2563EB",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginBottom: 10,
-
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.24,
-    shadowRadius: 18,
-    elevation: 5,
-  },
-
-  primaryButtonText: {
-    fontSize: 17,
-    fontWeight: "900",
-    color: "#FFFFFF",
-  },
-
-  secondaryButton: {
-    height: 52,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: "#2563EB",
-    backgroundColor: "#FFFFFF",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: "#2563EB",
-  },
-
-  /* PASEK ZALET */
-
-  benefitsBar: {
-    marginTop: 24,
-    minHeight: 88,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    paddingHorizontal: 28,
-    paddingVertical: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 4,
-  },
-
-  benefitItem: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
-
-  benefitIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "#EFF6FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  benefitTitle: {
-    fontSize: 14,
-    fontWeight: "900",
-    color: "#0F172A",
-    marginBottom: 4,
-  },
-
-  benefitText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#64748B",
-  },
-
-  benefitDivider: {
-    width: 1,
-    height: 42,
-    backgroundColor: "#E2E8F0",
-    marginHorizontal: 20,
-  },
-  specEmoji: {
-  width: 24,
-  fontSize: 18,
-  textAlign: "center",
-},
-  
-});
-  

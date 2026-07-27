@@ -1,3 +1,4 @@
+// Specyfikacja pojedynczego produktu
 export type ProductSpecification = {
   id: number;
   nazwa_specyfikacji: string;
@@ -28,4 +29,5 @@ export type SingleProductApiItem = {
   specyfikacje : ProductSpecification[];
 };
 
+// Lista szczegolow pojedynczego produktu
 export type SingleProductResponse =  SingleProductApiItem[]
