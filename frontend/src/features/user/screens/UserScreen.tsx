@@ -2,7 +2,18 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   pobierzPojedynczyProdukt,
@@ -51,10 +62,16 @@ function uzupelnijZero(value: number) {
 }
 
 export default function User() {
+  const { width } = useWindowDimensions();
   const { status, user } = useAuth();
   const isAdmin = user?.rola === "admin";
   const isAuthenticated = status === "authenticated" && user !== null;
   const isOfferLocked = status !== "authenticated";
+  const isPhone = width < 760;
+  const isSmallPhone = width < 390;
+  const isTablet = width >= 760 && width < 1100;
+  const categoryColumns = isPhone ? 2 : 4;
+  const productColumns = isPhone ? 1 : isTablet ? 2 : 4;
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(EMPTY_TIME_LEFT);
   const [dailyPromotion, setDailyPromotion] = useState<DailyPromotionResponse | null>(null);
@@ -340,8 +357,11 @@ export default function User() {
   };
 
   return (
-  
-    <PageLayout> 
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "left", "right"]}
+    >
+    <PageLayout>
       {/* HEADER */}
       
         {/*CONTROLS */}
@@ -369,39 +389,42 @@ export default function User() {
           end={{ x: 1, y: 1 }}
           style={[
             styles.offerCard,
+            isTablet && styles.offerCardTablet,
+            isPhone && styles.offerCardMobile,
+            isSmallPhone && styles.offerCardSmallPhone,
             isOfferLocked && styles.offerCardBlurred,
           ]}
         >
           <View style={styles.offerBubbleOne} />
           <View style={styles.offerBubbleTwo} />
 
-          <View style={styles.offerLeft}>
+          <View style={[styles.offerLeft, isPhone && styles.offerLeftMobile]}>
             {dailyPromotion ? (
               <>
-                <View style={styles.offerTimerWrapper}>
-                  <Text style={styles.offerTimerLabel}>PROMOCJA WYGASA ZA</Text>
+                <View style={[styles.offerTimerWrapper, isPhone && styles.offerTimerWrapperMobile]}>
+                  <Text style={[styles.offerTimerLabel, isSmallPhone && styles.offerTimerLabelSmallPhone]}>PROMOCJA WYGASA ZA</Text>
 
                   <View style={styles.timerRow}>
-                    <View style={styles.timerSegment}>
-                      <Text style={styles.timerValue}>
+                    <View style={[styles.timerSegment, isPhone && styles.timerSegmentMobile]}>
+                      <Text style={[styles.timerValue, isSmallPhone && styles.timerValueSmallPhone]}>
                         {uzupelnijZero(timeLeft.hours)}
                       </Text>
                       <Text style={styles.timerLabel}>GODZ</Text>
                     </View>
 
-                    <Text style={styles.timerColon}>:</Text>
+                    <Text style={[styles.timerColon, isPhone && styles.timerColonMobile]}>:</Text>
 
-                    <View style={styles.timerSegment}>
-                      <Text style={styles.timerValue}>
+                    <View style={[styles.timerSegment, isPhone && styles.timerSegmentMobile]}>
+                      <Text style={[styles.timerValue, isSmallPhone && styles.timerValueSmallPhone]}>
                         {uzupelnijZero(timeLeft.minutes)}
                       </Text>
                       <Text style={styles.timerLabel}>MIN</Text>
                     </View>
 
-                    <Text style={styles.timerColon}>:</Text>
+                    <Text style={[styles.timerColon, isPhone && styles.timerColonMobile]}>:</Text>
 
-                    <View style={styles.timerSegment}>
-                      <Text style={styles.timerValue}>
+                    <View style={[styles.timerSegment, isPhone && styles.timerSegmentMobile]}>
+                      <Text style={[styles.timerValue, isSmallPhone && styles.timerValueSmallPhone]}>
                         {uzupelnijZero(timeLeft.seconds)}
                       </Text>
                       <Text style={styles.timerLabel}>SEK</Text>
@@ -409,19 +432,19 @@ export default function User() {
                   </View>
                 </View>
 
-                <Text style={styles.offerTopText}>Twój wylosowany sprzęt</Text>
-                <Text style={styles.offerTitle}>
+                <Text style={[styles.offerTopText, isPhone && styles.offerTopTextMobile]}>Twój wylosowany sprzęt</Text>
+                <Text style={[styles.offerTitle, isTablet && styles.offerTitleTablet, isPhone && styles.offerTitleMobile, isSmallPhone && styles.offerTitleSmallPhone]}>
                   {dailyProduct?.nazwa || "Dzienna promocja"} -{formatujRabat(dailyPromotion.promocja.wartosc)}%
                 </Text>
-                <Text style={styles.offerSubtitle} numberOfLines={2}>
+                <Text style={[styles.offerSubtitle, isPhone && styles.offerSubtitleMobile]} numberOfLines={isPhone ? 3 : 2}>
                   {dailyProduct?.opis ||
                     dailyPromotion.promocja.opis ||
                     "Indywidualny rabat na wylosowany sprzęt."}
                 </Text>
 
                 {dailyProduct && (
-                  <View style={styles.offerPriceRow}>
-                    <Text style={styles.offerPrice}>
+                  <View style={[styles.offerPriceRow, isPhone && styles.offerPriceRowMobile]}>
+                    <Text style={[styles.offerPrice, isPhone && styles.offerPriceMobile]}>
                       {formatujCene(
                         obliczCenePoRabacie(
                           dailyProduct.cena,
@@ -442,6 +465,7 @@ export default function User() {
                 <Pressable
                   style={[
                     styles.offerButton,
+                    isPhone && styles.offerButtonMobile,
                     promotedProductId === null && styles.offerButtonDisabled,
                   ]}
                   disabled={promotedProductId === null}
@@ -455,9 +479,9 @@ export default function User() {
               </>
             ) : (
               <>
-                <Text style={styles.offerTopText}>Specjalna oferta dla Ciebie</Text>
-                <Text style={styles.offerTitle}>Wylosuj dzienny rabat</Text>
-                <Text style={styles.offerSubtitle} numberOfLines={2}>
+                <Text style={[styles.offerTopText, isPhone && styles.offerTopTextMobile]}>Specjalna oferta dla Ciebie</Text>
+                <Text style={[styles.offerTitle, isTablet && styles.offerTitleTablet, isPhone && styles.offerTitleMobile, isSmallPhone && styles.offerTitleSmallPhone]}>Wylosuj dzienny rabat</Text>
+                <Text style={[styles.offerSubtitle, isPhone && styles.offerSubtitleMobile]} numberOfLines={isPhone ? 3 : 2}>
                   Wylosuj indywidualny rabat na jeden dostępny sprzęt. Promocja
                   będzie ważna przez czas wskazany po losowaniu.
                 </Text>
@@ -465,6 +489,7 @@ export default function User() {
                 <Pressable
                   style={[
                     styles.offerButton,
+                    isPhone && styles.offerButtonMobile,
                     (!isAuthenticated ||
                       promotionLoading ||
                       promotionRefreshing) &&
@@ -493,16 +518,16 @@ export default function User() {
             )}
           </View>
 
-          <View style={styles.offerVisual}>
+          <View style={[styles.offerVisual, isTablet && styles.offerVisualTablet, isPhone && styles.offerVisualMobile]}>
             {dailyProduct?.zdjecia_url["1"] ? (
               <>
                 <Image
                   source={{ uri: dailyProduct.zdjecia_url["1"] }}
-                  style={styles.offerProductImage}
+                  style={[styles.offerProductImage, isTablet && styles.offerProductImageTablet, isPhone && styles.offerProductImageMobile]}
                   resizeMode="contain"
                 />
-                <View style={styles.offerDiscountBadge}>
-                  <Text style={styles.offerDiscountBadgeText}>
+                <View style={[styles.offerDiscountBadge, isPhone && styles.offerDiscountBadgeMobile]}>
+                  <Text style={[styles.offerDiscountBadgeText, isPhone && styles.offerDiscountBadgeTextMobile]}>
                     -{formatujRabat(dailyPromotion?.promocja.wartosc ?? 0)}%
                   </Text>
                 </View>
@@ -511,36 +536,36 @@ export default function User() {
               <>
                 <MaterialIcons
                   name="local-offer"
-                  size={112}
+                  size={isPhone ? 88 : 112}
                   color="rgba(255,255,255,0.28)"
                 />
-                <Text style={styles.offerVisualValue}>
+                <Text style={[styles.offerVisualValue, isPhone && styles.offerVisualValueMobile]}>
                   {dailyPromotion
                     ? `-${formatujRabat(dailyPromotion.promocja.wartosc)}%`
                     : "?%"}
                 </Text>
               </>
             )}
-            <Text style={styles.offerVisualLabel}>
+            <Text style={[styles.offerVisualLabel, isPhone && styles.offerVisualLabelMobile]}>
               {dailyProduct ? "WYLOSOWANY SPRZĘT" : "TWÓJ DZIENNY RABAT"}
             </Text>
           </View>
         </LinearGradient>
 
         {isOfferLocked && (
-          <View style={styles.offerLockedOverlay}>
-            <View style={styles.offerLockedIcon}>
+          <View style={[styles.offerLockedOverlay, isPhone && styles.offerLockedOverlayMobile]}>
+            <View style={[styles.offerLockedIcon, isPhone && styles.offerLockedIconMobile]}>
               <MaterialIcons name="lock-outline" size={30} color="#FFFFFF" />
             </View>
 
             {status === "loading" ? (
-              <Text style={styles.offerLockedTitle}>Sprawdzamy sesję...</Text>
+              <Text style={[styles.offerLockedTitle, isPhone && styles.offerLockedTitleMobile]}>Sprawdzamy sesję...</Text>
             ) : (
               <>
-                <Text style={styles.offerLockedTitle}>
+                <Text style={[styles.offerLockedTitle, isPhone && styles.offerLockedTitleMobile]}>
                   Zaloguj się, żeby wylosować dzienną promocję
                 </Text>
-                <Text style={styles.offerLockedDescription}>
+                <Text style={[styles.offerLockedDescription, isPhone && styles.offerLockedDescriptionMobile]}>
                   Rabaty na losowy sprzęt są dostępne tylko dla zalogowanych użytkowników.
                 </Text>
                 <Pressable
@@ -556,10 +581,10 @@ export default function User() {
       </View>
 
       {/* KATEGORIE HEADER */}
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, isPhone && styles.sectionHeaderMobile]}>
         <Text style={styles.sectionTitle}>Kategorie</Text>
 
-        <View style={styles.sectionActions}>
+        <View style={[styles.sectionActions, isPhone && styles.sectionActionsMobile]}>
           <Pressable style={styles.allButton} onPress={()=> router.push("/catalog/catalog")}>
             <Text style={styles.allButtonText}>Wszystkie</Text>
           </Pressable>
@@ -585,9 +610,9 @@ export default function User() {
       </View>
 
       {/* KATEGORIE */}
-      <View style={styles.categoriesRow}>
+      <View style={[styles.categoriesRow, isPhone && styles.categoriesRowMobile]}>
         
-        <Pressable onPress={()=> router.push("/catalog/promotions")} style={[styles.categoryCardActive]}>
+        <Pressable onPress={()=> router.push("/catalog/promotions")} style={[styles.categoryCardActive, isPhone && styles.categoryCardActiveMobile]}>
           <View style={styles.categoryIconBoxActive}> 
   <MaterialIcons name={"discount"} size={32}
                 color="#F43F5E"/>
@@ -595,16 +620,21 @@ export default function User() {
       <Text style={styles.categoryNameActive}>Promocje</Text>
         </Pressable>
    <FlatList
+    key={`categories-${categoryColumns}`}
     data={kategorie}
     keyExtractor={(elem)=> elem.id.toString()}
-    numColumns={4}
+    numColumns={categoryColumns}
+    scrollEnabled={false}
+    style={[styles.categoriesList, isPhone && styles.categoriesListMobile]}
+    contentContainerStyle={isPhone ? styles.categoriesListContentMobile : undefined}
+    columnWrapperStyle={categoryColumns > 1 ? [styles.categoryListRow, isPhone && styles.categoryListRowMobile] : undefined}
     renderItem={({item})=> {
       const moznaUsunac = usuwalneKategorieIds.includes(item.id);
 
       return (
         <View style={styles.categoryCardWrapper}>
         <Pressable
-          style={styles.categoryCard}
+          style={[styles.categoryCard, isPhone && styles.categoryCardMobile]}
           onPress={()=> router.push(`/catalog/category/${item.id}`)}
         >
           <View style={styles.categoryIconBoxActive}>
@@ -652,7 +682,7 @@ export default function User() {
       </View>
 
       {/* BESTSELLERY HEADER */}
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, isPhone && styles.sectionHeaderMobile, isPhone && styles.bestsellersHeaderMobile]}>
         <Text style={styles.sectionTitle}>Bestsellery</Text>
 
         <Pressable style={styles.seeAllButton} onPress={()=> router.push("/catalog/catalog")}>
@@ -663,11 +693,12 @@ export default function User() {
 
       {/* KATALOG -> PRODUKTY/BESTSELLERY*/}
       <ProductGrid
+        numColumns={productColumns}
         ulubioneIds={ulubioneIds ?? []}
         data={produkty}
         scrollEnabled={false}
-        columnWrapperStyle={styles.productRow}
-        contentContainerStyle={styles.productsList}
+        columnWrapperStyle={productColumns > 1 ? styles.productRow : undefined}
+        contentContainerStyle={[styles.productsList, isPhone && styles.productsListMobile]}
         mapItem={(item) => ({...item,opis : item.opis ?? "", cena_po_promocji: item.czy_promocja ? item.cena_aktualna : null, zdjecie_url : item.zdjecia_url["1"]})}
       />
 
@@ -678,7 +709,7 @@ export default function User() {
         onRequestClose={() => setCategoryToDelete(null)}
       >
         <View style={styles.categoryModalOverlay}>
-          <View style={styles.categoryModalCard}>
+          <View style={[styles.categoryModalCard, isPhone && styles.categoryModalCardMobile]}>
             <View style={styles.categoryModalIcon}>
               <MaterialIcons name="delete-outline" size={30} color="#DC2626" />
             </View>
@@ -688,7 +719,7 @@ export default function User() {
               Czy na pewno chcesz usunąć kategorię „{categoryToDelete?.nazwa}”?
             </Text>
 
-            <View style={styles.categoryModalActions}>
+            <View style={[styles.categoryModalActions, isSmallPhone && styles.categoryModalActionsSmallPhone]}>
               <Pressable
                 style={[styles.categoryModalButton, styles.categoryModalCancelButton]}
                 onPress={() => setCategoryToDelete(null)}
@@ -707,10 +738,16 @@ export default function User() {
         </View>
       </Modal>
     </PageLayout>
+    </SafeAreaView>
 );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F4F8FF",
+  },
+
   adminBadge: {
     alignSelf: "flex-end",
     flexDirection: "row",
@@ -745,11 +782,23 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     position: "relative",
 
-    shadowColor: "#2F80ED",
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.18,
-    shadowRadius: 26,
-    elevation: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#2F80ED",
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.18,
+        shadowRadius: 26,
+      },
+      android: {
+        elevation: 5,
+      },
+      default: {
+        shadowColor: "#2F80ED",
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.18,
+        shadowRadius: 26,
+      },
+    }),
     zIndex : 1,
   },
 
@@ -1316,7 +1365,228 @@ categoryModalDeleteText: {
 categoryImage :{
   width : 32,
   height : 32,
-}
+},
 
 
+  offerCardTablet: {
+    padding: 30,
+  },
+
+  offerCardMobile: {
+    minHeight: 0,
+    borderRadius: 22,
+    padding: 22,
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+
+  offerCardSmallPhone: {
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+  },
+
+  offerLeftMobile: {
+    width: "100%",
+  },
+
+  offerTopTextMobile: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+
+  offerTitleTablet: {
+    fontSize: 33,
+    lineHeight: 39,
+  },
+
+  offerTitleMobile: {
+    fontSize: 29,
+    lineHeight: 35,
+  },
+
+  offerTitleSmallPhone: {
+    fontSize: 26,
+    lineHeight: 31,
+  },
+
+  offerSubtitleMobile: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 10,
+  },
+
+  offerPriceRowMobile: {
+    flexWrap: "wrap",
+    marginTop: 18,
+  },
+
+  offerPriceMobile: {
+    fontSize: 23,
+  },
+
+  offerVisualTablet: {
+    width: 250,
+    minHeight: 230,
+  },
+
+  offerVisualMobile: {
+    width: "100%",
+    minHeight: 190,
+    marginTop: 16,
+  },
+
+  offerProductImageTablet: {
+    width: 235,
+    height: 210,
+  },
+
+  offerProductImageMobile: {
+    width: "100%",
+    height: 180,
+  },
+
+  offerDiscountBadgeMobile: {
+    top: 8,
+    right: 0,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+
+  offerDiscountBadgeTextMobile: {
+    fontSize: 20,
+  },
+
+  offerVisualValueMobile: {
+    fontSize: 48,
+  },
+
+  offerVisualLabelMobile: {
+    bottom: 8,
+    fontSize: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+
+  offerButtonMobile: {
+    alignSelf: "stretch",
+    alignItems: "center",
+    marginTop: 22,
+  },
+
+  offerLockedOverlayMobile: {
+    borderRadius: 22,
+    padding: 20,
+  },
+
+  offerLockedIconMobile: {
+    width: 50,
+    height: 50,
+    borderRadius: 17,
+    marginBottom: 12,
+  },
+
+  offerLockedTitleMobile: {
+    fontSize: 21,
+    lineHeight: 27,
+  },
+
+  offerLockedDescriptionMobile: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 8,
+  },
+
+  sectionHeaderMobile: {
+    marginTop: 26,
+    marginBottom: 14,
+    alignItems: "stretch",
+    gap: 12,
+  },
+
+  bestsellersHeaderMobile: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  sectionActionsMobile: {
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  categoriesRowMobile: {
+    flexDirection: "column",
+    gap: 12,
+  },
+
+  categoriesList: {
+    flex: 4,
+  },
+
+  categoriesListMobile: {
+    width: "100%",
+    flex: 0,
+  },
+
+  categoriesListContentMobile: {
+    gap: 12,
+  },
+
+  categoryListRow: {
+    gap: 16,
+  },
+
+  categoryListRowMobile: {
+    gap: 12,
+  },
+
+  categoryCardMobile: {
+    minHeight: 104,
+    borderRadius: 18,
+    paddingHorizontal: 10,
+  },
+
+  categoryCardActiveMobile: {
+    width: "100%",
+    minHeight: 104,
+    flex: 0,
+    borderRadius: 18,
+  },
+
+  productsListMobile: {
+    gap: 14,
+  },
+
+  offerTimerWrapperMobile: {
+    width: "100%",
+    paddingHorizontal: 10,
+    marginBottom: 16,
+  },
+
+  offerTimerLabelSmallPhone: {
+    fontSize: 11,
+  },
+
+  timerSegmentMobile: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  timerValueSmallPhone: {
+    fontSize: 24,
+    lineHeight: 27,
+  },
+
+  timerColonMobile: {
+    marginHorizontal: 4,
+  },
+
+  categoryModalCardMobile: {
+    borderRadius: 20,
+    padding: 22,
+  },
+
+  categoryModalActionsSmallPhone: {
+    gap: 8,
+  },
 });

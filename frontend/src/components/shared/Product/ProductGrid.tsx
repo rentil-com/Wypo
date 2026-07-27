@@ -11,6 +11,7 @@ type ProductGridProps = {
   ulubioneIds : number[]
   data: ApiItem[];
   mapItem: (item: ApiItem) => ProductCardItem;
+  numColumns?: number;
   onFavouriteChange?: (id: number, polubione: boolean) => void;
   columnWrapperStyle?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
@@ -24,6 +25,7 @@ export default function ProductGrid({
   ulubioneIds,
   data,
   mapItem,
+  numColumns = 4,
   onFavouriteChange,
   columnWrapperStyle,
   contentContainerStyle,
@@ -34,9 +36,10 @@ export default function ProductGrid({
 }: ProductGridProps) {
   return (
     <FlatList
+      key={`product-grid-${numColumns}`}
       data={data}
       keyExtractor={(item) => item.id.toString()}
-      numColumns={4}
+      numColumns={numColumns}
       scrollEnabled={scrollEnabled}
       columnWrapperStyle={columnWrapperStyle}
       contentContainerStyle={contentContainerStyle}
