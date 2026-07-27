@@ -25,12 +25,21 @@ export default function Dashboard() {
         <View style={styles.header}>
           <Text style={styles.title}>Admin Dashboard</Text>
 
-          <Pressable
-            style={styles.addButton}
-            onPress={() => router.push("/products/AddProduct")}
-          >
-            <Text style={styles.addButtonText}>Dodaj produkt</Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={styles.addButton}
+              onPress={() => router.push("/products/AddProduct")}
+            >
+              <Text style={styles.addButtonText}>Dodaj produkt</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.addButton}
+              onPress={() => router.push("/category/addCategory")}
+            >
+              <Text style={styles.addButtonText}>Dodaj kategorię</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.tiles}>
@@ -97,6 +106,9 @@ const styles = StyleSheet.create({
     fontSize: 40,
     lineHeight: 48,
     fontWeight: "900",
+  },
+  headerActions: {
+    gap: 10,
   },
   addButton: {
     minHeight: 46,
