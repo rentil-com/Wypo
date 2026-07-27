@@ -625,24 +625,6 @@ export const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
-  secondaryButton: {
-    height: 52,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: "#2563EB",
-    backgroundColor: "#FFFFFF",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: "900",
-    color: "#2563EB",
-  },
-
   loanModalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.55)",
@@ -820,4 +802,3 @@ export const styles = StyleSheet.create({
 },
   
 });
-

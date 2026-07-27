@@ -149,7 +149,7 @@ useEffect(()=>{
         ))}
         </View>
 }
-        {/*KONTROLKI -> KATEGORIE, KONTAKT, DLA FIRM , JAK TO DZIALA */}
+        {/*KONTROLKI -> KATEGORIE, JAK TO DZIALA */}
         <View style={styles.categoryContainer}>
           <View
     style={styles.categoryWrapper}
@@ -218,18 +218,6 @@ useEffect(()=>{
                 </Pressable>
              </View>
       
-              <View style={styles.headerSideActions}>
-                <Pressable style={styles.headerInfo} >
-                  <Text style={styles.headerInfoText}>Dla firm</Text>
-                </Pressable>
-             </View>
-      
-              <View style={styles.headerSideActions}>
-                <Pressable style={styles.headerInfo} >
-                  <Text style={styles.headerInfoText}>Kontakt</Text>
-                </Pressable>
-             </View>
-      
         {/*CONTROLS */}
         {/*Przenoszenie do odpowiednich widokow */}
         <View style={styles.headerActions}>
@@ -246,11 +234,6 @@ useEffect(()=>{
           <Pressable style={styles.headerAction} onPress={()=> router.replace("/(tabs)/wishlist")}>
             <MaterialIcons name="favorite-border" size={24} color="#111827"/>
             <Text style={styles.headerActionText}>Ulubione</Text>
-          </Pressable>
-
-          <Pressable style={styles.headerAction}  onPress={()=> router.replace("/(tabs)/basket")}>
-            <MaterialIcons name="shopping-cart" size={24} color="#111827" />
-            <Text style={styles.headerActionText}>Koszyk</Text>
           </Pressable>
 
           <Pressable style={styles.headerAction} onPress={()=> szczegolyKonta()}>

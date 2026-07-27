@@ -769,10 +769,6 @@ export default function ProductDetailedView() {
                   <Text style={styles.primaryButtonText}>Wypożycz teraz</Text>
                 </Pressable>
 
-                <Pressable style={styles.secondaryButton}>
-                  <MaterialIcons name="shopping-cart" size={22} color="#2563EB" />
-                  <Text style={styles.secondaryButtonText}>Dodaj do koszyka</Text>
-                </Pressable>
               </View>
                 </>
               )}

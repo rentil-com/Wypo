@@ -156,18 +156,4 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#64748B",
   },
-
-  addButton: {
-    width: 42,
-    height: 42,
-
-    borderRadius: 21,
-    borderWidth: 1.5,
-    borderColor: "#176BDE",
-
-    alignItems: "center",
-    justifyContent: "center",
-
-    backgroundColor: "#FFFFFF",
-  },
 });
