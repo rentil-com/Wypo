@@ -1,0 +1,1 @@
+export { default } from "@features/loans/my_loans";

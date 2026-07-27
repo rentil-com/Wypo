@@ -1,5 +1,5 @@
 import { apiGet, apiPatch, apiPost, apiPut } from "@/services/api";
-import { LoanBody, LoanDecisionBody, LoanOverdueReminderBody, LoanPatchBody, LoanPickupReminderBody, LoanPutBody, LoanReminderResponse, LoanResponse, LoanReturnReminderBody, LoansListResponse } from "./loans.types";
+import { LoanBody, LoanDecisionBody, LoanOverdueReminderBody, LoanPatchBody, LoanPickupReminderBody, LoanPutBody, LoanReminderResponse, LoanResponse, LoanReturnReminderBody, LoansListResponse, MyLoansParams, MyLoansResponse } from "./loans.types";
 
 // POST /wypozyczenia/wypozycz
 export async function zlozWniosekOWypozyczenie(body : LoanBody) {
@@ -97,4 +97,17 @@ export async function zwrocWypozyczenie(id : number) {
 export async function zwrocWypozyczeniePost(id : number) {
     const response = await apiPost(`/wypozyczenia/zwrot/${id}`)
     return response as LoanResponse
+}
+
+// GET /wypozyczenia/moje
+export async function pobierzMojeWypozyczenia(
+  params: MyLoansParams = {},
+) {
+  const query = params.strona
+    ? `?strona=${params.strona}`
+    : "";
+
+  const response = await apiGet(`/wypozyczenia/moje${query}`);
+
+  return response as MyLoansResponse;
 }

@@ -47,7 +47,13 @@ export default function Dashboard() {
           >
             <Text style={styles.tileText}>Użytkownicy</Text>
           </Pressable>
-
+            <Pressable
+            style={styles.tile}
+            onPress={() => router.push("/promotions/admin")}
+          >
+            <Text style={styles.tileText}>Panel Promocji</Text>
+          </Pressable>
+          
           <Pressable
             style={styles.tile}
             onPress={() => router.push("/(tabs)/stansystemu")}
