@@ -1,4 +1,4 @@
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -263,7 +263,19 @@ export default function Applications() {
             new Date(wniosek.data_do).getTime() < Date.now();
 
           return (
-            <View key={wniosek.id} style={styles.card}>
+            <Pressable
+              key={wniosek.id}
+              style={({ pressed }) => [
+                styles.card,
+                pressed && styles.cardPressed,
+              ]}
+              onPress={() =>
+                router.push({
+                  pathname: "/(tabs)/applications/[id]",
+                  params: { id: wniosek.id.toString() },
+                })
+              }
+            >
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Wniosek #{wniosek.id}</Text>
                 <View
@@ -306,7 +318,10 @@ export default function Applications() {
                       styles.acceptButton,
                       przyciskiWylaczone && styles.actionButtonDisabled,
                     ]}
-                    onPress={() => void wyslijDecyzje(wniosek, "zaakceptowany")}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      void wyslijDecyzje(wniosek, "zaakceptowany");
+                    }}
                   >
                     <Text style={styles.acceptButtonText}>
                       {czyPrzetwarzany && pendingDecision?.decyzja === "zaakceptowany"
@@ -322,7 +337,10 @@ export default function Applications() {
                       styles.rejectButton,
                       przyciskiWylaczone && styles.actionButtonDisabled,
                     ]}
-                    onPress={() => void wyslijDecyzje(wniosek, "odrzucony")}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      void wyslijDecyzje(wniosek, "odrzucony");
+                    }}
                   >
                     <Text style={styles.rejectButtonText}>
                       {czyPrzetwarzany && pendingDecision?.decyzja === "odrzucony"
@@ -343,7 +361,10 @@ export default function Applications() {
                       (aktywowanyId !== null || pendingReminder !== null) &&
                         styles.actionButtonDisabled,
                     ]}
-                    onPress={() => void aktywuj(wniosek)}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      void aktywuj(wniosek);
+                    }}
                   >
                     <Text style={styles.acceptButtonText}>
                       {aktywowanyId === wniosek.id ? "Aktywowanie..." : "Aktywuj"}
@@ -358,7 +379,10 @@ export default function Applications() {
                       (pendingReminder !== null || aktywowanyId !== null) &&
                         styles.actionButtonDisabled,
                     ]}
-                    onPress={() => void przypomnij(wniosek, "odbior")}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      void przypomnij(wniosek, "odbior");
+                    }}
                   >
                     <Text style={styles.acceptButtonText}>
                       {pendingReminder?.id === wniosek.id &&
@@ -380,7 +404,10 @@ export default function Applications() {
                       (zwracanyId !== null || pendingReminder !== null) &&
                         styles.actionButtonDisabled,
                     ]}
-                    onPress={() => void zwroc(wniosek)}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      void zwroc(wniosek);
+                    }}
                   >
                     <Text style={styles.acceptButtonText}>
                       {zwracanyId === wniosek.id ? "Zwracanie..." : "Zwrot"}
@@ -395,7 +422,10 @@ export default function Applications() {
                       (pendingReminder !== null || zwracanyId !== null) &&
                         styles.actionButtonDisabled,
                     ]}
-                    onPress={() => void przypomnij(wniosek, "zwrot")}
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      void przypomnij(wniosek, "zwrot");
+                    }}
                   >
                     <Text style={styles.acceptButtonText}>
                       {pendingReminder?.id === wniosek.id &&
@@ -414,7 +444,10 @@ export default function Applications() {
                         (pendingReminder !== null || zwracanyId !== null) &&
                           styles.actionButtonDisabled,
                       ]}
-                      onPress={() => void przypomnij(wniosek, "przeterminowany")}
+                      onPress={(event) => {
+                        event.stopPropagation();
+                        void przypomnij(wniosek, "przeterminowany");
+                      }}
                     >
                       <Text style={styles.acceptButtonText}>
                         {pendingReminder?.id === wniosek.id &&
@@ -427,7 +460,7 @@ export default function Applications() {
                 </View>
               )}
 
-            </View>
+            </Pressable>
           );
         })}
       </View>
@@ -494,6 +527,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     padding: 24,
     marginBottom: 20,
+  },
+  cardPressed: {
+    borderColor: "#176BDE",
   },
   cardHeader: {
     flexDirection: "row",
