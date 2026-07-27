@@ -45,9 +45,12 @@ export default function Dashboard() {
             <Text style={styles.tileText}>Użytkownicy</Text>
           </View>
 
-          <View style={styles.tile}>
-            <Text style={styles.tileText}>Stan systemu</Text>
-          </View>
+          <Pressable
+            style={styles.tile}
+            onPress={() => router.push("/(tabs)/stanbazy")}
+          >
+            <Text style={styles.tileText}>Stan bazy danych</Text>
+          </Pressable>
         </View>
       </View>
     </PageLayout>
