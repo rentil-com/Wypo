@@ -13,6 +13,8 @@ import PageLayout from "@components/shared/Layout/PageLayout";
 import {
   aktywujWypozyczenie,
   pobierzWnioski,
+  przypomnienieOdbioru,
+  przypomnienieZwrotu,
   rozpatrzWniosek,
   zwrocWypozyczenie,
 } from "@features/loans/loans.service";
@@ -71,8 +73,13 @@ export default function Dashboard() {
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState<string | null>(null);
   const [actionError,setActionError] = useState<string | null>(null);
+  const [actionMessage,setActionMessage] = useState<string | null>(null);
   const [aktywowanyId,setAktywowanyId] = useState<number | null>(null);
   const [zwracanyId,setZwracanyId] = useState<number | null>(null);
+  const [pendingReminder,setPendingReminder] = useState<{
+    id: number;
+    typ: "odbior" | "zwrot";
+  } | null>(null);
   const [pendingDecision,setPendingDecision] = useState<{
     id: number;
     decyzja: LoanDecision;
@@ -103,6 +110,7 @@ export default function Dashboard() {
     if (wniosek.status !== "oczekujacy" || pendingDecision) return;
 
     setActionError(null);
+    setActionMessage(null);
     setPendingDecision({ id: wniosek.id, decyzja });
 
     try {
@@ -128,6 +136,7 @@ export default function Dashboard() {
     if (wniosek.status !== "zaakceptowany" || aktywowanyId) return;
 
     setActionError(null);
+    setActionMessage(null);
     setAktywowanyId(wniosek.id);
 
     try {
@@ -145,6 +154,7 @@ export default function Dashboard() {
   const zwroc = async (wniosek: LoanResponse) => {
     if (wniosek.status !== "aktywny" || zwracanyId) return;
     setActionError(null);
+    setActionMessage(null);
     setZwracanyId(wniosek.id);
 
     try {
@@ -156,6 +166,45 @@ export default function Dashboard() {
       setActionError(error instanceof Error ? error.message : "Nie udało się zwrócić wypożyczenia");
     } finally {
       setZwracanyId(null);
+    }
+  };
+
+  const przypomnij = async (
+    wniosek: LoanResponse,
+    typ: "odbior" | "zwrot",
+  ) => {
+    const poprawnyStatus =
+      (typ === "odbior" && wniosek.status === "zaakceptowany") ||
+      (typ === "zwrot" && wniosek.status === "aktywny");
+
+    if (!poprawnyStatus || pendingReminder) return;
+
+    setActionError(null);
+    setActionMessage(null);
+    setPendingReminder({ id: wniosek.id, typ });
+
+    try {
+      const response =
+        typ === "odbior"
+          ? await przypomnienieOdbioru(wniosek.id)
+          : await przypomnienieZwrotu(wniosek.id);
+
+      setActionMessage(response.message);
+      setWnioski((aktualne) =>
+        aktualne.map((item) =>
+          item.id === response.wypozyczenie.id
+            ? response.wypozyczenie
+            : item,
+        ),
+      );
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : "Nie udało się wysłać przypomnienia",
+      );
+    } finally {
+      setPendingReminder(null);
     }
   };
 
@@ -189,6 +238,9 @@ export default function Dashboard() {
         {!loading && error && <Text style={styles.errorText}>{error}</Text>}
         {!loading && actionError && (
           <Text style={styles.actionErrorText}>{actionError}</Text>
+        )}
+        {!loading && actionMessage && (
+          <Text style={styles.actionSuccessText}>{actionMessage}</Text>
         )}
 
         {!loading && !error && wnioski.length === 0 && (
@@ -274,16 +326,35 @@ export default function Dashboard() {
               {wniosek.status === "zaakceptowany" && (
                 <View style={styles.actions}>
                   <Pressable
-                    disabled={aktywowanyId !== null}
+                    disabled={aktywowanyId !== null || pendingReminder !== null}
                     style={[
                       styles.actionButton,
                       styles.activateButton,
-                      aktywowanyId !== null && styles.actionButtonDisabled,
+                      (aktywowanyId !== null || pendingReminder !== null) &&
+                        styles.actionButtonDisabled,
                     ]}
                     onPress={() => void aktywuj(wniosek)}
                   >
                     <Text style={styles.acceptButtonText}>
                       {aktywowanyId === wniosek.id ? "Aktywowanie..." : "Aktywuj"}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    disabled={pendingReminder !== null || aktywowanyId !== null}
+                    style={[
+                      styles.actionButton,
+                      styles.reminderButton,
+                      (pendingReminder !== null || aktywowanyId !== null) &&
+                        styles.actionButtonDisabled,
+                    ]}
+                    onPress={() => void przypomnij(wniosek, "odbior")}
+                  >
+                    <Text style={styles.acceptButtonText}>
+                      {pendingReminder?.id === wniosek.id &&
+                      pendingReminder.typ === "odbior"
+                        ? "Wysyłanie..."
+                        : "Przypomnij o odbiorze"}
                     </Text>
                   </Pressable>
                 </View>
@@ -292,16 +363,35 @@ export default function Dashboard() {
               {wniosek.status === "aktywny" && (
                 <View style={styles.actions}>
                   <Pressable
-                    disabled={zwracanyId !== null}
+                    disabled={zwracanyId !== null || pendingReminder !== null}
                     style={[
                       styles.actionButton,
                       styles.returnButton,
-                      zwracanyId !== null && styles.actionButtonDisabled,
+                      (zwracanyId !== null || pendingReminder !== null) &&
+                        styles.actionButtonDisabled,
                     ]}
                     onPress={() => void zwroc(wniosek)}
                   >
                     <Text style={styles.acceptButtonText}>
                       {zwracanyId === wniosek.id ? "Zwracanie..." : "Zwrot"}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    disabled={pendingReminder !== null || zwracanyId !== null}
+                    style={[
+                      styles.actionButton,
+                      styles.reminderButton,
+                      (pendingReminder !== null || zwracanyId !== null) &&
+                        styles.actionButtonDisabled,
+                    ]}
+                    onPress={() => void przypomnij(wniosek, "zwrot")}
+                  >
+                    <Text style={styles.acceptButtonText}>
+                      {pendingReminder?.id === wniosek.id &&
+                      pendingReminder.typ === "zwrot"
+                        ? "Wysyłanie..."
+                        : "Przypomnij o zwrocie"}
                     </Text>
                   </Pressable>
                 </View>
@@ -356,6 +446,12 @@ const styles = StyleSheet.create({
   },
   actionErrorText: {
     color: "#B91C1C",
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+  actionSuccessText: {
+    color: "#166534",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 16,
@@ -445,6 +541,9 @@ const styles = StyleSheet.create({
   },
   returnButton: {
     backgroundColor: "#7C3AED",
+  },
+  reminderButton: {
+    backgroundColor: "#475569",
   },
   acceptButtonText: {
     color: "#FFFFFF",
