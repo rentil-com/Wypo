@@ -1,5 +1,5 @@
 import { apiGet, apiPatch, apiPost, apiPut } from "@/services/api";
-import { LoanBody, LoanDecisionBody, LoanOverdueReminderBody, LoanPatchBody, LoanPickupReminderBody, LoanPutBody, LoanReminderResponse, LoanResponse, LoanReturnReminderBody, LoansListResponse, MyLoansParams, MyLoansResponse } from "./loans.types";
+import { LoanBody, LoanDecisionBody, LoanOverdueReminderBody, LoanPatchBody, LoanPickupReminderBody, LoanPutBody, LoanReminderResponse, LoanResponse, LoanReturnReminderBody, LoansListParams, LoansListResponse, MyLoansParams, MyLoansResponse } from "./loans.types";
 
 // POST /wypozyczenia/wypozycz
 export async function zlozWniosekOWypozyczenie(body : LoanBody) {
@@ -10,8 +10,17 @@ export async function zlozWniosekOWypozyczenie(body : LoanBody) {
 // GET /wypozyczenia/wnioski
 
 
-export async function pobierzWnioski() {
-    const response = await apiGet("/wypozyczenia/wnioski")
+export async function pobierzWnioski(params: LoansListParams = {}) {
+    const query = new URLSearchParams()
+
+    if (params.strona) query.set("strona", params.strona.toString())
+    if (params.uzytkownik_id) query.set("uzytkownik_id", params.uzytkownik_id.toString())
+    if (params.sprzet_id) query.set("sprzet_id", params.sprzet_id.toString())
+    if (params.status) query.set("status", params.status)
+    if (params.data) query.set("data", params.data)
+
+    const queryString = query.toString()
+    const response = await apiGet(`/wypozyczenia/wnioski${queryString ? `?${queryString}` : ""}`)
     return response as LoansListResponse
 }
 

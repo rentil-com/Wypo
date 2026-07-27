@@ -1,10 +1,12 @@
 import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
+import { Picker } from "@react-native-picker/picker";
 import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -21,9 +23,24 @@ import {
 } from "@features/loans/loans.service";
 import type {
   LoanDecision,
+  LoansListParams,
   LoanResponse,
   LoanStatus,
 } from "@features/loans/loans.types";
+
+type FiltersForm = {
+  uzytkownikId: string;
+  sprzetId: string;
+  status: "" | LoanStatus;
+  data: string;
+};
+
+const emptyFilters: FiltersForm = {
+  uzytkownikId: "",
+  sprzetId: "",
+  status: "",
+  data: "",
+};
 
 type StatusStyle = {
   label: string;
@@ -71,6 +88,9 @@ export default function Applications() {
   const { status, user } = useAuth();
   const [wnioski,setWnioski] = useState<LoanResponse[]>([]);
   const [liczbaWnioskow,setLiczbaWnioskow] = useState(0);
+  const [liczbaStron,setLiczbaStron] = useState(1);
+  const [filterForm,setFilterForm] = useState<FiltersForm>(emptyFilters);
+  const [filters,setFilters] = useState<LoansListParams>({ strona: 1 });
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState<string | null>(null);
   const [actionError,setActionError] = useState<string | null>(null);
@@ -94,9 +114,10 @@ export default function Applications() {
       setLoading(true);
 
       try {
-        const response = await pobierzWnioski();
+        const response = await pobierzWnioski(filters);
         setWnioski(response.dane);
         setLiczbaWnioskow(response.total);
+        setLiczbaStron(response.liczbaStron);
       } catch (error) {
         setError(error instanceof Error ? error.message : "Nie udało się pobrać wniosków");
       } finally {
@@ -105,7 +126,24 @@ export default function Applications() {
     }
 
     void zaladujWnioski();
-  }, [status, user?.rola]);
+  }, [filters, status, user?.rola]);
+
+  const filtruj = () => {
+    setFilters({
+      strona: 1,
+      uzytkownik_id: filterForm.uzytkownikId
+        ? Number(filterForm.uzytkownikId)
+        : undefined,
+      sprzet_id: filterForm.sprzetId ? Number(filterForm.sprzetId) : undefined,
+      status: filterForm.status || undefined,
+      data: filterForm.data.trim() || undefined,
+    });
+  };
+
+  const wyczyscFiltry = () => {
+    setFilterForm(emptyFilters);
+    setFilters({ strona: 1 });
+  };
 
   const wyslijDecyzje = async (wniosek: LoanResponse, decyzja: LoanDecision) => {
     if (wniosek.status !== "oczekujacy" || pendingDecision) return;
@@ -234,6 +272,72 @@ export default function Applications() {
         {!loading && !error && (
           <Text style={styles.summaryText}>Łącznie: {liczbaWnioskow}</Text>
         )}
+
+        <View style={styles.filtersBar}>
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>ID użytkownika</Text>
+            <TextInput
+              style={styles.filterInput}
+              value={filterForm.uzytkownikId}
+              placeholder="Np. 5"
+              keyboardType="numeric"
+              onChangeText={(value) =>
+                /^\d*$/.test(value) &&
+                setFilterForm({ ...filterForm, uzytkownikId: value })
+              }
+            />
+          </View>
+
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>ID sprzętu</Text>
+            <TextInput
+              style={styles.filterInput}
+              value={filterForm.sprzetId}
+              placeholder="Np. 10"
+              keyboardType="numeric"
+              onChangeText={(value) =>
+                /^\d*$/.test(value) &&
+                setFilterForm({ ...filterForm, sprzetId: value })
+              }
+            />
+          </View>
+
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>Status</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={filterForm.status}
+                onValueChange={(value) =>
+                  setFilterForm({ ...filterForm, status: value })
+                }
+              >
+                <Picker.Item label="Wszystkie" value="" />
+                <Picker.Item label="Oczekujący" value="oczekujacy" />
+                <Picker.Item label="Zaakceptowany" value="zaakceptowany" />
+                <Picker.Item label="Odrzucony" value="odrzucony" />
+                <Picker.Item label="Aktywny" value="aktywny" />
+                <Picker.Item label="Zwrócony" value="zwrocony" />
+              </Picker>
+            </View>
+          </View>
+
+          <View style={styles.filterGroup}>
+            <Text style={styles.filterLabel}>Data</Text>
+            <TextInput
+              style={styles.filterInput}
+              value={filterForm.data}
+              placeholder="RRRR-MM-DD"
+              onChangeText={(data) => setFilterForm({ ...filterForm, data })}
+            />
+          </View>
+
+          <Pressable style={styles.filterButton} onPress={filtruj}>
+            <Text style={styles.filterButtonText}>Filtruj</Text>
+          </Pressable>
+          <Pressable style={styles.clearButton} onPress={wyczyscFiltry}>
+            <Text style={styles.clearButtonText}>Wyczyść</Text>
+          </Pressable>
+        </View>
 
         {loading && (
           <View style={styles.message}>
@@ -463,6 +567,46 @@ export default function Applications() {
             </Pressable>
           );
         })}
+
+        {!loading && !error && liczbaStron > 1 && (
+          <View style={styles.pagination}>
+            <Pressable
+              disabled={(filters.strona ?? 1) === 1}
+              style={[
+                styles.pageButton,
+                (filters.strona ?? 1) === 1 && styles.pageButtonDisabled,
+              ]}
+              onPress={() =>
+                setFilters((current) => ({
+                  ...current,
+                  strona: (current.strona ?? 1) - 1,
+                }))
+              }
+            >
+              <Text style={styles.pageButtonText}>Poprzednia</Text>
+            </Pressable>
+
+            <Text style={styles.pageText}>
+              {filters.strona ?? 1} / {liczbaStron}
+            </Text>
+
+            <Pressable
+              disabled={(filters.strona ?? 1) >= liczbaStron}
+              style={[
+                styles.pageButton,
+                (filters.strona ?? 1) >= liczbaStron && styles.pageButtonDisabled,
+              ]}
+              onPress={() =>
+                setFilters((current) => ({
+                  ...current,
+                  strona: (current.strona ?? 1) + 1,
+                }))
+              }
+            >
+              <Text style={styles.pageButtonText}>Następna</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </PageLayout>
   );
@@ -492,6 +636,69 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     marginBottom: 24,
+  },
+  filtersBar: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "flex-end",
+    flexWrap: "wrap",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    marginBottom: 20,
+  },
+  filterGroup: {
+    flexGrow: 1,
+    minWidth: 150,
+  },
+  filterLabel: {
+    color: "#475569",
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  filterInput: {
+    height: 46,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 9,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+  },
+  pickerWrapper: {
+    height: 46,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 9,
+    backgroundColor: "#FFFFFF",
+    overflow: "hidden",
+  },
+  filterButton: {
+    height: 46,
+    justifyContent: "center",
+    borderRadius: 9,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 18,
+  },
+  filterButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+  },
+  clearButton: {
+    height: 46,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 9,
+    paddingHorizontal: 18,
+  },
+  clearButtonText: {
+    color: "#475569",
+    fontWeight: "700",
   },
   message: {
     minHeight: 240,
@@ -628,5 +835,29 @@ const styles = StyleSheet.create({
     color: "#DC2626",
     fontSize: 14,
     fontWeight: "800",
+  },
+  pagination: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+    marginTop: 8,
+  },
+  pageButton: {
+    borderRadius: 9,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  pageButtonDisabled: {
+    opacity: 0.4,
+  },
+  pageButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  pageText: {
+    color: "#475569",
+    fontWeight: "700",
   },
 });
