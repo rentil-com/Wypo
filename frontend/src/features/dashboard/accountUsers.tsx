@@ -1,6 +1,6 @@
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAuth } from "@/contexts/AuthContext";
 import PageLayout from "@components/shared/Layout/PageLayout";
@@ -81,7 +81,19 @@ export default function AccountUsers() {
         )}
 
         {!loading && !error && accounts.map((account) => (
-          <View key={account.id} style={styles.card}>
+          <Pressable
+            key={account.id}
+            style={({ pressed }) => [
+              styles.card,
+              pressed && styles.cardPressed,
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/accountUsers/[id]",
+                params: { id: account.id.toString() },
+              })
+            }
+          >
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>
                 {account.imie} {account.nazwisko}
@@ -129,7 +141,7 @@ export default function AccountUsers() {
                 </Text>
               </View>
             </View>
-          </View>
+          </Pressable>
         ))}
       </View>
     </PageLayout>
@@ -183,6 +195,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: "#FFFFFF",
     padding: 24,
+  },
+  cardPressed: {
+    opacity: 0.8,
   },
   cardHeader: {
     flexDirection: "row",
