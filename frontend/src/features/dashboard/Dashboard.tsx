@@ -51,12 +51,21 @@ export default function Dashboard() {
         <View style={styles.header}>
           <Text style={styles.title}>Admin Dashboard</Text>
 
-          <Pressable
-            style={styles.addButton}
-            onPress={() => router.push("/products/AddProduct")}
-          >
-            <Text style={styles.addButtonText}>Dodaj produkt</Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={styles.addButton}
+              onPress={() => router.push("/products/AddProduct")}
+            >
+              <Text style={styles.addButtonText}>Dodaj produkt</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.addButton}
+              onPress={() => router.push("/category/addCategory")}
+            >
+              <Text style={styles.addButtonText}>Dodaj kategorię</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.tiles}>
@@ -64,20 +73,26 @@ export default function Dashboard() {
             style={styles.tile}
             onPress={() => router.push("/(tabs)/applications")}
           >
-            <Text style={styles.tileText}>Wnioski</Text>
+            <Text style={styles.tileText}>Panel Wniosków</Text>
           </Pressable>
 
           <Pressable
             style={styles.tile}
             onPress={() => router.push("/(tabs)/accountUsers")}
           >
-            <Text style={styles.tileText}>Użytkownicy</Text>
+            <Text style={styles.tileText}>Panel Użytkowników</Text>
           </Pressable>
             <Pressable
             style={styles.tile}
             onPress={() => router.push("/promotions/admin")}
           >
             <Text style={styles.tileText}>Panel Promocji</Text>
+          </Pressable>
+             <Pressable
+            style={styles.tile}
+            onPress={() => router.push("/(tabs)/reviewsPanel")}
+          >
+            <Text style={styles.tileText}>Panel Recenzji</Text>
           </Pressable>
           
           <Pressable
@@ -166,6 +181,9 @@ const styles = StyleSheet.create({
     fontSize: 40,
     lineHeight: 48,
     fontWeight: "900",
+  },
+  headerActions: {
+    gap: 10,
   },
   addButton: {
     minHeight: 46,

@@ -1,10 +1,28 @@
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import { useAuth } from "@/contexts/AuthContext";
 import PageLayout from "@components/shared/Layout/PageLayout";
-import { getAllAccounts, type AccountDetails } from "@features/account";
+import {
+  getAllAccounts,
+  type AccountDetails,
+  type AccountListParams,
+} from "@features/account";
+
+const textFilters = [
+  { key: "imie", placeholder: "Imię" },
+  { key: "nazwisko", placeholder: "Nazwisko" },
+  { key: "email", placeholder: "E-mail" },
+] as const;
 
 function formatujDate(data: string) {
   const parsedDate = new Date(data);
@@ -18,6 +36,9 @@ export default function AccountUsers() {
   const { status, user } = useAuth();
   const [accounts, setAccounts] = useState<AccountDetails[]>([]);
   const [total, setTotal] = useState(0);
+  const [liczbaStron, setLiczbaStron] = useState(1);
+  const [filterForm, setFilterForm] = useState<AccountListParams>({});
+  const [filters, setFilters] = useState<AccountListParams>({ strona: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,9 +50,10 @@ export default function AccountUsers() {
       setLoading(true);
 
       try {
-        const response = await getAllAccounts();
+        const response = await getAllAccounts(filters);
         setAccounts(response.dane);
         setTotal(response.total);
+        setLiczbaStron(response.liczbaStron);
       } catch (error) {
         setError(
           error instanceof Error
@@ -44,7 +66,7 @@ export default function AccountUsers() {
     }
 
     void zaladujUzytkownikow();
-  }, [status, user?.rola]);
+  }, [filters, status, user?.rola]);
 
   if (status === "loading") {
     return (
@@ -67,6 +89,52 @@ export default function AccountUsers() {
           <Text style={styles.summaryText}>Łącznie: {total}</Text>
         )}
 
+        <View style={styles.filtersBar}>
+          {textFilters.map(({ key, placeholder }) => (
+            <TextInput
+              key={key}
+              style={styles.filterInput}
+              value={filterForm[key] ?? ""}
+              placeholder={placeholder}
+              onChangeText={(value) =>
+                setFilterForm({ ...filterForm, [key]: value })
+              }
+            />
+          ))}
+
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={filterForm.rola ?? ""}
+              onValueChange={(rola) =>
+                setFilterForm({
+                  ...filterForm,
+                  rola: rola ? rola as AccountListParams["rola"] : undefined,
+                })
+              }
+            >
+              <Picker.Item label="Wszystkie role" value="" />
+              <Picker.Item label="Użytkownik" value="uzytkownik" />
+              <Picker.Item label="Administrator" value="admin" />
+            </Picker>
+          </View>
+
+          <Pressable
+            style={styles.filterButton}
+            onPress={() => setFilters({ ...filterForm, strona: 1 })}
+          >
+            <Text style={styles.filterButtonText}>Filtruj</Text>
+          </Pressable>
+          <Pressable
+            style={styles.clearButton}
+            onPress={() => {
+              setFilterForm({});
+              setFilters({ strona: 1 });
+            }}
+          >
+            <Text style={styles.clearButtonText}>Wyczyść</Text>
+          </Pressable>
+        </View>
+
         {loading && (
           <View style={styles.message}>
             <ActivityIndicator size="large" color="#176BDE" />
@@ -81,7 +149,19 @@ export default function AccountUsers() {
         )}
 
         {!loading && !error && accounts.map((account) => (
-          <View key={account.id} style={styles.card}>
+          <Pressable
+            key={account.id}
+            style={({ pressed }) => [
+              styles.card,
+              pressed && styles.cardPressed,
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/(tabs)/accountUsers/[id]",
+                params: { id: account.id.toString() },
+              })
+            }
+          >
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>
                 {account.imie} {account.nazwisko}
@@ -129,8 +209,32 @@ export default function AccountUsers() {
                 </Text>
               </View>
             </View>
-          </View>
+          </Pressable>
         ))}
+
+        {!loading && !error && liczbaStron > 1 && (
+          <View style={styles.pagination}>
+            <Pressable
+              disabled={(filters.strona ?? 1) === 1}
+              style={styles.pageButton}
+              onPress={() =>
+                setFilters({ ...filters, strona: (filters.strona ?? 1) - 1 })
+              }
+            >
+              <Text style={styles.pageButtonText}>Poprzednia</Text>
+            </Pressable>
+            <Text>{filters.strona ?? 1} / {liczbaStron}</Text>
+            <Pressable
+              disabled={(filters.strona ?? 1) >= liczbaStron}
+              style={styles.pageButton}
+              onPress={() =>
+                setFilters({ ...filters, strona: (filters.strona ?? 1) + 1 })
+              }
+            >
+              <Text style={styles.pageButtonText}>Następna</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </PageLayout>
   );
@@ -161,6 +265,60 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
   },
+  filtersBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    marginBottom: 20,
+  },
+  filterInput: {
+    flexGrow: 1,
+    minWidth: 150,
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 9,
+    paddingHorizontal: 12,
+  },
+  pickerWrapper: {
+    flexGrow: 1,
+    minWidth: 170,
+    height: 44,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 9,
+    overflow: "hidden",
+  },
+  filterButton: {
+    height: 44,
+    justifyContent: "center",
+    borderRadius: 9,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 18,
+  },
+  filterButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+  },
+  clearButton: {
+    height: 44,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 9,
+    paddingHorizontal: 18,
+  },
+  clearButtonText: {
+    color: "#475569",
+    fontWeight: "700",
+  },
   message: {
     minHeight: 240,
     alignItems: "center",
@@ -183,6 +341,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: "#FFFFFF",
     padding: 24,
+  },
+  cardPressed: {
+    opacity: 0.8,
   },
   cardHeader: {
     flexDirection: "row",
@@ -237,5 +398,21 @@ const styles = StyleSheet.create({
     color: "#334155",
     fontSize: 16,
     fontWeight: "800",
+  },
+  pagination: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+  },
+  pageButton: {
+    borderRadius: 9,
+    backgroundColor: "#176BDE",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  pageButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
 });

@@ -1,6 +1,6 @@
-import { apiPost, apiGet ,apiPatch,apiDelete} from "@/services/api";
+import { apiPost, apiGet, apiPatch, apiPut, apiDelete } from "@/services/api";
 
-import { AccountDetails, AccountEditBody, AccountEmailChange, AccountEmailChangeResponse, EmailChangeConfirm, EmailChangeConfirmResponse, two_FaResponse, DeleteAccountResponse, AccountListParams, AccountsListResponse } from "./account.types";
+import { AccountDetails, AccountDetailsByIdResponse, AccountEditBody, AccountEmailChange, AccountEmailChangeResponse, AccountPatchBody, AccountPutBody, EmailChangeConfirm, EmailChangeConfirmResponse, two_FaResponse, DeleteAccountResponse, AccountListParams, AccountsListResponse } from "./account.types";
 
 
 // GET /account/details
@@ -91,4 +91,22 @@ export async function getAllAccounts(params: AccountListParams = {},) {
   );
 
   return response as AccountsListResponse;
+}
+
+// GET /account/details/:id
+export async function getAccountById(id: number) {
+  const response = await apiGet(`/account/details/${id}`);
+  return response as AccountDetailsByIdResponse;
+}
+
+// PATCH /account/edit/:id
+export async function patchAccount(id: number, body: AccountPatchBody) {
+  const response = await apiPatch(`/account/edit/${id}`, body);
+  return response as AccountDetails;
+}
+
+// PUT /account/edit/:id
+export async function putAccount(id: number, body: AccountPutBody) {
+  const response = await apiPut(`/account/edit/${id}`, body);
+  return response as AccountDetails;
 }
