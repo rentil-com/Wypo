@@ -1,23 +1,26 @@
 import { apiDelete, apiGet, apiPost,  } from "@/services/api";
 import { AddReviewBody, MyReviewsResponse, ProductReviewsResponse,  ReviewResponse,  SingleReviewResponse } from "./reviews.types";
 
-{/*USER ONLY */}
+// GET /recenzje/sprzet/:id
 export async function pobierzWszystkieRecenzjeProduktu(id : number) {
     const response = await apiGet(`/recenzje/sprzet/${id}`)
     return response as ProductReviewsResponse
 }
 
+// GET /recenzje/:id
 export async function pobierzPojedynczaRecenzjeProduktu(id : number) {
     const response = await apiGet(`/recenzje/${id}`)
     return response as SingleReviewResponse    
 }
 
+// GET /recenzje/moje
 export async function pobierzMojeRecenzje(){
     const response = await apiGet("/recenzje/moje")
     return response as MyReviewsResponse
 
 }
 
+// POST /recenzje/dodaj
 export async function dodajRecenzje(body : AddReviewBody) {
     const response = await apiPost("/recenzje/dodaj",body)
 

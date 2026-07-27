@@ -2,7 +2,7 @@ import { apiPost } from "@/services/api";
 
 import { AccountCreate, AccountCreateConfirm, AccountCreateResponse, AccountCreateSuccessResponse } from "./registration.types";
 
-
+// POST /account/create
 export async function register(imie : string, nazwisko : string, email : string, password : string) {
     const poprawnyEmail = email.trim().toLowerCase();
     const poprawneImie = imie.trim()
@@ -20,6 +20,7 @@ export async function register(imie : string, nazwisko : string, email : string,
     return response as AccountCreateResponse
 }
 
+// POST /auth/register-confirm
 export async function registerConfirm(email: string, kod : string) {
     const poprawnyEmail = email.trim().toLowerCase();
     const poprawnyKod = kod.trim();

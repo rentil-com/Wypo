@@ -1,3 +1,4 @@
+// Kategoria zwracana przez API
 export type CategoryApiItem = {
     id : number,
     nazwa : string,
@@ -6,4 +7,5 @@ export type CategoryApiItem = {
     liczba_dostepnych_sprzetow : number
 }
 
+// Odpowiedz listy kategorii
 export type CategoryResponse = CategoryApiItem []

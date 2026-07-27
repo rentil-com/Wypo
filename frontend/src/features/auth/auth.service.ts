@@ -3,6 +3,7 @@ import { apiPost } from "@/services/api";
 import { LoginBody,AuthResponse, LogoutResponse, Confirm2FABody, LoginSuccessResponse } from "./auth.types";
 
 
+// POST /auth/login
 export async function login(email : string, password : string) {
     const poprawnyEmail = email.trim().toLowerCase();
 
@@ -20,6 +21,7 @@ export async function login(email : string, password : string) {
 }
 
 
+// POST /auth/logout
 export async function logout() {
     const response = await apiPost("/auth/logout",{})
 
@@ -27,6 +29,7 @@ export async function logout() {
 }
 
 
+// POST /auth/2fa
 export async function confirm2FA(wyzwanie : string, kod : string) {
     if (!wyzwanie || !/^[0-9]{6}$/.test(kod)) {
     throw new Error("Podaj poprawny sześciocyfrowy kod");

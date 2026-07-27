@@ -249,15 +249,6 @@ export default function ProductCard({
             </Text>
           </View>
         </View>
-
-        {/* DODAJ DO KOSZYKA */}
-        <Pressable style={styles.addButton}>
-          <MaterialIcons
-            name="add"
-            size={24}
-            color="#176BDE"
-          />
-        </Pressable>
       </View>
     </View>
   );
