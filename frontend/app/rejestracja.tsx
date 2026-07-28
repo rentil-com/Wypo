@@ -212,42 +212,6 @@ export default function Rejestracja() {
                                         </TouchableOpacity>
                                     </View>
 
-                                    <View style={mobileStyles.mobileDivider}>
-                                        <View style={mobileStyles.mobileDividerLine} />
-                                        <Text style={mobileStyles.mobileDividerText}>
-                                            lub kontynuuj przez
-                                        </Text>
-                                        <View style={mobileStyles.mobileDividerLine} />
-                                    </View>
-
-                                    <View style={mobileStyles.mobileSocialContainer}>
-                                        <TouchableOpacity style={mobileStyles.mobileSocialButton} activeOpacity={0.75}>
-                                            <Image
-                                                source={require("../assets/icons/google-icon.png")}
-                                                style={mobileStyles.mobileSocialIcon}
-                                                resizeMode="contain"
-                                            />
-                                            <Text style={mobileStyles.mobileSocialText}>Google</Text>
-                                        </TouchableOpacity>
-
-                                        <TouchableOpacity style={mobileStyles.mobileSocialButton} activeOpacity={0.75}>
-                                            <Image
-                                                source={require("../assets/icons/facebook-icon.png")}
-                                                style={mobileStyles.mobileSocialIcon}
-                                                resizeMode="contain"
-                                            />
-                                            <Text style={mobileStyles.mobileSocialText}>Facebook</Text>
-                                        </TouchableOpacity>
-
-                                        <TouchableOpacity style={mobileStyles.mobileSocialButton} activeOpacity={0.75}>
-                                            <Image
-                                                source={require("../assets/icons/apple-icon.png")}
-                                                style={mobileStyles.mobileSocialIcon}
-                                                resizeMode="contain"
-                                            />
-                                            <Text style={mobileStyles.mobileSocialText}>Apple</Text>
-                                        </TouchableOpacity>
-                                    </View>
                                 </View>
                             </View>
                         </ScrollView>
@@ -346,40 +310,6 @@ export default function Rejestracja() {
                                     </TouchableOpacity>
                                 </View>
 
-                                <View style={styles.divider}>
-                                    <View style={styles.dividerLine} />
-                                    <Text style={styles.dividerText}>lub kontynuuj przez</Text>
-                                    <View style={styles.dividerLine} />
-                                </View>
-
-                                <View style={styles.socialContainer}>
-                                    <TouchableOpacity style={styles.socialButtonWrapper}>
-                                        <Image
-                                            source={require("../assets/icons/facebook-icon.png")}
-                                            style={styles.socialIcon}
-                                            resizeMode="contain"
-                                        />
-                                        <Text style={styles.socialText}>Facebook</Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity style={styles.socialButtonWrapper}>
-                                        <Image
-                                            source={require("../assets/icons/apple-icon.png")}
-                                            style={styles.socialIcon}
-                                            resizeMode="contain"
-                                        />
-                                        <Text style={styles.socialText}>Apple</Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity style={styles.socialButtonWrapper}>
-                                        <Image
-                                            source={require("../assets/icons/google-icon.png")}
-                                            style={styles.socialIcon}
-                                            resizeMode="contain"
-                                        />
-                                        <Text style={styles.socialText}>Google</Text>
-                                    </TouchableOpacity>
-                                </View>
                             </View>
                         </ScrollView>
                     </ThemedView>
@@ -533,54 +463,6 @@ const desktopStyles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "700",
     },
-    divider: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 26,
-        marginBottom: 20,
-        gap: 12,
-    },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: "#E2E8F0",
-    },
-    dividerText: {
-        fontSize: 14,
-        color: "#94A3B8",
-        fontWeight: "500",
-    },
-    socialContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        gap: 12,
-    },
-    socialButtonWrapper: {
-        flex: 1,
-        height: 58,
-        borderRadius: 15,
-        backgroundColor: "#FFFFFF",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "row",
-        borderWidth: 1,
-        borderColor: "#DDE5F0",
-        shadowColor: "#0F172A",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.05,
-        shadowRadius: 12,
-        elevation: 4,
-    },
-    socialIcon: {
-        width: 22,
-        height: 22,
-        marginRight: 8,
-    },
-    socialText: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#1E293B",
-    },
 });
 
 const mobileStyles = StyleSheet.create({
@@ -716,53 +598,6 @@ const mobileStyles = StyleSheet.create({
         fontSize: 16,
         lineHeight: 21,
         fontWeight: "700",
-    },
-    mobileDivider: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 12,
-        marginBottom: 10,
-        gap: 9,
-    },
-    mobileDividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: "#E2E8F0",
-    },
-    mobileDividerText: {
-        fontSize: 12,
-        lineHeight: 17,
-        color: "#94A3B8",
-        fontWeight: "500",
-    },
-    mobileSocialContainer: {
-        width: "100%",
-        flexDirection: "row",
-        gap: 7,
-    },
-    mobileSocialButton: {
-        flex: 1,
-        minWidth: 0,
-        height: 40,
-        borderRadius: 10,
-        backgroundColor: "#FFFFFF",
-        borderWidth: 1,
-        borderColor: "#DDE5F0",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: 4,
-    },
-    mobileSocialIcon: {
-        width: 18,
-        height: 18,
-        marginRight: 4,
-    },
-    mobileSocialText: {
-        fontSize: 11,
-        lineHeight: 15,
-        fontWeight: "600",
-        color: "#1E293B",
     },
 });
 

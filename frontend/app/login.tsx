@@ -155,29 +155,6 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <View style={mobileStyles.mobileDivider}>
-                  <View style={mobileStyles.mobileDividerLine} />
-                  <Text style={mobileStyles.mobileDividerText}>lub kontynuuj przez</Text>
-                  <View style={mobileStyles.mobileDividerLine} />
-                </View>
-
-                <View style={mobileStyles.mobileSocialContainer}>
-                  <TouchableOpacity style={mobileStyles.mobileSocialButton} activeOpacity={0.75}>
-                    <Image source={require('../assets/icons/google-icon.png')} style={mobileStyles.mobileSocialIcon} resizeMode="contain" />
-                    <Text style={mobileStyles.mobileSocialText}>Google</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={mobileStyles.mobileSocialButton} activeOpacity={0.75}>
-                    <Image source={require('../assets/icons/facebook-icon.png')} style={mobileStyles.mobileSocialIcon} resizeMode="contain" />
-                    <Text style={mobileStyles.mobileSocialText}>Facebook</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={mobileStyles.mobileSocialButton} activeOpacity={0.75}>
-                    <Image source={require('../assets/icons/apple-icon.png')} style={mobileStyles.mobileSocialIcon} resizeMode="contain" />
-                    <Text style={mobileStyles.mobileSocialText}>Apple</Text>
-                  </TouchableOpacity>
-                </View>
-
                 <Link href="/rejestracja" dismissTo style={mobileStyles.mobileLink} onPress={()=> router.push("/rejestracja")}>
                   <Text style={mobileStyles.mobileLinkText}>
                     Nie masz jeszcze konta?{" "}
@@ -260,38 +237,6 @@ export default function LoginScreen() {
     </TouchableOpacity>
       </View>
 
-     <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>lub kontynuuj przez</Text>
-                <View style={styles.dividerLine} />
-    </View>
-
-
-     <View style={styles.socialContainer}>
-                    <TouchableOpacity style={styles.socialButtonWrapper}> 
-                    <Image source={require('../assets/icons/facebook-icon.png')} style={styles.socialIcon} resizeMode="contain">
-
-                    </Image>
-                     <Text style={styles.socialText}>Facebook</Text>
-                        </TouchableOpacity>
-
-
-                         <TouchableOpacity style={styles.socialButtonWrapper}> 
-                    <Image source={require('../assets/icons/apple-icon.png')} style={styles.socialIcon} resizeMode="contain">
-                      
-                    </Image>
-                     <Text style={styles.socialText}>Apple</Text>
-                        </TouchableOpacity >
-
-
-                         <TouchableOpacity style={styles.socialButtonWrapper}> 
-                    <Image source={require('../assets/icons/google-icon.png')} style={styles.socialIcon} resizeMode="contain">
-
-                    </Image>
-                     <Text style={styles.socialText}>Google</Text>
-                        </TouchableOpacity>
-                        
-            </View>
          <Link href="/rejestracja" dismissTo style={styles.link}> 
          <Text style={styles.linkText}>
                   Nie masz jeszcze konta?{" "}
@@ -378,32 +323,6 @@ const desktopStyles = StyleSheet.create({
       color: "#071536",
       letterSpacing: -0.6,
     },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 32,
-  },
-  socialButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  socialIcon: {
-    width: 22,
-    height: 22,
-    marginRight : 8,
-  },
   form: {
     width: '100%',
   },
@@ -492,26 +411,6 @@ const desktopStyles = StyleSheet.create({
    width: 220,
   height: 100,
   },
-  socialButtonWrapper: {
-    flex: 1,
-    height: 58,
-    borderRadius: 15,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#DDE5F0",
-
-    shadowColor: "#0F172A",
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 4,
-  },
    safeArea: {
     flex: 1,
     backgroundColor: "#F4F8FF",
@@ -557,32 +456,6 @@ const desktopStyles = StyleSheet.create({
     color: "#2563EB",
     fontWeight: "600",
   },
-    divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 30,
-    marginBottom: 24,
-    gap: 12,
-  },
-
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#E2E8F0",
-  },
-
-  dividerText: {
-    fontSize: 14,
-    color: "#94A3B8",
-    fontWeight: "500",
-  },
-  socialText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1E293B",
-  },
-
-
 });
 
 const mobileStyles = StyleSheet.create({
@@ -758,54 +631,6 @@ const mobileStyles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 21,
     fontWeight: "700",
-  },
-  mobileDivider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    marginBottom: 10,
-    gap: 9,
-  },
-  mobileDividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#E2E8F0",
-  },
-  mobileDividerText: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: "#94A3B8",
-    fontWeight: "500",
-  },
-  mobileSocialContainer: {
-    width: "100%",
-    flexDirection: "row",
-    gap: 7,
-    marginBottom: 10,
-  },
-  mobileSocialButton: {
-    flex: 1,
-    minWidth: 0,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#DDE5F0",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
-  mobileSocialIcon: {
-    width: 18,
-    height: 18,
-    marginRight: 4,
-  },
-  mobileSocialText: {
-    fontSize: 11,
-    lineHeight: 15,
-    fontWeight: "600",
-    color: "#1E293B",
   },
   mobileLink: {
     alignItems: "center",
